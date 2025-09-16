@@ -1,7 +1,7 @@
 
   # FirstStep app
 
-  This is a code bundle for FirstStep app. The original project is available at https://www.figma.com/design/NkWQE6B4W3HCXt0YOAWPl9/FirstStep-app.
+  This is a code bundle for FirstStep app. 
 
   ## Running the code
 

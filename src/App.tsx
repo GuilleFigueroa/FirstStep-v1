@@ -1,0 +1,305 @@
+import { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
+import { TextAnalysisMode } from "./components/TextAnalysisMode";
+import { ProfileSummary } from "./components/ProfileSummary";
+import { JobPostingConfig } from "./components/JobPostingConfig";
+import { CandidateSimulation } from "./components/CandidateSimulation";
+import { CustomQuestionConfig } from "./components/CustomQuestionConfig";
+import { CandidatesTable } from "./components/CandidatesTable";
+import { PostulationsTable } from "./components/PostulationsTable";
+import { Dashboard } from "./components/Dashboard";
+import { Layout } from "./components/Layout";
+import { AuthScreen } from "./components/AuthScreen";
+import { RoleSelection } from "./components/RoleSelection";
+import { CandidateFlow } from "./components/CandidateFlow";
+import { FileText } from "lucide-react";
+
+export interface ProfileRequirement {
+  id: string;
+  category:
+    | "experience"
+    | "tools"
+    | "technical"
+    | "other-skills";
+  title: string;
+  level?: "básico" | "intermedio" | "avanzado";
+  required: boolean;
+  years?: number;
+}
+
+export interface FormQuestion {
+  id: string;
+  question: string;
+  type: 'open' | 'multiple-choice';
+  options?: string[];
+  required: boolean;
+}
+
+export interface JobProfile {
+  title: string;
+  requirements: ProfileRequirement[];
+  customPrompt?: string;
+  customQuestion?: string;
+  formQuestions?: FormQuestion[];
+}
+
+export interface JobPosting {
+  profile: JobProfile;
+  companyName: string;
+  jobTitle: string;
+  candidateLimit?: number;
+}
+
+export interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+export default function App() {
+  const [selectedRole, setSelectedRole] = useState<'recruiter' | 'candidate' | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [activeSection, setActiveSection] =
+    useState("dashboard"); // Cambiado a dashboard por defecto
+
+  const [currentProfile, setCurrentProfile] =
+    useState<JobProfile | null>(null);
+  const [currentPosting, setCurrentPosting] =
+    useState<JobPosting | null>(null);
+  const [currentStep, setCurrentStep] = useState<
+    | "config"
+    | "summary"
+    | "custom-question"
+    | "posting"
+    | "simulation"
+  >("config");
+
+  const handleProfileCreated = (profile: JobProfile) => {
+    setCurrentProfile(profile);
+    setCurrentStep("summary");
+  };
+
+  const handleBackToConfig = () => {
+    setCurrentStep("config");
+  };
+
+  const handleSaveAsTemplate = () => {
+    alert(
+      "¡Plantilla guardada exitosamente! Podrás usarla en futuros perfiles.",
+    );
+  };
+
+  const handleContinueToCustomQuestion = () => {
+    setCurrentStep("custom-question");
+  };
+
+  const handleContinueToPosting = () => {
+    setCurrentStep("posting");
+  };
+
+  const handleBackToSummary = () => {
+    setCurrentStep("summary");
+  };
+
+  const handleBackToCustomQuestion = () => {
+    setCurrentStep("custom-question");
+  };
+
+  const handleCustomQuestionConfigured = (
+    profile: JobProfile,
+  ) => {
+    setCurrentProfile(profile);
+    setCurrentStep("posting");
+  };
+
+  const handleCreatePosting = (jobPosting: JobPosting) => {
+    setCurrentPosting(jobPosting);
+    console.log("Job posting created:", jobPosting);
+  };
+
+  const handleStartSimulation = () => {
+    setCurrentStep("simulation");
+  };
+
+  const handleBackToPosting = () => {
+    setCurrentStep("posting");
+  };
+
+  const handleAuthenticate = (user: UserData) => {
+    setUserData(user);
+    setIsAuthenticated(true);
+  };
+
+  const handleRoleSelect = (role: 'recruiter' | 'candidate') => {
+    setSelectedRole(role);
+  };
+
+  const handleBackToRoleSelection = () => {
+    setSelectedRole(null);
+    setIsAuthenticated(false);
+    setUserData(null);
+    // Reset application state
+    setActiveSection("dashboard");
+    setCurrentStep("config");
+    setCurrentProfile(null);
+    setCurrentPosting(null);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUserData(null);
+    // Reset application state when logging out
+    setActiveSection("dashboard");
+    setCurrentStep("config");
+    setCurrentProfile(null);
+    setCurrentPosting(null);
+  };
+
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    // Reset a config cuando cambiamos de sección a applications
+    if (section === "applications") {
+      setCurrentStep("config");
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return "Dashboard";
+      case "candidates":
+        return "Candidatos";
+      case "applications":
+        return "Definición del perfil";
+      case "active-processes":
+        return "Gestión de Postulaciones";
+      default:
+        return "Dashboard";
+    }
+  };
+
+  const getPageSubtitle = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return "Resumen general de tu actividad de reclutamiento";
+      case "candidates":
+        return "Administra los procesos de cada candidato";
+      case "applications":
+        return "Configura los requisitos del perfil buscado";
+      case "active-processes":
+        return "Administra y controla tus postulaciones activas";
+      default:
+        return "Resumen general de tu actividad de reclutamiento";
+    }
+  };
+
+  // Contenido del configurador
+  const ConfiguratorContent = () => (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileText className="w-5 h-5" />
+          Escribir o Pegar Descripción del Perfil
+        </CardTitle>
+        <CardDescription>
+          Describe el perfil del candidato ideal o pega una descripción de trabajo existente
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="mt-6">
+        <TextAnalysisMode
+          onProfileCreated={handleProfileCreated}
+        />
+      </CardContent>
+    </Card>
+  );
+
+  // Mostrar selección de rol si no se ha seleccionado
+  if (!selectedRole) {
+    return <RoleSelection onRoleSelect={handleRoleSelect} />;
+  }
+
+  // Mostrar flujo del candidato (placeholder)
+  if (selectedRole === 'candidate') {
+    return <CandidateFlow onBack={handleBackToRoleSelection} />;
+  }
+
+  // Para reclutador: mostrar pantalla de autenticación si no está autenticado
+  if (!isAuthenticated) {
+    return <AuthScreen onAuthenticate={handleAuthenticate} />;
+  }
+
+  return (
+    <Layout
+      activeSection={activeSection}
+      onSectionChange={handleSectionChange}
+      title={getPageTitle()}
+      subtitle={getPageSubtitle()}
+      userData={userData}
+      onLogout={handleLogout}
+      onBackToRoleSelection={handleBackToRoleSelection}
+    >
+      {/* Dashboard Section */}
+      {activeSection === "dashboard" && <Dashboard />}
+
+      {/* Candidates Section */}
+      {activeSection === "candidates" && <CandidatesTable />}
+
+      {/* Applications Section */}
+      {activeSection === "applications" && (
+        <>
+          {currentStep === "config" && <ConfiguratorContent />}
+
+          {currentStep === "summary" && currentProfile && (
+            <div className="max-w-4xl mx-auto">
+              <ProfileSummary
+                profile={currentProfile}
+                onBack={handleBackToConfig}
+                onSaveAsTemplate={handleSaveAsTemplate}
+                onContinue={handleContinueToCustomQuestion}
+              />
+            </div>
+          )}
+
+          {currentStep === "custom-question" &&
+            currentProfile && (
+              <div className="max-w-4xl mx-auto">
+                <CustomQuestionConfig
+                  profile={currentProfile}
+                  onBack={handleBackToSummary}
+                  onContinue={handleCustomQuestionConfigured}
+                />
+              </div>
+            )}
+
+          {currentStep === "posting" && currentProfile && (
+            <div className="max-w-4xl mx-auto">
+              <JobPostingConfig
+                profile={currentProfile}
+                onBack={handleBackToCustomQuestion}
+                onCreatePosting={handleCreatePosting}
+                onStartSimulation={handleStartSimulation}
+              />
+            </div>
+          )}
+
+          {currentStep === "simulation" && currentPosting && (
+            <CandidateSimulation
+              jobPosting={currentPosting}
+              onBack={handleBackToPosting}
+            />
+          )}
+        </>
+      )}
+
+      {/* Active Processes Section */}
+      {activeSection === "active-processes" && <PostulationsTable />}
+    </Layout>
+  );
+}

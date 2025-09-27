@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
+import { Button } from '../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
+import { Badge } from '../../ui/components/ui/badge';
 import { 
   ArrowLeft,
   CheckCircle,

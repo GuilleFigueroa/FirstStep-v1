@@ -23,14 +23,14 @@ import {
   Linkedin,
   ExternalLink
 } from 'lucide-react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Progress } from './ui/progress';
-import { Separator } from './ui/separator';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
-import { Textarea } from './ui/textarea';
+import { Button } from '../../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Badge } from '../../../ui/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
+import { Progress } from '../../../ui/components/ui/progress';
+import { Separator } from '../../../ui/components/ui/separator';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../../../ui/components/ui/collapsible';
+import { Textarea } from '../../../ui/components/ui/textarea';
 
 
 interface CandidateProfileProps {

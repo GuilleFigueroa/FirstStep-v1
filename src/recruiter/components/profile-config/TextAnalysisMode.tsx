@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
+import { Button } from '../../../ui/components/ui/button';
+import { Textarea } from '../../../ui/components/ui/textarea';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Switch } from './ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Input } from './ui/input';
-import { Separator } from './ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Badge } from '../../../ui/components/ui/badge';
+import { Switch } from '../../../ui/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
+import { Input } from '../../../ui/components/ui/input';
+import { Separator } from '../../../ui/components/ui/separator';
 import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X } from 'lucide-react';
 import { CustomPromptBox } from './CustomPromptBox';
-import type { JobProfile, ProfileRequirement } from '../App';
+import type { JobProfile, ProfileRequirement } from '../../../app/App';
 
 interface TextAnalysisModeProps {
   onProfileCreated: (profile: JobProfile) => void;

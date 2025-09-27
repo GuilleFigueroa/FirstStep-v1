@@ -1,7 +1,7 @@
 import { Search, Bell, Plus, LogOut, ArrowLeft } from 'lucide-react';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Input } from '../../../ui/components/ui/input';
+import { Button } from '../../../ui/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
 import { Sidebar } from './Sidebar';
 
 interface LayoutProps {

@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
+import { Textarea } from '../../../ui/components/ui/textarea';
+import { Label } from '../../../ui/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Badge } from '../../../ui/components/ui/badge';
 import { Sparkles, Lightbulb } from 'lucide-react';
 
 interface CustomPromptBoxProps {

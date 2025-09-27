@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from '../../ui/components/ui/button';
+import { Input } from '../../ui/components/ui/input';
+import { Label } from '../../ui/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { 
   ArrowLeft,
   Zap,

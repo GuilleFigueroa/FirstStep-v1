@@ -5,19 +5,19 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./components/ui/card";
-import { TextAnalysisMode } from "./components/TextAnalysisMode";
-import { ProfileSummary } from "./components/ProfileSummary";
-import { JobPostingConfig } from "./components/JobPostingConfig";
-import { CandidateSimulation } from "./components/CandidateSimulation";
-import { CustomQuestionConfig } from "./components/CustomQuestionConfig";
-import { CandidatesTable } from "./components/CandidatesTable";
-import { PostulationsTable } from "./components/PostulationsTable";
-import { Dashboard } from "./components/Dashboard";
-import { Layout } from "./components/Layout";
-import { AuthScreen } from "./components/AuthScreen";
-import { RoleSelection } from "./components/RoleSelection";
-import { CandidateFlow } from "./components/CandidateFlow";
+} from "../ui/components/ui/card";
+import { TextAnalysisMode } from "../recruiter/components/profile-config/TextAnalysisMode";
+import { ProfileSummary } from "../recruiter/components/profile-config/ProfileSummary";
+import { JobPostingConfig } from "../recruiter/components/profile-config/JobPostingConfig";
+import { CandidateSimulation } from "../recruiter/components/candidates/CandidateSimulation";
+import { CustomQuestionConfig } from "../recruiter/components/profile-config/CustomQuestionConfig";
+import { CandidatesTable } from "../recruiter/components/candidates/CandidatesTable";
+import { PostulationsTable } from "../recruiter/components/postulations/PostulationsTable";
+import { Dashboard } from "../recruiter/components/dashboard/Dashboard";
+import { Layout } from "../recruiter/components/dashboard/Layout";
+import { AuthScreen } from "../recruiter/components/auth/AuthScreen";
+import { RoleSelection } from "../shared/components/RoleSelection";
+import { CandidateFlow } from "../candidate/components/CandidateFlow";
 import { FileText } from "lucide-react";
 
 export interface ProfileRequirement {

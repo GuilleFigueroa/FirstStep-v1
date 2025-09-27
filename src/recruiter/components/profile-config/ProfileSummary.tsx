@@ -1,9 +1,9 @@
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Separator } from './ui/separator';
+import { Button } from '../../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Badge } from '../../../ui/components/ui/badge';
+import { Separator } from '../../../ui/components/ui/separator';
 import { ArrowLeft, Save, CheckCircle, Star, Calendar, Wrench, Brain, AlertTriangle, Sparkles, ChevronRight } from 'lucide-react';
-import type { JobProfile } from '../App';
+import type { JobProfile } from '../../../app/App';
 
 interface ProfileSummaryProps {
   profile: JobProfile;

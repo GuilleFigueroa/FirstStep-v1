@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
+import { Button } from '../../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Input } from '../../../ui/components/ui/input';
+import { Label } from '../../../ui/components/ui/label';
 import { Zap, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 interface AuthScreenProps {

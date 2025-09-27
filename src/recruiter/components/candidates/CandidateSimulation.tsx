@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Textarea } from './ui/textarea';
-import { Badge } from './ui/badge';
-import { Progress } from './ui/progress';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Separator } from './ui/separator';
+import { Button } from '../../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
+import { Input } from '../../../ui/components/ui/input';
+import { Label } from '../../../ui/components/ui/label';
+import { Textarea } from '../../../ui/components/ui/textarea';
+import { Badge } from '../../../ui/components/ui/badge';
+import { Progress } from '../../../ui/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
+import { Separator } from '../../../ui/components/ui/separator';
 import { 
   ArrowLeft, 
   ArrowRight,

@@ -16,6 +16,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailVerificationNeeded, setEmailVerificationNeeded] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -41,6 +42,9 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
 
         if (result.success && result.user) {
           onAuthenticate(result.user);
+        } else if (result.needsEmailVerification) {
+          setEmailVerificationNeeded(true);
+          setError(null);
         } else {
           setError(result.error || 'Error during registration');
         }
@@ -76,6 +80,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
       password: ''
     });
     setError(null);
+    setEmailVerificationNeeded(false);
   };
 
   const switchMode = () => {
@@ -107,20 +112,49 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
           </p>
         </div>
 
+        {/* Mensaje de verificación de email */}
+        {emailVerificationNeeded && (
+          <Card className="border-blue-200 bg-blue-50">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-blue-900">¡Verifica tu email!</h3>
+                <p className="text-sm text-blue-700">
+                  Te hemos enviado un email de verificación a <strong>{formData.email}</strong>
+                </p>
+                <p className="text-xs text-blue-600">
+                  Haz clic en el enlace del email para activar tu cuenta y luego podrás iniciar sesión.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEmailVerificationNeeded(false)}
+                  className="mt-4"
+                >
+                  Entendido
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Formulario */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
-            </CardTitle>
-            <CardDescription>
-              {mode === 'login' 
-                ? 'Ingresa tus credenciales para acceder' 
-                : 'Completa tus datos para comenzar'
-              }
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {!emailVerificationNeeded && (
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
+              </CardTitle>
+              <CardDescription>
+                {mode === 'login'
+                  ? 'Ingresa tus credenciales para acceder'
+                  : 'Completa tus datos para comenzar'
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Campos de registro */}
               {mode === 'register' && (
@@ -252,6 +286,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Footer simple */}
         <div className="text-center text-xs text-muted-foreground">

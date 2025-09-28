@@ -6,8 +6,8 @@
 **FirstStep** es una aplicación web de **preselección inteligente de personal** destinada a reclutadores. Su objetivo es mejorar el primer filtro de candidatos mediante IA, optimizando la transparencia y calidad de información en el proceso de selección.
 
 ### Problema que Resuelve
-- **Problema**: Los reclutadores descartan candidatos prematuramente por información incompleta o malentendidos en CVs
-- **Solución**: IA que detecta gaps y genera preguntas específicas para aclarar y mejorar la información del perfil
+- **Problema**: Los reclutadores descartan candidatos prematuramente por información incompleta o malentendidos en CVs.
+- **Solución**: IA que detecta gaps, incongruencias, requisitos faltantes o información incompleta y genera preguntas específicas para aclarar y mejorar la información del perfil.
 
 ## 🔄 Flujo Funcional Completo
 

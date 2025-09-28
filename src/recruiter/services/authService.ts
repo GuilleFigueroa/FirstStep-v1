@@ -18,15 +18,23 @@ export interface AuthResponse {
   success: boolean
   user?: Profile
   error?: string
+  needsEmailVerification?: boolean
 }
 
 // Registro de nuevo reclutador
 export async function signUp(data: SignUpData): Promise<AuthResponse> {
   try {
-    // Crear usuario en Auth
+    // Crear usuario en Auth (almacenamos datos para usar después de verificación)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
+      options: {
+        data: {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          company_name: data.companyName,
+        }
+      }
     })
 
     if (authError) {
@@ -37,27 +45,41 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
       return { success: false, error: 'Error creating user' }
     }
 
-    // Crear perfil del reclutador
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email: data.email,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        company_name: data.companyName,
-      })
-      .select()
-      .single()
-
-    if (profileError) {
-      return { success: false, error: profileError.message }
+    // Si el usuario no está confirmado, retornar para verificación
+    if (!authData.user.email_confirmed_at) {
+      return {
+        success: true,
+        needsEmailVerification: true,
+        error: 'Please check your email and click the verification link to complete your registration.'
+      }
     }
 
-    return { success: true, user: profile }
+    // Si ya está verificado, crear perfil inmediatamente
+    return await createUserProfile(authData.user, data)
   } catch (error) {
     return { success: false, error: 'Unexpected error during sign up' }
   }
+}
+
+// Función auxiliar para crear perfil de usuario
+async function createUserProfile(user: any, signUpData: SignUpData): Promise<AuthResponse> {
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .insert({
+      id: user.id,
+      email: signUpData.email,
+      first_name: signUpData.firstName,
+      last_name: signUpData.lastName,
+      company_name: signUpData.companyName,
+    })
+    .select()
+    .single()
+
+  if (profileError) {
+    return { success: false, error: profileError.message }
+  }
+
+  return { success: true, user: profile }
 }
 
 // Login de reclutador existente
@@ -76,12 +98,36 @@ export async function signIn(data: SignInData): Promise<AuthResponse> {
       return { success: false, error: 'Authentication failed' }
     }
 
+    // Verificar que el email esté confirmado
+    if (!authData.user.email_confirmed_at) {
+      return {
+        success: false,
+        error: 'Please verify your email before signing in. Check your email for the verification link.'
+      }
+    }
+
     // Obtener perfil del reclutador
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .single()
+
+    // Si no existe el perfil, crearlo usando metadata
+    if (profileError && profileError.code === 'PGRST116') {
+      const userData = authData.user.user_metadata
+      if (userData.first_name && userData.last_name) {
+        return await createUserProfile(authData.user, {
+          email: authData.user.email!,
+          password: '', // No necesitamos la contraseña aquí
+          firstName: userData.first_name,
+          lastName: userData.last_name,
+          companyName: userData.company_name
+        })
+      } else {
+        return { success: false, error: 'Profile not found and missing required data to create it.' }
+      }
+    }
 
     if (profileError || !profile) {
       return { success: false, error: 'Profile not found' }

@@ -16,6 +16,8 @@ import {
 interface JobInfo {
   title: string;
   company: string;
+  description?: string;
+  processId: string;
 }
 
 interface CandidateData {

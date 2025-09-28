@@ -16,7 +16,7 @@ const navigationItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'applications', label: 'Crear Postulación', icon: FileText },
   { id: 'candidates', label: 'Candidatos', icon: Users },
-  { id: 'active-processes', label: 'Gestión de Postulaciones', icon: Clock },
+  { id: 'postulation-processes', label: 'Gestión de Postulaciones', icon: Clock },
 ];
 
 export function Sidebar({ activeSection = 'applications', onSectionChange }: SidebarProps) {

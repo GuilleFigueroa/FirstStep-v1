@@ -3,7 +3,8 @@ import { CandidateRegistration } from './CandidateRegistration';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
-import { 
+import type { Process } from '../../shared/services/supabase';
+import {
   ArrowLeft,
   CheckCircle,
   Zap,
@@ -13,7 +14,16 @@ import {
   Send
 } from 'lucide-react';
 
+interface JobInfo {
+  title: string;
+  company: string;
+  description?: string;
+  processId: string;
+}
+
 interface CandidateFlowProps {
+  jobInfo: JobInfo;
+  process: Process;
   onBack: () => void;
 }
 
@@ -26,15 +36,9 @@ interface CandidateData {
 
 type FlowStep = 'registration' | 'profile' | 'questions' | 'confirmation';
 
-export function CandidateFlow({ onBack }: CandidateFlowProps) {
+export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('registration');
   const [candidateData, setCandidateData] = useState<CandidateData | null>(null);
-
-  // Mock job information - in a real app this would come from URL params or API
-  const jobInfo = {
-    title: 'Frontend Developer',
-    company: 'TechCorp Innovation'
-  };
 
   const handleRegistrationComplete = (data: CandidateData) => {
     setCandidateData(data);

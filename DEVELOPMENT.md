@@ -1,45 +1,11 @@
 # FirstStep - Documentación de Desarrollo
 
-## 📋 Contexto General de la Aplicación
+## 📋 Información de la Aplicación
 
-### ¿Qué es FirstStep?
-**FirstStep** es una aplicación web de **preselección inteligente de personal** destinada a reclutadores. Su objetivo es mejorar el primer filtro de candidatos mediante IA, optimizando la transparencia y calidad de información en el proceso de selección.
+Para entender **qué es FirstStep, cómo funciona y sus flujos de usuario**, consultar:
+**[PRODUCT_FLOW.md](./PRODUCT_FLOW.md)** - Documentación completa del producto y flujos funcionales
 
-### Problema que Resuelve
-- **Problema**: Los reclutadores descartan candidatos prematuramente por información incompleta o malentendidos en CVs.
-- **Solución**: IA que detecta gaps, incongruencias, requisitos faltantes o información incompleta y genera preguntas específicas para aclarar y mejorar la información del perfil.
-
-## 🔄 Flujo Funcional Completo
-
-### 1. Configuración del Reclutador
-- **Input**: Descripción del perfil/puesto buscado
-- **Proceso**: IA extrae requisitos automáticamente
-- **Configuración**:
-  - Requisitos **obligatorios** (eliminatorios) vs **deseables**
-  - Configuración de **sinónimos** para detección precisa
-  - Prompts específicos para contexto de IA
-  - Hasta **2 preguntas tipo formulario** (ej: residencia, salario)
-
-### 2. Proceso del Candidato
-- **Acceso**: Link único por proceso de postulación
-- **Flujo**:
-  1. Postulación con CV
-  2. IA analiza CV contra requisitos configurados
-  3. IA detecta gaps, información confusa o faltante
-  4. Genera **preguntas personalizadas específicas** para cada candidato
-  5. Candidato responde preguntas específicas
-  6. Sistema re-evalúa con información mejorada
-
-### 3. Evaluación y Gestión
-- **Scoring**: IA combina análisis de CV + respuestas
-- **Criterios fijos**: No se pueden modificar una vez establecidos
-- **Dashboard**: Gestión de múltiples procesos de postulación
-- **Output**: Reclutador revisa CV + respuestas + score de cada candidato
-
-### 4. Transparencia
-- **Candidato informado**: Se le explica el proceso de preguntas antes de comenzar
-- **Resultado final**: Candidato recibe resumen de requisitos cumplidos y mejoras logradas
-- **Sin feedback**: No se explica el "por qué" de cada pregunta específica
+Este documento se enfoca en el **avance técnico, estructura de desarrollo y decisiones arquitectónicas**.
 
 ## 🏗️ Arquitectura Técnica
 
@@ -112,7 +78,37 @@ src/
 
 ## 📊 Decisiones Arquitectónicas Tomadas
 
-### Integración de Autenticación Real con Supabase (Commit actual)
+### Implementación de Acceso por Link Único + Corrección de Routing (Commit actual)
+**Fecha**: 28-09-2024
+**Problema**: Sin acceso directo por URLs candidatos + Errores en autenticación y flujo de creación procesos post-routing
+**Solución**: React Router implementado + Reestructuración App.tsx + Corrección estados y props componentes
+**Resultado**: URLs funcionales `/apply/:processId` + Flujos reclutador y candidato operativos
+
+#### Cambios Implementados:
+- ✅ **React Router DOM instalado**: Manejo completo de rutas URL
+- ✅ **CandidateApplication.tsx creado**: Componente para acceso por link único con validaciones
+- ✅ **getProcessByUniqueId() implementado**: Servicio para obtener procesos por URL
+- ✅ **RecruiterApp.tsx separado**: Flujo reclutador independiente con todos los estados
+- ✅ **App.tsx reestructurado**: Routes principal `/` y `/apply/:processId`
+- ✅ **Estados críticos restaurados**: currentStep, currentProfile, currentPosting y handlers
+- ✅ **Props corregidas**: AuthScreen, TextAnalysisMode, JobPostingConfig, CustomQuestionConfig
+- ✅ **Flujo configuración funcional**: Pasos config → summary → custom-question → posting → simulation
+
+### Implementación Completa de Persistencia de Procesos (Commit previo)
+**Fecha**: 28-09-2024
+**Problema**: Procesos de reclutamiento se perdían al recargar, datos simulados en dashboard y gestión
+**Solución**: Implementación completa de persistencia con base de datos real y flujo funcional
+**Resultado**: Sistema completo de gestión de procesos con datos reales
+
+#### Cambios Implementados:
+- ✅ **processService.ts creado**: CRUD completo para procesos, generación de links únicos
+- ✅ **JobPostingConfig.tsx mejorado**: Guardado real en BD, loading states, manejo de errores
+- ✅ **PostulationsTable.tsx conectado**: Datos reales de Supabase, gestión de estados de procesos
+- ✅ **Dashboard.tsx actualizado**: Métricas reales, saludo personalizado, estadísticas en tiempo real
+- ✅ **App.tsx integrado**: Paso correcto de userProfile a todos los componentes
+- ✅ **Flujo completo funcional**: Crear → Guardar → Gestionar → Dashboard real
+
+### Integración de Autenticación Real con Supabase (Commit previo)
 **Fecha**: 27-09-2024
 **Problema**: Autenticación mock limitaba testing real y preparación para producción
 **Solución**: Integración completa con Supabase para autenticación y base de datos real
@@ -158,21 +154,25 @@ src/
 ## 🎯 Próximos Pasos por Implementar
 
 ### Prioridad Alta - SIGUIENTE SESIÓN
-1. **Persistencia de Procesos de Reclutamiento** (`/src/recruiter/services/`)
-   - Crear `processService.ts` para CRUD de procesos
-   - Integrar guardado automático en `JobPostingConfig.tsx`
-   - Mostrar procesos reales en `PostulationsTable.tsx`
-   - Permitir edición/eliminación de procesos existentes
+1. **✅ COMPLETADO: Persistencia de Procesos de Reclutamiento**
+   - ✅ `processService.ts` creado con CRUD completo
+   - ✅ Guardado automático integrado en `JobPostingConfig.tsx`
+   - ✅ Procesos reales mostrados en `PostulationsTable.tsx`
+   - ✅ Edición/eliminación de procesos implementada
+   - ✅ Dashboard conectado con datos reales de Supabase
 
-2. **Mejoras de Dashboard** (`/src/recruiter/components/dashboard/`)
-   - Conectar `Dashboard.tsx` con datos reales de Supabase
-   - Métricas en tiempo real (procesos activos, candidatos totales)
-   - Estados de procesos (activo, cerrado, pausado)
+2. **Desarrollo completo del flujo candidato** (`/src/candidate/components/`)
+   - Implementar acceso por link único a procesos
+   - Desarrollo del formulario de postulación con CV
+   - Sistema de preguntas personalizadas generadas por IA
+   - Conectar con lógica de scoring y evaluación
+   - Resultado final para candidato con feedback
 
-3. **Desarrollo completo del flujo candidato** (Después de procesos)
-   - Implementar proceso de preguntas personalizadas
-   - Conectar con lógica de scoring
-   - Resultado final para candidato
+3. **Gestión de candidatos** (`/src/recruiter/components/candidates/`)
+   - Conectar `CandidatesTable.tsx` con datos reales
+   - Mostrar candidatos por proceso específico
+   - Implementar `CandidateProfile.tsx` con datos reales
+   - Sistema de scoring y ranking de candidatos
 
 ### Prioridad Media
 4. **Funcionalidades IA** (Una vez que flujos básicos estén completos)
@@ -180,9 +180,9 @@ src/
    - Generación dinámica de preguntas
    - Sistema de scoring inteligente
 
-5. **Sistema de links únicos**
-   - Generación de URLs específicas por proceso
-   - Gestión de accesos candidatos
+5. **✅ COMPLETADO: Sistema de links únicos**
+   - ✅ Generación de URLs específicas por proceso
+   - ⏳ Gestión de accesos candidatos (pendiente flujo candidato)
 
 6. **Gestión de sinónimos**
    - Interface para configurar términos de búsqueda
@@ -205,10 +205,13 @@ src/
 ## 🚨 Consideraciones Importantes
 
 ### Limitaciones Actuales
-- **Procesos no persisten**: Se crean en memoria, se pierden al recargar
-- **Flujo candidato incompleto**: Solo demo/placeholder
-- **Dashboard con datos mock**: Métricas no son reales
-- **IA no implementada**: Funcionalidades simuladas
+- **✅ RESUELTO: Procesos persisten**: Guardado real en base de datos funcional
+- **✅ RESUELTO: Dashboard con datos reales**: Métricas reales implementadas
+- **✅ RESUELTO: Acceso por link único**: URLs funcionales para candidatos
+- **✅ RESUELTO: Errores autenticación y flujo**: Estados y props corregidos
+- **Flujo candidato incompleto**: Solo registro implementado, faltan pasos CV, preguntas, scoring
+- **IA no implementada**: Funcionalidades simuladas, pendiente integración con LLM
+- **Gestión de candidatos**: Componentes existen pero sin conexión a datos reales
 
 ### Principios de Desarrollo
 - **Simplicidad**: Mantener código claro para no-programadores
@@ -245,6 +248,6 @@ npm run build
 
 ---
 
-**Última actualización**: 27-09-2024
-**Estado**: Autenticación real funcionando, estructura optimizada, listo para persistencia de procesos
+**Última actualización**: 28-09-2024
+**Estado**: Acceso por link único implementado, routing funcional, flujo reclutador operativo, listo para desarrollo completo flujo candidato
 **Repositorio**: GitHub sincronizado y actualizado

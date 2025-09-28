@@ -63,8 +63,13 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
 
   // Cargar procesos del reclutador
   useEffect(() => {
-    loadProcesses();
-  }, [userProfile.id]);
+    if (userProfile?.id) {
+      loadProcesses();
+    } else {
+      setError('Error: Usuario no válido');
+      setLoading(false);
+    }
+  }, [userProfile?.id]);
 
   const loadProcesses = async () => {
     try {

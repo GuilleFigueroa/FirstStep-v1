@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -19,6 +19,8 @@ import { AuthScreen } from "../recruiter/components/auth/AuthScreen";
 import { RoleSelection } from "../shared/components/RoleSelection";
 import { CandidateFlow } from "../candidate/components/CandidateFlow";
 import { FileText } from "lucide-react";
+import { getCurrentUser, signOut } from "../recruiter/services/authService";
+import type { Profile } from "../shared/services/supabase";
 
 export interface ProfileRequirement {
   id: string;
@@ -62,10 +64,21 @@ export interface UserData {
   email: string;
 }
 
+// Para compatibilidad con UserData existente
+function profileToUserData(profile: Profile): UserData {
+  return {
+    firstName: profile.first_name,
+    lastName: profile.last_name,
+    email: profile.email
+  };
+}
+
 export default function App() {
   const [selectedRole, setSelectedRole] = useState<'recruiter' | 'candidate' | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [userProfile, setUserProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] =
     useState("dashboard"); // Cambiado a dashboard por defecto
 
@@ -80,6 +93,27 @@ export default function App() {
     | "posting"
     | "simulation"
   >("config");
+
+  // Verificar sesión al cargar la app
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        setUserProfile(user);
+        setUserData(profileToUserData(user));
+        setIsAuthenticated(true);
+        setSelectedRole('recruiter');
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleProfileCreated = (profile: JobProfile) => {
     setCurrentProfile(profile);
@@ -132,8 +166,9 @@ export default function App() {
     setCurrentStep("posting");
   };
 
-  const handleAuthenticate = (user: UserData) => {
-    setUserData(user);
+  const handleAuthenticate = (profile: Profile) => {
+    setUserProfile(profile);
+    setUserData(profileToUserData(profile));
     setIsAuthenticated(true);
   };
 
@@ -141,25 +176,37 @@ export default function App() {
     setSelectedRole(role);
   };
 
-  const handleBackToRoleSelection = () => {
-    setSelectedRole(null);
-    setIsAuthenticated(false);
-    setUserData(null);
-    // Reset application state
-    setActiveSection("dashboard");
-    setCurrentStep("config");
-    setCurrentProfile(null);
-    setCurrentPosting(null);
+  const handleBackToRoleSelection = async () => {
+    try {
+      await signOut();
+      setSelectedRole(null);
+      setIsAuthenticated(false);
+      setUserData(null);
+      setUserProfile(null);
+      // Reset application state
+      setActiveSection("dashboard");
+      setCurrentStep("config");
+      setCurrentProfile(null);
+      setCurrentPosting(null);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setUserData(null);
-    // Reset application state when logging out
-    setActiveSection("dashboard");
-    setCurrentStep("config");
-    setCurrentProfile(null);
-    setCurrentPosting(null);
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setUserData(null);
+      setUserProfile(null);
+      // Reset application state when logging out
+      setActiveSection("dashboard");
+      setCurrentStep("config");
+      setCurrentProfile(null);
+      setCurrentPosting(null);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const handleSectionChange = (section: string) => {
@@ -219,6 +266,20 @@ export default function App() {
       </CardContent>
     </Card>
   );
+
+  // Loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-[#7572FF] rounded-lg flex items-center justify-center mx-auto mb-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+          <p className="text-gray-600">Cargando FirstStep...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Mostrar selección de rol si no se ha seleccionado
   if (!selectedRole) {

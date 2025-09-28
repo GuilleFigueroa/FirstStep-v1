@@ -3,41 +3,84 @@ import { Button } from '../../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
 import { Input } from '../../../ui/components/ui/input';
 import { Label } from '../../../ui/components/ui/label';
-import { Zap, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Zap, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { signIn, signUp } from '../../services/authService';
+import type { Profile } from '../../../shared/services/supabase';
 
 interface AuthScreenProps {
-  onAuthenticate: (userData: { firstName: string; lastName: string; email: string }) => void;
+  onAuthenticate: (userData: Profile) => void;
 }
 
 export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    companyName: '',
     email: '',
     password: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAuthenticate({
-      firstName: formData.firstName || 'Usuario',
-      lastName: formData.lastName || 'Demo',
-      email: formData.email || 'demo@firststep.com'
-    });
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (mode === 'register') {
+        const result = await signUp({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          companyName: formData.companyName
+        });
+
+        if (result.success && result.user) {
+          onAuthenticate(result.user);
+        } else {
+          setError(result.error || 'Error during registration');
+        }
+      } else {
+        const result = await signIn({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (result.success && result.user) {
+          onAuthenticate(result.user);
+        } else {
+          setError(result.error || 'Error during login');
+        }
+      }
+    } catch (err) {
+      setError('Unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleDemoAccess = () => {
-    onAuthenticate({
-      firstName: 'Demo',
-      lastName: 'User',
-      email: 'demo@firststep.com'
+  const resetForm = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      companyName: '',
+      email: '',
+      password: ''
     });
+    setError(null);
+  };
+
+  const switchMode = () => {
+    setMode(mode === 'login' ? 'register' : 'login');
+    resetForm();
   };
 
   return (
@@ -111,6 +154,23 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
                 </div>
               )}
 
+              {/* Empresa (solo registro) */}
+              {mode === 'register' && (
+                <div className="space-y-2">
+                  <Label htmlFor="companyName">Empresa (opcional)</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="companyName"
+                      placeholder="Mi Empresa"
+                      className="pl-10"
+                      value={formData.companyName}
+                      onChange={(e) => handleInputChange('companyName', e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">Correo electrónico</Label>
@@ -150,35 +210,46 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
                 </div>
               </div>
 
+              {/* Error message */}
+              {error && (
+                <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded">
+                  {error}
+                </div>
+              )}
+
               {/* Botón principal */}
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-[#7572FF] hover:bg-[#6863E8] text-white"
                 size="lg"
+                disabled={loading || !formData.email || !formData.password || (mode === 'register' && (!formData.firstName || !formData.lastName))}
               >
-                {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {mode === 'login' ? 'Iniciando...' : 'Creando cuenta...'}
+                  </>
+                ) : (
+                  mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'
+                )}
               </Button>
             </form>
 
-            {/* Demo button */}
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              onClick={handleDemoAccess}
-            >
-              🚀 Acceso Demo Rápido
-            </Button>
-
             {/* Cambiar modo */}
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            >
-              {mode === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}
-            </Button>
+            <div className="text-center">
+              <span className="text-sm text-muted-foreground">
+                {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+              </span>
+              <Button
+                type="button"
+                variant="link"
+                className="text-[#7572FF] font-medium ml-1 p-0 h-auto"
+                onClick={switchMode}
+                disabled={loading}
+              >
+                {mode === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

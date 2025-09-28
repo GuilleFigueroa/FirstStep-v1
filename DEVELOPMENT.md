@@ -219,6 +219,44 @@ src/
 - **Escalabilidad**: Preparado para crecimiento funcional
 - **Mantenibilidad**: Estructura clara para instrucciones específicas
 
+## 🚦 Reglas de Desarrollo (OBLIGATORIAS)
+
+### 📏 **Regla 1: "Un Cambio, Una Verificación"**
+- **NUNCA** implementar múltiples funcionalidades simultáneamente
+- **SIEMPRE** verificar que funciona antes de continuar al siguiente paso
+- **Verificación obligatoria**: Compilación + Funcionalidad existente + Nueva funcionalidad
+
+### 📏 **Regla 2: "Pasos Atómicos Definidos"**
+Para cada tarea grande, **OBLIGATORIAMENTE** dividir en subtareas verificables:
+
+**Ejemplo correcto:**
+1. ✅ Paso específico → Verificar que funciona → Documentar
+2. ✅ Siguiente paso → Verificar que funciona → Documentar
+3. ✅ Siguiente paso → Verificar que funciona → Documentar
+
+**❌ Incorrecto**: Implementar todo → Probar al final
+
+### 📏 **Regla 3: "STOP Obligatorio Después de Cada Paso"**
+Después de cada cambio atómico, verificar:
+- ✅ **Servidor levanta sin errores** (`npm run dev`)
+- ✅ **Funcionalidades existentes funcionan** (navegación, flujos principales)
+- ✅ **Nueva funcionalidad funciona** según lo esperado
+
+### 📏 **Regla 4: "Máximo 1 Archivo Complejo por Paso"**
+- Si necesito cambiar > 3 archivos = dividir en sub-pasos
+- Si es reestructuración arquitectural = crear backup explícito
+- Cambios incrementales siempre
+
+### 📏 **Regla 5: "Commit Temprano y Frecuente"**
+- Cada paso atómico completado = commit potencial
+- Mensajes descriptivos del cambio específico
+- Fácil rollback granular si algo falla
+
+### 🎯 **Objetivos de estas Reglas:**
+- **💡 Evitar errores** en cascada y debugging masivo
+- **⏰ Ahorrar tiempo** evitando sesiones de arreglos
+- **🪙 Optimizar tokens** reduciendo tool calls de corrección
+
 ### Comandos de Desarrollo
 ```bash
 # Instalar dependencias
@@ -236,9 +274,10 @@ npm run build
 
 ### Al reanudar desarrollo:
 1. **Revisar este documento** para contexto completo
-2. **Verificar servidor local**: `npm run dev`
-3. **Revisar últimos commits** para entender cambios recientes
-4. **Identificar scope específico** antes de modificaciones
+2. **Leer las Reglas de Desarrollo** y aplicarlas OBLIGATORIAMENTE
+3. **Verificar servidor local**: `npm run dev`
+4. **Revisar últimos commits** para entender cambios recientes
+5. **Dividir la tarea en pasos atómicos** antes de comenzar
 
 ### Para dar instrucciones efectivas:
 - **Especificar componente exacto** a modificar

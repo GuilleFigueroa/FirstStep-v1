@@ -5,13 +5,13 @@ import { Input } from '../../../ui/components/ui/input';
 import { Label } from '../../../ui/components/ui/label';
 import { Badge } from '../../../ui/components/ui/badge';
 import { Separator } from '../../../ui/components/ui/separator';
-import { 
-  ArrowLeft, 
-  Building2, 
-  Briefcase, 
-  CheckCircle, 
-  Copy, 
-  Eye, 
+import {
+  ArrowLeft,
+  Building2,
+  Briefcase,
+  CheckCircle,
+  Copy,
+  Eye,
   ExternalLink,
   Star,
   Calendar,
@@ -19,40 +19,69 @@ import {
   Brain,
   Sparkles,
   Users,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
-import type { JobProfile, JobPosting } from '../App';
+import type { JobProfile, JobPosting } from '../../../app/App';
+import type { Profile } from '../../../shared/services/supabase';
+import { createProcess } from '../../services/processService';
 
 interface JobPostingConfigProps {
   profile: JobProfile;
   onBack: () => void;
   onCreatePosting: (jobPosting: JobPosting) => void;
   onStartSimulation?: () => void;
+  userProfile: Profile;
 }
 
-export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimulation }: JobPostingConfigProps) {
-  const [companyName, setCompanyName] = useState('');
+export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimulation, userProfile }: JobPostingConfigProps) {
+  const [companyName, setCompanyName] = useState(userProfile.company_name || '');
   const [jobTitle, setJobTitle] = useState(profile.title);
   const [candidateLimit, setCandidateLimit] = useState<number | undefined>(undefined);
   const [isPostingCreated, setIsPostingCreated] = useState(false);
   const [postingLink, setPostingLink] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCreatePosting = () => {
+  const handleCreatePosting = async () => {
     if (!companyName.trim() || !jobTitle.trim()) return;
 
-    const jobPosting: JobPosting = {
-      profile,
-      companyName: companyName.trim(),
-      jobTitle: jobTitle.trim(),
-      candidateLimit: candidateLimit
-    };
+    setIsCreating(true);
+    setError(null);
 
-    // Simular creación de postulación y generación de enlace
-    const mockLink = `https://talenthub.com/jobs/${encodeURIComponent(companyName.toLowerCase().replace(/\s+/g, '-'))}-${encodeURIComponent(jobTitle.toLowerCase().replace(/\s+/g, '-'))}-${Date.now()}`;
-    setPostingLink(mockLink);
-    setIsPostingCreated(true);
-    
-    onCreatePosting(jobPosting);
+    try {
+      // Crear proceso en la base de datos
+      const result = await createProcess({
+        profile,
+        companyName: companyName.trim(),
+        jobTitle: jobTitle.trim(),
+        candidateLimit: candidateLimit,
+        recruiterId: userProfile.id
+      });
+
+      if (result.success && result.process) {
+        // Mostrar el link real generado
+        setPostingLink(result.process.unique_link);
+        setIsPostingCreated(true);
+
+        // Crear JobPosting para compatibilidad con el flujo existente
+        const jobPosting: JobPosting = {
+          profile,
+          companyName: companyName.trim(),
+          jobTitle: jobTitle.trim(),
+          candidateLimit: candidateLimit
+        };
+
+        onCreatePosting(jobPosting);
+      } else {
+        setError(result.error || 'Error desconocido al crear el proceso');
+      }
+    } catch (error) {
+      setError('Error inesperado al crear el proceso');
+      console.error('Error creating process:', error);
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCopyLink = async () => {
@@ -280,18 +309,34 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
               </CardContent>
             </Card>
 
+            {/* Mostrar error si lo hay */}
+            {error && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="pt-6">
+                  <p className="text-red-700 text-sm">{error}</p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Botones de acción */}
             <div className="flex gap-4 pt-4">
-              <Button variant="outline" onClick={onBack} className="flex-1">
+              <Button variant="outline" onClick={onBack} className="flex-1" disabled={isCreating}>
                 Modificar perfil
               </Button>
-              <Button 
+              <Button
                 onClick={handleCreatePosting}
-                disabled={!isFormValid}
+                disabled={!isFormValid || isCreating}
                 className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                 size="lg"
               >
-                Crear Postulación
+                {isCreating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creando proceso...
+                  </>
+                ) : (
+                  'Crear Postulación'
+                )}
               </Button>
             </div>
           </>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../ui/components/ui/button';
 import { Input } from '../../../ui/components/ui/input';
 import { Badge } from '../../../ui/components/ui/badge';
@@ -17,105 +17,110 @@ import {
   FileText,
   Users
 } from 'lucide-react';
+import type { Profile, Process } from '../../../shared/services/supabase';
+import { getProcessesByRecruiter, updateProcessStatus, deleteProcess } from '../../services/processService';
+
+interface PostulationsTableProps {
+  userProfile: Profile;
+}
 
 interface Postulation {
   id: string;
   jobTitle: string;
   company: string;
   department: string;
-  status: 'activa' | 'cerrada';
+  status: 'active' | 'closed' | 'paused';
   applicants: number;
   dateCreated: string;
   deadline?: string;
   maxApplicants?: number;
+  uniqueLink: string;
 }
 
-const mockPostulations: Postulation[] = [
-  {
-    id: '1',
-    jobTitle: 'Frontend Developer',
-    company: 'TechCorp',
-    department: 'Desarrollo',
-    status: 'activa',
-    applicants: 24,
-    dateCreated: '2024-01-15',
-    deadline: '2024-02-15',
-    maxApplicants: 50
-  },
-  {
-    id: '2',
-    jobTitle: 'Backend Developer',
-    company: 'DevStudio',
-    department: 'Desarrollo',
-    status: 'activa',
-    applicants: 18,
-    dateCreated: '2024-01-20',
-    deadline: '2024-02-20',
-    maxApplicants: 30
-  },
-  {
-    id: '3',
-    jobTitle: 'UX/UI Designer',
-    company: 'DesignLab',
-    department: 'Diseño',
-    status: 'cerrada',
-    applicants: 45,
-    dateCreated: '2024-01-10',
-    deadline: '2024-01-30',
-    maxApplicants: 40
-  },
-  {
-    id: '4',
-    jobTitle: 'Full Stack Developer',
-    company: 'StartupXYZ',
-    department: 'Desarrollo',
-    status: 'activa',
-    applicants: 12,
-    dateCreated: '2024-01-25',
-    deadline: '2024-03-01',
-    maxApplicants: 25
-  },
-  {
-    id: '5',
-    jobTitle: 'DevOps Engineer',
-    company: 'CloudTech',
-    department: 'Infraestructura',
-    status: 'activa',
-    applicants: 8,
-    dateCreated: '2024-01-30',
-    deadline: '2024-02-28',
-    maxApplicants: 20
-  },
-  {
-    id: '6',
-    jobTitle: 'Data Scientist',
-    company: 'DataCorp',
-    department: 'Datos',
-    status: 'activa',
-    applicants: 32,
-    dateCreated: '2024-01-12',
-    deadline: '2024-02-10',
-    maxApplicants: 35
-  },
-  {
-    id: '7',
-    jobTitle: 'Mobile Developer',
-    company: 'AppFactory',
-    department: 'Desarrollo',
-    status: 'cerrada',
-    applicants: 19,
-    dateCreated: '2024-01-08',
-    deadline: '2024-01-25',
-    maxApplicants: 15
-  }
-];
+// Función para convertir Process a Postulation para compatibilidad con la UI existente
+function processToPostulation(process: Process): Postulation {
+  return {
+    id: process.id,
+    jobTitle: process.title,
+    company: process.company_name,
+    department: 'General', // TODO: Agregar department al esquema en el futuro
+    status: process.status,
+    applicants: 0, // TODO: Conectar con tabla de candidatos en el futuro
+    dateCreated: new Date(process.created_at).toISOString().split('T')[0],
+    maxApplicants: process.candidate_limit,
+    uniqueLink: process.unique_link
+  };
+}
 
-export function PostulationsTable() {
-  const [postulations, setPostulations] = useState<Postulation[]>(mockPostulations);
+export function PostulationsTable({ userProfile }: PostulationsTableProps) {
+  const [postulations, setPostulations] = useState<Postulation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [companyFilter, setCompanyFilter] = useState('');
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewingPostulation, setViewingPostulation] = useState<Postulation | null>(null);
+
+  // Cargar procesos del reclutador
+  useEffect(() => {
+    loadProcesses();
+  }, [userProfile.id]);
+
+  const loadProcesses = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getProcessesByRecruiter(userProfile.id);
+
+      if (result.success && result.processes) {
+        const postulationsData = result.processes.map(processToPostulation);
+        setPostulations(postulationsData);
+      } else {
+        setError(result.error || 'Error al cargar procesos');
+      }
+    } catch (error) {
+      setError('Error inesperado al cargar procesos');
+      console.error('Error loading processes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Actualizar estado de proceso
+  const handleStatusChange = async (processId: string, newStatus: 'active' | 'closed' | 'paused') => {
+    try {
+      const result = await updateProcessStatus(processId, newStatus);
+      if (result.success) {
+        // Recargar procesos para reflejar el cambio
+        loadProcesses();
+      } else {
+        alert(result.error || 'Error al actualizar estado');
+      }
+    } catch (error) {
+      alert('Error inesperado al actualizar estado');
+      console.error('Error updating status:', error);
+    }
+  };
+
+  // Eliminar proceso
+  const handleDeleteProcess = async (processId: string) => {
+    if (!confirm('¿Estás seguro de que quieres eliminar este proceso? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    try {
+      const result = await deleteProcess(processId);
+      if (result.success) {
+        // Recargar procesos para reflejar el cambio
+        loadProcesses();
+      } else {
+        alert(result.error || 'Error al eliminar proceso');
+      }
+    } catch (error) {
+      alert('Error inesperado al eliminar proceso');
+      console.error('Error deleting process:', error);
+    }
+  };
 
   // Filtrar postulaciones
   const filteredPostulations = postulations.filter(postulation => {
@@ -164,10 +169,12 @@ export function PostulationsTable() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'activa':
+      case 'active':
         return <Badge variant="default" style={{ backgroundColor: '#BE56C8', color: 'white' }}>Activa</Badge>;
-      case 'cerrada':
+      case 'closed':
         return <Badge variant="secondary" style={{ backgroundColor: '#9E9C9E', color: 'white' }}>Cerrada</Badge>;
+      case 'paused':
+        return <Badge variant="outline" style={{ backgroundColor: '#FFA500', color: 'white' }}>Pausada</Badge>;
       default:
         return <Badge variant="secondary">Desconocido</Badge>;
     }
@@ -198,11 +205,38 @@ export function PostulationsTable() {
     return <span className="font-medium text-sm">{applicants}</span>;
   };
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p>Cargando procesos...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-700">{error}</p>
+            <Button onClick={loadProcesses} className="mt-4">
+              Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 relative">
       {viewingPostulation ? (
-        <PostulationDetails 
-          postulation={viewingPostulation} 
+        <PostulationDetails
+          postulation={viewingPostulation}
           onBack={handleBackToList}
         />
       ) : (
@@ -250,8 +284,9 @@ export function PostulationsTable() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="activa">Activa</SelectItem>
-                      <SelectItem value="cerrada">Cerrada</SelectItem>
+                      <SelectItem value="active">Activa</SelectItem>
+                      <SelectItem value="closed">Cerrada</SelectItem>
+                      <SelectItem value="paused">Pausada</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

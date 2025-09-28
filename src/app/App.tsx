@@ -307,7 +307,7 @@ export default function App() {
       onBackToRoleSelection={handleBackToRoleSelection}
     >
       {/* Dashboard Section */}
-      {activeSection === "dashboard" && <Dashboard />}
+      {activeSection === "dashboard" && userProfile && <Dashboard userProfile={userProfile} />}
 
       {/* Candidates Section */}
       {activeSection === "candidates" && <CandidatesTable />}
@@ -339,13 +339,14 @@ export default function App() {
               </div>
             )}
 
-          {currentStep === "posting" && currentProfile && (
+          {currentStep === "posting" && currentProfile && userProfile && (
             <div className="max-w-4xl mx-auto">
               <JobPostingConfig
                 profile={currentProfile}
                 onBack={handleBackToCustomQuestion}
                 onCreatePosting={handleCreatePosting}
                 onStartSimulation={handleStartSimulation}
+                userProfile={userProfile}
               />
             </div>
           )}
@@ -360,7 +361,7 @@ export default function App() {
       )}
 
       {/* Active Processes Section */}
-      {activeSection === "active-processes" && <PostulationsTable />}
+      {activeSection === "active-processes" && userProfile && <PostulationsTable userProfile={userProfile} />}
     </Layout>
   );
 }

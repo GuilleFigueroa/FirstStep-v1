@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
 import { VerificationStep } from './VerificationStep';
+import { CVUploadStep } from './CVUploadStep';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
@@ -51,12 +52,20 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
     setCurrentStep('profile');
   };
 
+  const handleCVUploadComplete = () => {
+    setCurrentStep('questions');
+  };
+
   const handleBackToRegistration = () => {
     setCurrentStep('registration');
   };
 
   const handleBackToVerification = () => {
     setCurrentStep('verification');
+  };
+
+  const handleBackToProfile = () => {
+    setCurrentStep('profile');
   };
 
   // Placeholder screens for next steps
@@ -276,11 +285,9 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
     case 'profile':
       return (
-        <PlaceholderScreen
-          step="profile"
-          title="Completar Perfil Profesional"
-          description="El siguiente paso será completar tu información profesional, experiencia y habilidades"
-          icon={User}
+        <CVUploadStep
+          onContinue={handleCVUploadComplete}
+          onBack={handleBackToVerification}
         />
       );
     

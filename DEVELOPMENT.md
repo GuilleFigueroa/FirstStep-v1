@@ -71,14 +71,34 @@ src/
 - **Simulación de candidatos** para testing
 
 #### 🚧 En Desarrollo (Candidato)
-- **Flujo de candidato**: Solo registro implementado
+- **Flujo de candidato**: Registro + Verificación Captcha + Subida de CV (UI completa)
+- **Subida de CV**: UI funcional con drag & drop, validación, pero sin persistencia
 - **Proceso de preguntas**: Placeholders únicamente
-- **Integración con backend**: No implementado
-- **Datos reales**: Todo es mock actualmente
+- **Integración con backend**: Parcial (falta Supabase Storage y persistencia)
+- **Datos reales**: Captcha y CV upload locales, resto mock
 
 ## 📊 Decisiones Arquitectónicas Tomadas
 
-### Implementación de Acceso por Link Único + Corrección de Routing (Commit actual)
+### Implementación Completa de Subida de CV con UI Mejorada (Commit actual)
+**Fecha**: 29-09-2024
+**Problema**: Step 'profile' era solo placeholder, faltaba funcionalidad de subida de CV
+**Solución**: Componente CVUploadStep.tsx completo con drag & drop, validación y UI profesional
+**Resultado**: UI funcional lista para integración con Supabase Storage
+
+#### Cambios Implementados:
+- ✅ **CVUploadStep.tsx creado**: Componente completo con drag & drop funcional
+- ✅ **Validación robusta**: Tipos de archivo (.pdf, .doc, .docx) y tamaño (5MB máx)
+- ✅ **UI profesional**: Inspirada en CandidateSimulation.tsx, estados visuales claros
+- ✅ **Integración en flujo**: Reemplaza placeholder en CandidateFlow.tsx
+- ✅ **Aplicación de reglas nuevas**: Implementación rápida (8 min) siguiendo Reglas 6, 7, 8
+
+### Implementación de Slider Captcha y Mejora de Reglas de Desarrollo (Commit previo)
+**Fecha**: 29-09-2024
+**Problema**: Verificación de seguridad faltante + errores de implementación recurrentes
+**Solución**: Captcha funcional + nuevas reglas de desarrollo para evitar errores futuros
+**Resultado**: Step verificación completo + reglas optimizadas documentadas
+
+### Implementación de Acceso por Link Único + Corrección de Routing (Commit previo)
 **Fecha**: 28-09-2024
 **Problema**: Sin acceso directo por URLs candidatos + Errores en autenticación y flujo de creación procesos post-routing
 **Solución**: React Router implementado + Reestructuración App.tsx + Corrección estados y props componentes
@@ -161,12 +181,15 @@ src/
    - ✅ Edición/eliminación de procesos implementada
    - ✅ Dashboard conectado con datos reales de Supabase
 
-2. **Desarrollo completo del flujo candidato** (`/src/candidate/components/`)
-   - Implementar acceso por link único a procesos
-   - Desarrollo del formulario de postulación con CV
-   - Sistema de preguntas personalizadas generadas por IA
-   - Conectar con lógica de scoring y evaluación
-   - Resultado final para candidato con feedback
+2. **✅ PARCIALMENTE COMPLETADO: Desarrollo del flujo candidato** (`/src/candidate/components/`)
+   - ✅ Acceso por link único a procesos implementado
+   - ✅ Verificación captcha implementada y funcional
+   - ✅ UI de subida de CV completa (drag & drop, validación)
+   - ❌ **PENDIENTE**: Integración con Supabase Storage para persistir CVs
+   - ❌ **PENDIENTE**: Creación de candidateService.ts
+   - ❌ **PENDIENTE**: Sistema de preguntas personalizadas generadas por IA
+   - ❌ **PENDIENTE**: Lógica de scoring y evaluación
+   - ❌ **PENDIENTE**: Resultado final para candidato con feedback
 
 3. **Gestión de candidatos** (`/src/recruiter/components/candidates/`)
    - Conectar `CandidatesTable.tsx` con datos reales
@@ -307,5 +330,5 @@ npm run build
 ---
 
 **Última actualización**: 29-09-2024
-**Estado**: Slider captcha implementado y funcional, nuevas reglas de desarrollo aplicadas, listo para continuar flujo candidato con subida de CV
+**Estado**: Subida de CV implementada con UI completa (drag & drop), integración con Supabase Storage pendiente, listo para persistencia completa
 **Repositorio**: GitHub sincronizado y actualizado

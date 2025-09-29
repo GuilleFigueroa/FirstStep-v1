@@ -1,0 +1,239 @@
+import { useState } from 'react';
+import { Button } from '../../ui/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
+import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Download } from 'lucide-react';
+
+interface CVUploadStepProps {
+  onContinue: () => void;
+  onBack: () => void;
+}
+
+export function CVUploadStep({ onContinue, onBack }: CVUploadStepProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const validateFile = (file: File) => {
+    const validTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+
+    if (validTypes.includes(file.type) ||
+        file.name.toLowerCase().endsWith('.pdf') ||
+        file.name.toLowerCase().endsWith('.doc') ||
+        file.name.toLowerCase().endsWith('.docx')) {
+
+      // Validar tamaño (5MB máximo)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError('El archivo es demasiado grande. Máximo 5MB.');
+        return false;
+      }
+
+      setSelectedFile(file);
+      setError(null);
+      return true;
+    } else {
+      setError('Por favor, sube un archivo PDF o Word válido.');
+      return false;
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      validateFile(file);
+    }
+    // Reset input para permitir subir el mismo archivo de nuevo
+    event.target.value = '';
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      validateFile(files[0]);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={onBack}
+              variant="ghost"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Volver
+            </Button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#7572FF] rounded-lg flex items-center justify-center">
+                <Upload className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-[#7572FF] font-semibold">Subir CV</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-lg mx-auto px-6 py-12">
+        <Card>
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-[#7572FF]/10 rounded-full flex items-center justify-center">
+                {selectedFile ? (
+                  <CheckCircle className="w-8 h-8 text-green-600" />
+                ) : (
+                  <FileText className="w-8 h-8 text-[#7572FF]" />
+                )}
+              </div>
+            </div>
+
+            <CardTitle className="text-2xl">
+              {selectedFile ? 'CV Seleccionado' : 'Sube tu CV'}
+            </CardTitle>
+
+            <CardDescription className="text-base mt-2">
+              {selectedFile
+                ? 'Tu CV ha sido seleccionado correctamente'
+                : 'Selecciona tu CV para continuar con el proceso'
+              }
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-6">
+            {/* File Upload Area */}
+            <div
+              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                isDragOver
+                  ? 'border-blue-500 bg-blue-50'
+                  : selectedFile
+                    ? 'border-green-500 bg-green-50'
+                    : 'border-gray-300 hover:border-[#7572FF] hover:bg-purple-50'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="space-y-4">
+                {selectedFile ? (
+                  // File uploaded state
+                  <div className="space-y-3">
+                    <CheckCircle className="w-12 h-12 text-green-600 mx-auto" />
+                    <div>
+                      <p className="font-medium text-green-800">{selectedFile.name}</p>
+                      <p className="text-sm text-green-600">
+                        CV subido correctamente ({Math.round(selectedFile.size / 1024)} KB)
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSelectedFile(null)}
+                      className="border-green-500 text-green-700 hover:bg-green-100"
+                    >
+                      Cambiar archivo
+                    </Button>
+                  </div>
+                ) : (
+                  // Upload area
+                  <div className="space-y-4">
+                    {isDragOver ? (
+                      <>
+                        <Download className="w-12 h-12 text-blue-500 mx-auto animate-bounce" />
+                        <div>
+                          <p className="font-medium text-blue-700">¡Suelta el archivo aquí!</p>
+                          <p className="text-sm text-blue-600">Sube tu CV en formato PDF o Word</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-12 h-12 text-gray-400 mx-auto" />
+                        <div>
+                          <p className="font-medium text-gray-700">Arrastra y suelta tu CV aquí</p>
+                          <p className="text-sm text-gray-500">o haz clic para seleccionar un archivo</p>
+                        </div>
+                        <input
+                          type="file"
+                          accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          id="cv-upload"
+                        />
+                        <label htmlFor="cv-upload">
+                          <Button
+                            variant="outline"
+                            className="cursor-pointer border-[#7572FF] text-[#7572FF] hover:bg-[#7572FF] hover:text-white"
+                            asChild
+                          >
+                            <span>Seleccionar archivo</span>
+                          </Button>
+                        </label>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Help Text */}
+            <div className="text-center bg-gray-50 rounded-lg p-4">
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Formatos aceptados
+              </p>
+              <p className="text-xs text-gray-500">
+                PDF, DOC, DOCX • Tamaño máximo: 5MB
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4 pt-2">
+              <Button
+                onClick={onBack}
+                variant="outline"
+                className="flex-1 border-gray-300"
+              >
+                Volver
+              </Button>
+              <Button
+                onClick={onContinue}
+                disabled={!selectedFile}
+                className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {selectedFile ? 'Continuar' : 'Selecciona un archivo'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

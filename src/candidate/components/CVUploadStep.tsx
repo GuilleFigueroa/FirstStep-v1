@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { CandidateService } from '../../shared/services/candidateService';
 
 interface CVUploadStepProps {
   onContinue: () => void;
   onBack: () => void;
+  candidateId?: string; // ID del candidato para subir el CV
 }
 
-export function CVUploadStep({ onContinue, onBack }: CVUploadStepProps) {
+export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const validateFile = (file: File) => {
     const validTypes = [
@@ -67,6 +70,35 @@ export function CVUploadStep({ onContinue, onBack }: CVUploadStepProps) {
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       validateFile(files[0]);
+    }
+  };
+
+  const handleContinue = async () => {
+    if (!selectedFile) return;
+
+    // Si no hay candidateId, seguir el flujo normal (sin persistencia)
+    if (!candidateId) {
+      onContinue();
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const success = await CandidateService.updateCandidateCV(candidateId, selectedFile);
+
+      if (success) {
+        console.log('CV uploaded successfully');
+        onContinue();
+      } else {
+        setError('Error al subir el CV. Intenta de nuevo.');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError('Error inesperado. Intenta de nuevo.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -224,11 +256,16 @@ export function CVUploadStep({ onContinue, onBack }: CVUploadStepProps) {
                 Volver
               </Button>
               <Button
-                onClick={onContinue}
-                disabled={!selectedFile}
+                onClick={handleContinue}
+                disabled={!selectedFile || uploading}
                 className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {selectedFile ? 'Continuar' : 'Selecciona un archivo'}
+                {uploading
+                  ? 'Subiendo...'
+                  : selectedFile
+                    ? (candidateId ? 'Subir y Continuar' : 'Continuar')
+                    : 'Selecciona un archivo'
+                }
               </Button>
             </div>
           </CardContent>

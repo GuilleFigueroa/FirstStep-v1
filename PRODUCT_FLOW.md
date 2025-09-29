@@ -6,7 +6,7 @@
 
 **Problema que resuelve**: Los reclutadores descartan candidatos prematuramente por información incompleta o malentendidos en CVs.
 
-**Solución**: IA que detecta gaps en los CVs y genera preguntas específicas para aclarar y mejorar la información del perfil de cada candidato.
+**Solución**: IA que detecta gaps, información incompleta, incongruencias o requisitos faltantes en los CVs y genera preguntas específicas para aclarar y mejorar la información del perfil de cada candidato.
 
 ---
 

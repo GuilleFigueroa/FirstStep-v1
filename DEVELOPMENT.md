@@ -275,23 +275,35 @@ Después de cada cambio atómico, verificar:
 - Mensajes descriptivos del cambio específico
 - Fácil rollback granular si algo falla
 
-### 📏 **Regla 6: "Hello World Primero"**
+### 📏 **Regla 6: "Estructural Antes que Lógico"**
+- **Ante errores**: Verificar primero lo estructural (IDs, schemas, permisos, configuración)
+- **Antes de asumir bugs**: Confirmar que identificadores, foreign keys y recursos existen
+- **Criterio**: Si falla conexión → problema estructural 80% del tiempo
+- **Principio**: La mayoría de errores son de configuración/setup, no de lógica de código
+
+### 📏 **Regla 7: "Hello World Primero"**
 - **Nueva librería**: Implementar ejemplo más básico posible (1-2 minutos máximo)
 - **Test mínimo**: `import + render + compilar` antes de agregar features
 - **Criterio**: Si no funciona en 2 minutos, cambiar librería inmediatamente
 - **Evita**: Implementar funcionalidad compleja sobre base inestable
 
-### 📏 **Regla 7: "Red Flags = STOP"**
+### 📏 **Regla 8: "Red Flags = STOP"**
 - **Señales de alerta**: Textos en idiomas incorrectos, imágenes rotas, warnings masivos
 - **Acción**: Pausar inmediatamente, diagnosticar causa raíz
 - **No intentar**: "Arreglar" síntomas, ir directo al problema fundamental
 - **Principio**: Red flags indican elección arquitectural incorrecta
 
-### 📏 **Regla 8: "Simple > Complejo"**
+### 📏 **Regla 9: "Simple > Complejo"**
 - **Preferir librerías**: Con <3 props requeridas para funcionalidad básica
 - **Criterio de selección**: 80% funcionalidad con 20% complejidad
 - **Timeout**: Si implementación toma >5 minutos, buscar alternativa más simple
 - **Objetivo**: Priorizar soluciones que funcionen rápidamente
+
+### 📏 **Regla 10: "Testing Manual Únicamente"**
+- **NO crear tests artificiales** o funciones de testing automático
+- **Testing manual**: El usuario debe probar flujos reales en la aplicación
+- **Verificación directa**: Usar la UI/UX real para confirmar funcionalidad
+- **Principio**: Tests manuales son más eficientes y contextuales que artificiales
 
 ### 🎯 **Objetivos de estas Reglas:**
 - **💡 Evitar errores** en cascada y debugging masivo

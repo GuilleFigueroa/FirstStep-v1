@@ -85,12 +85,10 @@ export async function getProcessesByRecruiter(recruiterId: string): Promise<Proc
 // Obtener proceso por unique link
 export async function getProcessByUniqueId(uniqueId: string): Promise<ProcessResponse> {
   try {
-    const expectedLink = `${window.location.origin}/apply/${uniqueId}`
-
     const { data: process, error } = await supabase
       .from('processes')
       .select('*')
-      .eq('unique_link', expectedLink)
+      .eq('id', uniqueId)
       .eq('status', 'active')
       .single()
 

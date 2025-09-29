@@ -31,9 +31,11 @@ interface CandidateRegistrationProps {
   jobInfo: JobInfo;
   onBack: () => void;
   onContinue: (candidateData: CandidateData) => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
-export function CandidateRegistration({ jobInfo, onBack, onContinue }: CandidateRegistrationProps) {
+export function CandidateRegistration({ jobInfo, onBack, onContinue, loading = false, error }: CandidateRegistrationProps) {
   const [formData, setFormData] = useState<CandidateData>({
     firstName: '',
     lastName: '',
@@ -255,16 +257,26 @@ export function CandidateRegistration({ jobInfo, onBack, onContinue }: Candidate
                     </p>
                   </div>
 
+                  {/* Error de duplicado */}
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-red-600" />
+                        <p className="text-sm text-red-800">{error}</p>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="pt-4 border-t">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       className="w-full bg-[#7572FF] hover:bg-[#6863E8] text-white"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || loading}
                     >
-                      {isSubmitting ? (
+                      {isSubmitting || loading ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                          Registrando...
+                          {loading ? 'Verificando...' : 'Registrando...'}
                         </>
                       ) : (
                         <>

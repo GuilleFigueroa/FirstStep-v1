@@ -6,6 +6,7 @@ import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
 import type { Process } from '../../shared/services/supabase';
+import { CandidateService } from '../../shared/services/candidateService';
 import {
   ArrowLeft,
   CheckCircle,
@@ -42,10 +43,50 @@ type FlowStep = 'registration' | 'verification' | 'profile' | 'questions' | 'con
 export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('registration');
   const [candidateData, setCandidateData] = useState<CandidateData | null>(null);
+  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
 
-  const handleRegistrationComplete = (data: CandidateData) => {
+  const handleRegistrationComplete = async (data: CandidateData) => {
+    setLoading(true);
     setCandidateData(data);
-    setCurrentStep('verification');
+    setDuplicateError(null);
+
+    try {
+      // Verificar duplicados primero
+      const duplicateCheck = await CandidateService.checkDuplicateCandidate(
+        process.id,
+        data.email,
+        data.linkedin
+      );
+
+      if (duplicateCheck.isDuplicate) {
+        setDuplicateError(duplicateCheck.reason || 'Ya te registraste en este proceso');
+        setLoading(false);
+        return;
+      }
+
+      // Crear candidato en base de datos
+      const candidate = await CandidateService.createCandidate({
+        process_id: process.id,
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        linkedin_url: data.linkedin
+      });
+
+      if (candidate) {
+        setCandidateId(candidate.id);
+        setCurrentStep('verification');
+      } else {
+        setDuplicateError('Error al registrarte. Intenta de nuevo.');
+      }
+    } catch (error) {
+      console.error('Error creating candidate:', error);
+      setDuplicateError('Error inesperado. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerificationComplete = () => {
@@ -272,6 +313,8 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
           jobInfo={jobInfo}
           onBack={onBack}
           onContinue={handleRegistrationComplete}
+          loading={loading}
+          error={duplicateError}
         />
       );
 
@@ -288,6 +331,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
         <CVUploadStep
           onContinue={handleCVUploadComplete}
           onBack={handleBackToVerification}
+          candidateId={candidateId}
         />
       );
     

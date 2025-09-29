@@ -252,10 +252,29 @@ Después de cada cambio atómico, verificar:
 - Mensajes descriptivos del cambio específico
 - Fácil rollback granular si algo falla
 
+### 📏 **Regla 6: "Hello World Primero"**
+- **Nueva librería**: Implementar ejemplo más básico posible (1-2 minutos máximo)
+- **Test mínimo**: `import + render + compilar` antes de agregar features
+- **Criterio**: Si no funciona en 2 minutos, cambiar librería inmediatamente
+- **Evita**: Implementar funcionalidad compleja sobre base inestable
+
+### 📏 **Regla 7: "Red Flags = STOP"**
+- **Señales de alerta**: Textos en idiomas incorrectos, imágenes rotas, warnings masivos
+- **Acción**: Pausar inmediatamente, diagnosticar causa raíz
+- **No intentar**: "Arreglar" síntomas, ir directo al problema fundamental
+- **Principio**: Red flags indican elección arquitectural incorrecta
+
+### 📏 **Regla 8: "Simple > Complejo"**
+- **Preferir librerías**: Con <3 props requeridas para funcionalidad básica
+- **Criterio de selección**: 80% funcionalidad con 20% complejidad
+- **Timeout**: Si implementación toma >5 minutos, buscar alternativa más simple
+- **Objetivo**: Priorizar soluciones que funcionen rápidamente
+
 ### 🎯 **Objetivos de estas Reglas:**
 - **💡 Evitar errores** en cascada y debugging masivo
 - **⏰ Ahorrar tiempo** evitando sesiones de arreglos
 - **🪙 Optimizar tokens** reduciendo tool calls de corrección
+- **🚀 Fallar rápido** para cambiar approach sin costo elevado
 
 ### Comandos de Desarrollo
 ```bash
@@ -287,6 +306,6 @@ npm run build
 
 ---
 
-**Última actualización**: 28-09-2024
-**Estado**: Acceso por link único implementado, routing funcional, flujo reclutador operativo, listo para desarrollo completo flujo candidato
+**Última actualización**: 29-09-2024
+**Estado**: Slider captcha implementado y funcional, nuevas reglas de desarrollo aplicadas, listo para continuar flujo candidato con subida de CV
 **Repositorio**: GitHub sincronizado y actualizado

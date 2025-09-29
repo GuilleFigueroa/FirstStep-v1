@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
+import { VerificationStep } from './VerificationStep';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
@@ -11,7 +12,8 @@ import {
   User,
   FileText,
   MessageSquare,
-  Send
+  Send,
+  Shield
 } from 'lucide-react';
 
 interface JobInfo {
@@ -34,7 +36,7 @@ interface CandidateData {
   linkedin: string;
 }
 
-type FlowStep = 'registration' | 'profile' | 'questions' | 'confirmation';
+type FlowStep = 'registration' | 'verification' | 'profile' | 'questions' | 'confirmation';
 
 export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('registration');
@@ -42,11 +44,19 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
   const handleRegistrationComplete = (data: CandidateData) => {
     setCandidateData(data);
+    setCurrentStep('verification');
+  };
+
+  const handleVerificationComplete = () => {
     setCurrentStep('profile');
   };
 
   const handleBackToRegistration = () => {
     setCurrentStep('registration');
+  };
+
+  const handleBackToVerification = () => {
+    setCurrentStep('verification');
   };
 
   // Placeholder screens for next steps
@@ -88,20 +98,45 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
       <div className="max-w-2xl mx-auto px-6 py-8">
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             <div className="flex items-center">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-white" />
               </div>
               <span className="ml-2 text-sm font-medium text-green-600">Registro</span>
             </div>
-            
-            <div className="w-8 h-px bg-gray-300"></div>
-            
+
+            <div className="w-6 h-px bg-gray-300"></div>
+
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'profile' 
-                  ? 'bg-[#7572FF] text-white' 
+                step === 'verification'
+                  ? 'bg-[#7572FF] text-white'
+                  : step === 'profile' || step === 'questions' || step === 'confirmation'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-gray-200 text-gray-500'
+              }`}>
+                {step === 'profile' || step === 'questions' || step === 'confirmation' ? (
+                  <CheckCircle className="w-5 h-5" />
+                ) : (
+                  <Shield className="w-5 h-5" />
+                )}
+              </div>
+              <span className={`ml-2 text-sm font-medium ${
+                step === 'verification' || step === 'profile' || step === 'questions' || step === 'confirmation'
+                  ? 'text-[#7572FF]'
+                  : 'text-gray-500'
+              }`}>
+                Verificación
+              </span>
+            </div>
+
+            <div className="w-6 h-px bg-gray-300"></div>
+
+            <div className="flex items-center">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                step === 'profile'
+                  ? 'bg-[#7572FF] text-white'
                   : step === 'questions' || step === 'confirmation'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-200 text-gray-500'
@@ -114,19 +149,19 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
               </div>
               <span className={`ml-2 text-sm font-medium ${
                 step === 'profile' || step === 'questions' || step === 'confirmation'
-                  ? 'text-[#7572FF]' 
+                  ? 'text-[#7572FF]'
                   : 'text-gray-500'
               }`}>
                 Perfil
               </span>
             </div>
-            
-            <div className="w-8 h-px bg-gray-300"></div>
-            
+
+            <div className="w-6 h-px bg-gray-300"></div>
+
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'questions' 
-                  ? 'bg-[#7572FF] text-white' 
+                step === 'questions'
+                  ? 'bg-[#7572FF] text-white'
                   : step === 'confirmation'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-200 text-gray-500'
@@ -139,19 +174,19 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
               </div>
               <span className={`ml-2 text-sm font-medium ${
                 step === 'questions' || step === 'confirmation'
-                  ? 'text-[#7572FF]' 
+                  ? 'text-[#7572FF]'
                   : 'text-gray-500'
               }`}>
                 Preguntas
               </span>
             </div>
-            
-            <div className="w-8 h-px bg-gray-300"></div>
-            
+
+            <div className="w-6 h-px bg-gray-300"></div>
+
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'confirmation' 
-                  ? 'bg-[#7572FF] text-white' 
+                step === 'confirmation'
+                  ? 'bg-[#7572FF] text-white'
                   : 'bg-gray-200 text-gray-500'
               }`}>
                 <Send className="w-5 h-5" />
@@ -230,7 +265,15 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
           onContinue={handleRegistrationComplete}
         />
       );
-    
+
+    case 'verification':
+      return (
+        <VerificationStep
+          onVerified={handleVerificationComplete}
+          onBack={handleBackToRegistration}
+        />
+      );
+
     case 'profile':
       return (
         <PlaceholderScreen

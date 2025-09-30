@@ -30,9 +30,13 @@ export async function extractTextFromCV(cvUrl: string): Promise<ParseResult> {
     }
 
     // Descargar archivo desde Supabase Storage
+    // Detectar bucket del path (candidate-cvs/file.pdf o solo file.pdf)
+    const bucketName = cvUrl.includes('/') ? cvUrl.split('/')[0] : 'candidate-cvs';
+    const fileName = cvUrl.includes('/') ? cvUrl.split('/').slice(1).join('/') : cvUrl;
+
     const { data, error } = await supabaseAdmin.storage
-      .from('cvs')
-      .download(cvUrl.replace('cvs/', '')); // Remover prefijo si existe
+      .from(bucketName)
+      .download(fileName);
 
     if (error || !data) {
       return {

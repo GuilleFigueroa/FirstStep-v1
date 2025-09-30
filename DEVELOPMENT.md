@@ -173,6 +173,44 @@ src/
 
 ## 🎯 Próximos Pasos por Implementar
 
+### Prioridad Alta - EN PROGRESO (Sesión 30-09-2025)
+1. **🚧 EN PROGRESO: Implementación completa de análisis IA**
+   - ✅ Backend serverless configurado en Vercel
+   - ✅ Endpoint `/api/health` funcional en producción
+   - ✅ Arquitectura de base de datos diseñada (ver AI_ANALYSIS_IMPLEMENTATION.md)
+   - 🚧 **PASO 2 ACTUAL**: Modificar base de datos en Supabase
+     - Agregar columnas para análisis IA en `candidates`
+     - Agregar columnas para requisitos clasificados en `processes`
+     - Crear tabla `ai_questions` para preguntas generadas dinámicamente
+     - Crear tabla `recruiter_questions` para preguntas formulario
+     - Crear tabla `recruiter_answers` para respuestas a formulario
+   - ⏳ **PASO 3**: Parser de PDF/Word para extracción de texto
+   - ⏳ **PASO 4**: Integración con OpenAI para análisis de CV
+   - ⏳ **PASO 5**: UI de preguntas para candidato
+   - ⏳ **PASO 6**: Cálculo de scoring y resultado final
+
+### Decisiones Arquitectónicas Clave (Sesión 30-09-2025)
+**Flujo de IA (2 llamadas):**
+- LLAMADA 1: Análisis CV + Generación de preguntas personalizadas
+- LLAMADA 2: Scoring final (después de que candidato responda)
+
+**Manejo de candidatos rechazados:**
+- Candidato responde TODAS las preguntas (IA + formulario)
+- Validación al final: Si no cumple requisitos indispensables → Hard delete (no guardar en BD)
+- Mensaje transparente indicando qué requisito no cumplió
+
+**Tipos de requisitos:**
+- Indispensables (`required: true`): Filtro eliminatorio
+- Deseables (`required: false`): Suman al scoring
+
+**Tipos de preguntas:**
+- Preguntas IA: Generadas dinámicamente, para scoring
+- Preguntas formulario: Configuradas por reclutador, solo informativas
+
+**Dashboard reclutador:**
+- Layout split screen: PDF original (izquierda) + Análisis/Scoring (derecha)
+- Secciones colapsables: Análisis de Compatibilidad, Respuestas del Proceso
+
 ### Prioridad Alta - SIGUIENTE SESIÓN
 1. **✅ COMPLETADO: Persistencia de Procesos de Reclutamiento**
    - ✅ `processService.ts` creado con CRUD completo
@@ -187,14 +225,14 @@ src/
    - ✅ UI de subida de CV completa (drag & drop, validación)
    - ❌ **PENDIENTE**: Integración con Supabase Storage para persistir CVs
    - ❌ **PENDIENTE**: Creación de candidateService.ts
-   - ❌ **PENDIENTE**: Sistema de preguntas personalizadas generadas por IA
-   - ❌ **PENDIENTE**: Lógica de scoring y evaluación
+   - ❌ **PENDIENTE**: Sistema de preguntas personalizadas generadas por IA (en progreso)
+   - ❌ **PENDIENTE**: Lógica de scoring y evaluación (arquitectura definida)
    - ❌ **PENDIENTE**: Resultado final para candidato con feedback
 
 3. **Gestión de candidatos** (`/src/recruiter/components/candidates/`)
    - Conectar `CandidatesTable.tsx` con datos reales
    - Mostrar candidatos por proceso específico
-   - Implementar `CandidateProfile.tsx` con datos reales
+   - Implementar `CandidateProfile.tsx` con layout split screen (PDF + Análisis)
    - Sistema de scoring y ranking de candidatos
 
 ### Prioridad Media
@@ -341,6 +379,6 @@ npm run build
 
 ---
 
-**Última actualización**: 29-09-2024
-**Estado**: Subida de CV implementada con UI completa (drag & drop), integración con Supabase Storage pendiente, listo para persistencia completa
+**Última actualización**: 30-09-2025
+**Estado**: Backend serverless configurado en Vercel. Arquitectura completa de análisis IA definida y documentada. Iniciando implementación PASO 2 (modificación de base de datos). Ver AI_ANALYSIS_IMPLEMENTATION.md para detalles técnicos completos.
 **Repositorio**: GitHub sincronizado y actualizado

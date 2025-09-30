@@ -88,32 +88,45 @@ Por cada candidato el reclutador puede ver:
 - **IA analiza gaps**: Detecta información faltante o confusa en el CV
 - **Generación específica**: Crea preguntas únicas para cada candidato
 - **Límite**: Máximo 5 preguntas de IA por candidato
-- **Criterio eliminatorio**: Si no cumple requisito indispensable y confirma no tenerlo, se cierra el proceso
+- **Dos tipos de preguntas**:
+  - **Preguntas IA**: Generadas dinámicamente para aclarar requisitos
+  - **Preguntas formulario**: Configuradas por el reclutador (máximo 2)
 
 #### 3.3 Respuestas del Candidato
 - **Preguntas de IA**: Responde las preguntas específicas generadas
 - **Preguntas del reclutador**: Responde las 2 preguntas tipo formulario (si existen)
 - **Progreso visible**: Ve cuántas preguntas ha respondido vs total
 
-### 4. Resultado Final
+### 4. Evaluación y Resultado Final
 
-#### 4.1 Devolución Completa
+#### 4.1 Validación de Requisitos Indispensables
+- **Responde todas las preguntas**: El candidato completa TODAS las preguntas (IA + formulario)
+- **Análisis final**: La IA evalúa CV + respuestas vs requisitos indispensables
+- **Criterio eliminatorio**: Si no cumple algún requisito indispensable:
+  - Se cierra su proceso
+  - Recibe mensaje claro indicando qué requisito no cumplió
+  - Sus datos NO se guardan en la base de datos
+  - Ejemplo: "Tu postulación no cumple con: React 3+ años (indicaste: 1 año)"
+
+#### 4.2 Devolución Completa (Solo si cumple requisitos indispensables)
 El candidato recibe información sobre:
 - **Requisitos cumplidos**: Qué criterios satisface
 - **Requisitos faltantes**: Qué le falta para el perfil ideal
+- **Scoring final**: Puntaje de 0-100 basado en cumplimiento de requisitos
 - **Mejoras logradas**: Cómo sus respuestas mejoraron su perfil inicial
 
-#### 4.2 Finalización
+#### 4.3 Finalización
 - **Comentario opcional**: Puede agregar un mensaje final al reclutador
 - **Aplicación**: Confirma su postulación y termina el proceso
 - **Sin ediciones**: No puede modificar respuestas una vez en el resumen final
 - **Resultado único**: Solo ve el resultado una vez, no puede volver a acceder
 
 ### 5. Limitaciones del Candidato
-- **Sin guardar progreso**: No puede pausar y continuar después
+- **Sin guardar progreso**: No puede pausar y continuar después (MVP - sin límite de tiempo)
 - **Sin re-acceso**: Una vez terminado, no puede volver a ver el resultado
 - **Sin información del puesto**: No ve detalles específicos del trabajo
 - **Feedback limitado**: Solo recibe la devolución automática, el contacto posterior depende del reclutador
+- **Rechazo inmediato**: Si no cumple requisitos indispensables, sus datos no se guardan
 
 ---
 
@@ -165,5 +178,5 @@ Reclutador ve perfil completo en dashboard
 
 ---
 
-**Última actualización**: 27-09-2024
-**Estado**: Flujo del reclutador completamente funcional, flujo del candidato en desarrollo
+**Última actualización**: 30-09-2025
+**Estado**: Flujo del reclutador completamente funcional, flujo del candidato en desarrollo. Arquitectura de IA definida y documentada en AI_ANALYSIS_IMPLEMENTATION.md

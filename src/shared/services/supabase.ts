@@ -23,6 +23,8 @@ export interface Process {
   company_name: string
   description: string
   requirements: any[]
+  mandatory_requirements?: any[]
+  optional_requirements?: any[]
   custom_prompt?: string
   form_questions: any[]
   candidate_limit?: number
@@ -41,8 +43,40 @@ export interface Candidate {
   linkedin_url?: string
   cv_url?: string
   cv_text?: string
+  cv_analysis?: any
+  scoring_details?: any
   status: 'registered' | 'cv_uploaded' | 'questions_answered' | 'completed'
   score?: number
+  parsing_failed?: boolean
+  parsing_error?: string
+  ai_analysis_failed?: boolean
   created_at: string
   updated_at: string
+}
+
+export interface AIQuestion {
+  id: string
+  candidate_id: string
+  question_text: string
+  question_reason?: string
+  is_mandatory: boolean
+  answer_text?: string
+  is_answered: boolean
+  created_at: string
+}
+
+export interface RecruiterQuestion {
+  id: string
+  process_id: string
+  question_text: string
+  question_order?: number
+  created_at: string
+}
+
+export interface RecruiterAnswer {
+  id: string
+  candidate_id: string
+  question_id: string
+  answer_text?: string
+  created_at: string
 }

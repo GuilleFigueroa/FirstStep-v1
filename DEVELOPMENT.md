@@ -175,17 +175,24 @@ src/
 
 ### Prioridad Alta - EN PROGRESO (Sesión 30-09-2025)
 1. **🚧 EN PROGRESO: Implementación completa de análisis IA**
-   - ✅ Backend serverless configurado en Vercel
-   - ✅ Endpoint `/api/health` funcional en producción
-   - ✅ Arquitectura de base de datos diseñada (ver AI_ANALYSIS_IMPLEMENTATION.md)
-   - 🚧 **PASO 2 ACTUAL**: Modificar base de datos en Supabase
-     - Agregar columnas para análisis IA en `candidates`
-     - Agregar columnas para requisitos clasificados en `processes`
-     - Crear tabla `ai_questions` para preguntas generadas dinámicamente
-     - Crear tabla `recruiter_questions` para preguntas formulario
-     - Crear tabla `recruiter_answers` para respuestas a formulario
-   - ⏳ **PASO 3**: Parser de PDF/Word para extracción de texto
-   - ⏳ **PASO 4**: Integración con OpenAI para análisis de CV
+   - ✅ **PASO 1 COMPLETADO**: Backend serverless configurado en Vercel
+     - Endpoint `/api/health` funcional en producción
+     - Deploy automático desde GitHub configurado
+   - ✅ **PASO 2 COMPLETADO**: Base de datos modificada en Supabase
+     - Tabla `processes`: Columnas `mandatory_requirements` y `optional_requirements` agregadas
+     - Tabla `candidates`: Columnas `cv_analysis`, `scoring_details`, `parsing_failed`, `parsing_error`, `ai_analysis_failed` agregadas
+     - Tabla `ai_questions` creada para preguntas generadas por IA
+     - Tabla `recruiter_questions` creada para preguntas formulario
+     - Tabla `recruiter_answers` creada para respuestas a formulario
+     - Tipos TypeScript actualizados en `supabase.ts`
+   - ✅ **PASO 3 COMPLETADO**: Parser de PDF/DOCX implementado
+     - `/api/utils/supabase.ts`: Cliente backend con SERVICE_ROLE_KEY
+     - `/api/utils/pdfParser.ts`: Extracción de texto PDF y DOCX
+     - `/api/test-parser.ts`: Endpoint de prueba funcional en producción
+     - Soporte para bucket `candidate-cvs`
+     - Validación de texto extraído (mínimo 50 caracteres)
+     - Probado exitosamente con CV real
+   - ⏳ **PASO 4**: Integración con OpenAI para análisis de CV (requiere API key)
    - ⏳ **PASO 5**: UI de preguntas para candidato
    - ⏳ **PASO 6**: Cálculo de scoring y resultado final
 

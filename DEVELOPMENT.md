@@ -173,8 +173,8 @@ src/
 
 ## 🎯 Próximos Pasos por Implementar
 
-### Prioridad Alta - EN PROGRESO (Sesión 30-09-2025)
-1. **🚧 EN PROGRESO: Implementación completa de análisis IA**
+### Prioridad Alta - EN PROGRESO (Sesión 01-10-2025)
+1. **🚧 EN PROGRESO: Implementación completa de análisis IA con Vercel AI SDK**
    - ✅ **PASO 1 COMPLETADO**: Backend serverless configurado en Vercel
      - Endpoint `/api/health` funcional en producción
      - Deploy automático desde GitHub configurado
@@ -192,14 +192,24 @@ src/
      - Soporte para bucket `candidate-cvs`
      - Validación de texto extraído (mínimo 50 caracteres)
      - Probado exitosamente con CV real
-   - ⏳ **PASO 4**: Integración con OpenAI para análisis de CV (requiere API key)
+   - ⏳ **PASO 4 EN PROGRESO**: Integración con OpenAI usando Vercel AI SDK
+     - ✅ Vercel AI SDK instalado (`ai` + `@ai-sdk/openai`)
+     - ✅ `/api/utils/openai.ts` creado con helper `generateAIResponse()`
+     - ⏳ Implementación de `/api/analyze-cv.ts` (próximo)
    - ⏳ **PASO 5**: UI de preguntas para candidato
    - ⏳ **PASO 6**: Cálculo de scoring y resultado final
 
-### Decisiones Arquitectónicas Clave (Sesión 30-09-2025)
+### Decisiones Arquitectónicas Clave (Sesión 01-10-2025)
+**Decisión crítica:** Usar **Vercel AI SDK** en lugar del SDK directo de OpenAI
+- ✅ Multi-proveedor: Cambiar entre OpenAI, Claude, Gemini sin refactorizar
+- ✅ Optimizado para Vercel serverless
+- ✅ Timeout y JSON mode integrados
+- ✅ Menor overhead y sin vendor lock-in
+
 **Flujo de IA (2 llamadas):**
-- LLAMADA 1: Análisis CV + Generación de preguntas personalizadas
-- LLAMADA 2: Scoring final (después de que candidato responda)
+- LLAMADA 1: Análisis CV + Generación de preguntas personalizadas (~$0.03/candidato)
+- LLAMADA 2: Scoring final (después de que candidato responda) (~$0.04/candidato)
+- **Total: $0.07 USD por candidato**
 
 **Manejo de candidatos rechazados:**
 - Candidato responde TODAS las preguntas (IA + formulario)
@@ -386,6 +396,6 @@ npm run build
 
 ---
 
-**Última actualización**: 30-09-2025
-**Estado**: Backend serverless configurado en Vercel. Arquitectura completa de análisis IA definida y documentada. Iniciando implementación PASO 2 (modificación de base de datos). Ver AI_ANALYSIS_IMPLEMENTATION.md para detalles técnicos completos.
+**Última actualización**: 01-10-2025
+**Estado**: PASO 4 en progreso - Vercel AI SDK instalado y configurado. Cliente helper `generateAIResponse()` creado. Documentación AI_ANALYSIS_IMPLEMENTATION.md optimizada (888→266 líneas). Próximo: Implementar `/api/analyze-cv.ts` endpoint. Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado.
 **Repositorio**: GitHub sincronizado y actualizado

@@ -111,6 +111,39 @@ POST /api/save-recruiter-answers (PASO 5)
 
 ---
 
+## 🎯 Decisiones Técnicas: Evaluación de Requisitos
+
+### **Mapeo nivel → años (TODAS las categorías)**
+
+**Valores guardados en BD:**
+- `"básico (0-2 años de experiencia)"`
+- `"intermedio (2-4 años de experiencia)"`
+- `"avanzado (5+ años de experiencia)"`
+
+**Aplicación:**
+- `tools` (React, Node.js, etc.) → Años de uso
+- `technical` (Arquitectura, Patrones) → Años aplicando
+- `other-skills` (Git, Scrum, etc.) → Años de experiencia
+
+**Interpretación IA:**
+- "React intermedio (2-4 años de experiencia)" → Buscar evidencia de 2-4 años con React
+- Si CV no menciona años → IA genera pregunta para verificar
+- Scoring usa el rango como criterio objetivo
+
+**Ventaja:** Texto explícito elimina ambigüedad interpretativa para la IA
+
+**UI:** Select muestra solo "Básico", "Intermedio", "Avanzado" (dropdown muestra años)
+
+### **Requisitos no medibles por CV (FUERA DE SCOPE)**
+- Soft skills, pensamiento crítico, liderazgo → Se evalúan en entrevista presencial
+- FirstStep se enfoca en skills técnicos verificables mediante CV + preguntas IA
+
+### **Feature pospuesta a V2:**
+- Descripción custom por requisito (ej: "React avanzado con hooks + performance")
+- Razón: Priorizar MVP funcional, agregar refinamientos post-validación
+
+---
+
 ## 🗄️ Base de Datos
 
 ### Tablas creadas:
@@ -213,12 +246,17 @@ POST /api/save-recruiter-answers (PASO 5)
 - [ ] Llamar `extractTextFromCV(cv_url)` → `cv_text`
 - [ ] Si parsing falla → Actualizar BD (`parsing_failed = true, parsing_error`) + retornar error
 - [ ] Obtener de BD: `mandatory_requirements`, `optional_requirements`, `custom_prompt` (columnas separadas)
-- [ ] Construir prompt estructurado:
+- [ ] Construir prompt estructurado con lógica de priorización:
   - [ ] CV completo (`cv_text`)
-  - [ ] Requisitos indispensables formateados con descripción
-  - [ ] Requisitos deseables formateados
+  - [ ] Requisitos indispensables (`mandatory_requirements`) con descripción
+  - [ ] Requisitos deseables (`optional_requirements`) con descripción
   - [ ] `custom_prompt` del reclutador (si existe)
-  - [ ] Instrucciones para generar 3-5 preguntas en JSON
+  - [ ] **Instrucciones de priorización para IA:**
+    - [ ] Analizar qué requisitos mandatory NO se pueden verificar completamente en el CV
+    - [ ] Generar preguntas dirigidas a verificar PRIMERO esos requisitos mandatory (`is_mandatory: true`)
+    - [ ] Si quedan preguntas disponibles (máx 5), generar para requisitos optional (`is_mandatory: false`)
+    - [ ] Cantidad adaptativa: más requisitos mandatory sin evidencia = más preguntas mandatory
+    - [ ] Cada pregunta debe tener: `question`, `reason` (qué requisito verifica), `is_mandatory` (boolean)
 - [ ] Llamar `generateAIResponse(prompt, { responseFormat: 'json', temperature: 0.7, maxTokens: 1500 })`
 - [ ] Parsear JSON response: `{ questions: [{question, reason, is_mandatory}] }`
 - [ ] Validar estructura (array, máx 5 preguntas, campos requeridos)
@@ -327,13 +365,19 @@ POST /api/save-recruiter-answers (PASO 5)
   - [ ] `candidates.cv_text`
   - [ ] `process.mandatory_requirements`
   - [ ] `process.optional_requirements`
+  - [ ] `process.custom_prompt` (criterios adicionales del reclutador)
   - [ ] `ai_questions` con `answer_text` (solo is_answered = true)
-- [ ] Construir prompt de scoring:
+- [ ] Construir prompt de scoring con priorización:
   - [ ] CV completo
-  - [ ] Requisitos indispensables (lista)
-  - [ ] Requisitos deseables (lista)
-  - [ ] Preguntas + Respuestas del candidato
-  - [ ] Instrucciones: JSON con `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`
+  - [ ] Requisitos indispensables (lista con peso alto)
+  - [ ] Requisitos deseables (lista con peso medio)
+  - [ ] `custom_prompt` del reclutador (criterios adicionales)
+  - [ ] Preguntas + Respuestas del candidato (ponderar según `is_mandatory`)
+  - [ ] **Instrucciones de evaluación:**
+    - [ ] Evaluar PRIMERO si cumple TODOS los requisitos mandatory (evidencia en CV + respuestas a preguntas `is_mandatory: true`)
+    - [ ] Si falta 1+ requisito mandatory → `meetsAllMandatory: false` + `rejectionReason` específico
+    - [ ] Si cumple todos mandatory → Calcular `finalScore` (0-100) considerando optional + respuestas
+    - [ ] JSON: `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`, `rejectionReason`
 - [ ] Llamar `generateAIResponse()` (temperature: 0.3 para consistencia)
 - [ ] Parsear JSON response
 - [ ] **Si `meetsAllMandatory = false`:**
@@ -343,12 +387,17 @@ POST /api/save-recruiter-answers (PASO 5)
   - [ ] Guardar `score`, `scoring_details` en candidates
   - [ ] Retornar: `{ approved: true, score: 85, details: {...} }`
 
-**Sub-paso 6.2: Construir prompt de scoring**
-- [ ] Formatear requisitos indispensables con descripción
-- [ ] Formatear requisitos deseables
+**Sub-paso 6.2: Construir prompt de scoring (con priorización)**
+- [ ] Formatear requisitos indispensables con descripción y nivel (si existe)
+- [ ] Formatear requisitos deseables con descripción
+- [ ] Incluir `custom_prompt` del reclutador para criterios adicionales
 - [ ] Incluir CV completo
-- [ ] Incluir todas las preguntas IA con respuestas del candidato
-- [ ] Instrucciones claras: JSON con `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`, `rejectionReason`
+- [ ] Incluir preguntas IA con respuestas, marcando cuáles son `is_mandatory: true`
+- [ ] **Instrucciones claras para IA:**
+  - [ ] Priorizar verificación de requisitos mandatory primero
+  - [ ] Ponderar respuestas a preguntas `is_mandatory: true` con mayor peso
+  - [ ] Si falta 1+ requisito mandatory → rechazar automáticamente
+  - [ ] JSON con `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`, `rejectionReason`
 
 **Sub-paso 6.3: Implementar lógica de scoring**
 - [ ] Llamar `generateAIResponse(prompt, { temperature: 0.3, maxTokens: 2000 })`

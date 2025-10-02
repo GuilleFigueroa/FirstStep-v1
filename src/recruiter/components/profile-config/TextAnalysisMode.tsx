@@ -469,17 +469,36 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                               {req.level !== undefined && (
                                 <Select
                                   value={req.level}
-                                  onValueChange={(value) => 
+                                  onValueChange={(value) =>
                                     updateRequirement(req.id, { level: value as any })
                                   }
                                 >
                                   <SelectTrigger className="w-32">
-                                    <SelectValue />
+                                    <SelectValue>
+                                      {req.level?.includes('básico') && 'Básico'}
+                                      {req.level?.includes('intermedio') && 'Intermedio'}
+                                      {req.level?.includes('avanzado') && 'Avanzado'}
+                                    </SelectValue>
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="básico">Básico</SelectItem>
-                                    <SelectItem value="intermedio">Intermedio</SelectItem>
-                                    <SelectItem value="avanzado">Avanzado</SelectItem>
+                                    <SelectItem value="básico (0-2 años de experiencia)">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">Básico</span>
+                                        <span className="text-xs text-muted-foreground">0-2 años de experiencia</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="intermedio (2-4 años de experiencia)">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">Intermedio</span>
+                                        <span className="text-xs text-muted-foreground">2-4 años de experiencia</span>
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="avanzado (5+ años de experiencia)">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">Avanzado</span>
+                                        <span className="text-xs text-muted-foreground">5+ años de experiencia</span>
+                                      </div>
+                                    </SelectItem>
                                   </SelectContent>
                                 </Select>
                               )}

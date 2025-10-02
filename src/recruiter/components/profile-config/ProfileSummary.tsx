@@ -43,15 +43,16 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
     return labels[category as keyof typeof labels] || category;
   };
 
-  const groupedRequirements = profile.requirements.reduce((acc, req) => {
+  const allRequirements = [...profile.mandatoryRequirements, ...profile.optionalRequirements];
+  const groupedRequirements = allRequirements.reduce((acc, req) => {
     if (!acc[req.category]) {
       acc[req.category] = [];
     }
     acc[req.category].push(req);
     return acc;
-  }, {} as Record<string, typeof profile.requirements>);
+  }, {} as Record<string, typeof allRequirements>);
 
-  const formatRequirementText = (req: typeof profile.requirements[0]) => {
+  const formatRequirementText = (req: typeof allRequirements[0]) => {
     let text = req.title;
     if (req.level) {
       text += ` (${req.level})`;
@@ -62,9 +63,9 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
     return text;
   };
 
-  const totalRequirements = profile.requirements.length;
-  const obligatoryRequirements = profile.requirements.filter(req => req.required).length;
-  const optionalRequirements = totalRequirements - obligatoryRequirements;
+  const mandatoryCount = profile.mandatoryRequirements.length;
+  const optionalCount = profile.optionalRequirements.length;
+  const totalRequirements = mandatoryCount + optionalCount;
   const hasRequirements = totalRequirements > 0;
 
   return (
@@ -109,7 +110,7 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
             <CardDescription>
               {hasRequirements ? (
                 <>
-                  Se han configurado {totalRequirements} requisitos: {obligatoryRequirements} obligatorios y {optionalRequirements} opcionales
+                  Se han configurado {totalRequirements} requisitos: {mandatoryCount} obligatorios y {optionalCount} opcionales
                   {profile.customPrompt && " • Incluye instrucciones personalizadas para la IA"}
                 </>
               ) : (

@@ -148,17 +148,18 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
     return labels[category as keyof typeof labels] || category;
   };
 
-  const groupedRequirements = profile.requirements.reduce((acc, req) => {
+  const allRequirements = [...profile.mandatoryRequirements, ...profile.optionalRequirements];
+  const groupedRequirements = allRequirements.reduce((acc, req) => {
     if (!acc[req.category]) {
       acc[req.category] = [];
     }
     acc[req.category].push(req);
     return acc;
-  }, {} as Record<string, typeof profile.requirements>);
+  }, {} as Record<string, typeof allRequirements>);
 
-  const totalRequirements = profile.requirements.length;
-  const obligatoryRequirements = profile.requirements.filter(req => req.required).length;
-  const optionalRequirements = totalRequirements - obligatoryRequirements;
+  const mandatoryCount = profile.mandatoryRequirements.length;
+  const optionalCount = profile.optionalRequirements.length;
+  const totalRequirements = mandatoryCount + optionalCount;
 
   const isFormValid = companyName.trim() && jobTitle.trim();
 
@@ -278,7 +279,7 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
                     <span className="font-medium">{profile.title}</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {totalRequirements} requisitos configurados: {obligatoryRequirements} obligatorios, {optionalRequirements} opcionales
+                    {totalRequirements} requisitos configurados: {mandatoryCount} obligatorios, {optionalCount} opcionales
                   </p>
                 </div>
 

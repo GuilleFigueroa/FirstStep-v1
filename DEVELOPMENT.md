@@ -258,11 +258,12 @@ src/
 - Solo candidatos aprobados visibles (rechazados eliminados de BD)
 - Secciones: Scoring + Requisitos + AI Questions + Recruiter Questions
 
-**9. Estructura de requisitos (confirmada con proceso real):**
-- Una sola columna: `requirements` (JSONB array)
-- Campo `required: true/false` determina si es indispensable o deseable
-- Backend separa al leer: `mandatoryReqs = requirements.filter(r => r.required)`
-- Columnas `mandatory_requirements` y `optional_requirements` quedan sin usar (disponibles para migración futura)
+**9. Estructura de requisitos (ACTUALIZADO - Sesión 02/10/2025):**
+- ✅ **REFACTOR COMPLETADO**: Separación arquitectónica completa
+- Frontend: `mandatoryRequirements` y `optionalRequirements` (arrays separados en estado)
+- Backend: `mandatory_requirements` y `optional_requirements` (columnas JSONB separadas)
+- Base de datos: Guardar directamente en columnas separadas
+- UI: Render unificado con sort para estabilidad visual (toggle sin saltos)
 
 **10. Form questions (dual):**
 - Mantener `form_questions` (JSONB) para compatibilidad con código existente del reclutador
@@ -438,26 +439,28 @@ npm run build
 
 ---
 
-**Última actualización**: 01-10-2025
+**Última actualización**: 02-10-2025
 
-**Estado**: PASO 4 en progreso - Arquitectura completa definida y documentada
+**Estado**: REFACTOR completado - PASO 4 pendiente de continuar
 
-**Completado en esta sesión:**
-- ✅ Vercel AI SDK instalado + `generateAIResponse()` helper creado
-- ✅ Decisiones arquitectónicas críticas tomadas (10 decisiones documentadas)
-- ✅ Flujo técnico completo definido: 6 steps frontend + 7 pasos implementación
-- ✅ Documentación optimizada y sincronizada (AI_ANALYSIS_IMPLEMENTATION.md + DEVELOPMENT.md)
-- ✅ Plan de implementación atómico por sub-pasos (5 sub-pasos por paso)
-- ✅ **Decisión crítica:** Desarrollo directo con API real (eliminado enfoque de mocks)
-- ✅ **Bug corregido:** `getProcessByUniqueId()` ahora soporta diferentes puertos (dev/prod)
-- ✅ **Decisión arquitectónica:** Leer `requirements` con campo `required: true/false` (Opción A)
-- ✅ **Decisión arquitectónica:** Mantener dual `form_questions` + tabla `recruiter_questions`
-- ✅ Estructura de requisitos confirmada mediante inspección de proceso real
+**Completado en Sesión 02/10/2025:**
+- ✅ **REFACTOR ARQUITECTÓNICO COMPLETO**: Separación de requisitos (5 commits)
+  - FASE 1: Tipos actualizados (`JobProfile` + `Process` interfaces)
+  - FASE 2: Backend guarda a columnas separadas en Supabase
+  - FASE 3: `TextAnalysisMode.tsx` con 2 arrays de estado
+  - FASE 4: Componentes visualización actualizados (ProfileSummary, JobPostingConfig, CandidateSimulation)
+  - FASE 5: Fix UX - ordenamiento por ID para prevenir saltos visuales en toggle
+- ✅ Branch `refactor/separate-requirements` mergeado exitosamente a `main`
+- ✅ Build exitoso + flujo completo probado sin breaking changes
+- ✅ Base de datos limpia (procesos viejos eliminados)
+- ✅ Documentación actualizada (DEVELOPMENT.md)
 
-**Preguntas pendientes para próxima sesión:**
-- ❓ ¿Campo `level` importante para prompts OpenAI?
-- ❓ ¿Migrar procesos viejos a columnas separadas?
+**Decisión arquitectónica final:**
+- **Opción B implementada**: Separación completa (mandatory/optional)
+- `JobProfile`: `mandatoryRequirements` + `optionalRequirements` (arrays separados)
+- `Process`: `mandatory_requirements` + `optional_requirements` (columnas JSONB)
+- UI: Render unificado `allRequirements.sort()` para mantener orden visual estable
 
-**Próximo**: Usuario consigue API key OpenAI → Sub-paso 4.1 (configurar en Vercel) → Sub-paso 4.2 (crear endpoint)
+**Próximo**: Continuar PASO 4 - Usuario consigue API key OpenAI → Sub-paso 4.1 (configurar en Vercel) → Sub-paso 4.2 (crear endpoint)
 
 **Repositorio**: GitHub sincronizado | Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado paso a paso

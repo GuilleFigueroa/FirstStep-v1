@@ -212,9 +212,7 @@ POST /api/save-recruiter-answers (PASO 5)
 - [ ] Obtener `cv_url` y `process_id` desde BD (candidates)
 - [ ] Llamar `extractTextFromCV(cv_url)` → `cv_text`
 - [ ] Si parsing falla → Actualizar BD (`parsing_failed = true, parsing_error`) + retornar error
-- [ ] Obtener de BD: `requirements`, `custom_prompt` (NO usar mandatory/optional separados)
-- [ ] Separar requisitos: `mandatoryReqs = requirements.filter(r => r.required === true)`
-- [ ] Separar requisitos: `optionalReqs = requirements.filter(r => r.required === false)`
+- [ ] Obtener de BD: `mandatory_requirements`, `optional_requirements`, `custom_prompt` (columnas separadas)
 - [ ] Construir prompt estructurado:
   - [ ] CV completo (`cv_text`)
   - [ ] Requisitos indispensables formateados con descripción
@@ -446,25 +444,34 @@ POST /api/save-recruiter-answers (PASO 5)
 - ✅ **Decisión arquitectónica:** Usar `requirements` con campo `required: true/false` (no `mandatory_requirements` separado)
 - ✅ **Decisión arquitectónica:** Mantener `form_questions` (JSONB) + tabla `recruiter_questions` (dual, no romper código existente)
 
-**Estructura de requisitos confirmada:**
+**Estructura de requisitos (ACTUALIZADO - Sesión 02/10/2025):**
 ```json
+// Frontend (JobProfile)
 {
-  "id": "req-0",
-  "title": "React",
-  "level": "avanzado",
-  "category": "tools",
-  "required": true  // true = indispensable, false = deseable
+  mandatoryRequirements: [
+    { id: "req-0", title: "React", level: "avanzado", category: "tools", required: true }
+  ],
+  optionalRequirements: [
+    { id: "req-1", title: "Node.js", level: "intermedio", category: "tools", required: false }
+  ]
+}
+
+// Backend (Process table)
+{
+  mandatory_requirements: [...],
+  optional_requirements: [...]
 }
 ```
 
-**Preguntas pendientes para Sesión 3:**
-- ❓ ¿El campo `level` es importante para el prompt de OpenAI?
-- ❓ ¿Migrar procesos viejos a columnas separadas o dejarlas sin usar?
+**Refactor completado (Sesión 02/10/2025):**
+- ✅ Separación arquitectónica completa: frontend + backend + BD
+- ✅ 5 commits atómicos mergeados a main
+- ✅ Build exitoso + flujo probado sin breaking changes
 
 **Próximo (Sesión 3):**
 - API key OpenAI lista (usuario la consigue)
 - Sub-paso 4.1: Configurar API key OpenAI en Vercel
-- Sub-paso 4.2: Crear `/api/analyze-cv.ts` leyendo desde `requirements` y separando por `required`
+- Sub-paso 4.2: Crear `/api/analyze-cv.ts` leyendo `mandatory_requirements` y `optional_requirements` (columnas separadas)
 - Sub-paso 4.3: Integrar en `CVUploadStep.tsx`
 - Sub-paso 4.4: Probar con CVs reales y validar calidad
 - Sub-paso 4.5: Validar costos y optimizar

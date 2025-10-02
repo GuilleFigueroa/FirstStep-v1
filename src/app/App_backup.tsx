@@ -46,7 +46,8 @@ export interface FormQuestion {
 
 export interface JobProfile {
   title: string;
-  requirements: ProfileRequirement[];
+  mandatoryRequirements: ProfileRequirement[];
+  optionalRequirements: ProfileRequirement[];
   customPrompt?: string;
   customQuestion?: string;
   formQuestions?: FormQuestion[];

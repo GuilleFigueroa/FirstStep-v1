@@ -19,7 +19,8 @@ interface TextAnalysisModeProps {
 export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   const [jobDescription, setJobDescription] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analyzedRequirements, setAnalyzedRequirements] = useState<ProfileRequirement[]>([]);
+  const [mandatoryRequirements, setMandatoryRequirements] = useState<ProfileRequirement[]>([]);
+  const [optionalRequirements, setOptionalRequirements] = useState<ProfileRequirement[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [profileTitle, setProfileTitle] = useState('');
   const [customPrompt, setCustomPrompt] = useState('');
@@ -36,8 +37,12 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
 
     // Análisis simulado basado en palabras clave comunes
     const mockAnalysis = extractRequirementsFromText(jobDescription);
-    
-    setAnalyzedRequirements(mockAnalysis.requirements);
+
+    const mandatory = mockAnalysis.requirements.filter(r => r.required);
+    const optional = mockAnalysis.requirements.filter(r => !r.required);
+
+    setMandatoryRequirements(mandatory);
+    setOptionalRequirements(optional);
     setProfileTitle(mockAnalysis.title);
     setShowResults(true);
     setIsAnalyzing(false);
@@ -148,17 +153,20 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   };
 
   const updateRequirement = (id: string, updates: Partial<ProfileRequirement>) => {
-    setAnalyzedRequirements(prev => 
+    setMandatoryRequirements(prev =>
+      prev.map(req => req.id === id ? { ...req, ...updates } : req)
+    );
+    setOptionalRequirements(prev =>
       prev.map(req => req.id === id ? { ...req, ...updates } : req)
     );
   };
 
   const toggleSynonyms = (reqId: string) => {
     setExpandedSynonyms(prev => ({ ...prev, [reqId]: !prev[reqId] }));
-    
+
     // Si no hay sinónimos para este requisito, generar algunos iniciales
     if (!synonymsData[reqId]) {
-      const requirement = analyzedRequirements.find(req => req.id === reqId);
+      const requirement = allRequirements.find(req => req.id === reqId);
       if (requirement) {
         const initialSynonyms = generateInitialSynonyms(requirement.title);
         setSynonymsData(prev => ({ ...prev, [reqId]: initialSynonyms }));
@@ -220,7 +228,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   };
 
   const generateMoreSynonyms = async (reqId: string) => {
-    const requirement = analyzedRequirements.find(req => req.id === reqId);
+    const requirement = allRequirements.find(req => req.id === reqId);
     if (!requirement) return;
 
     // Simular generación de IA
@@ -238,13 +246,28 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   };
 
   const toggleRequirement = (id: string) => {
-    setAnalyzedRequirements(prev =>
-      prev.map(req => req.id === id ? { ...req, required: !req.required } : req)
-    );
+    // Buscar en qué array está el requisito
+    const mandatoryReq = mandatoryRequirements.find(r => r.id === id);
+    const optionalReq = optionalRequirements.find(r => r.id === id);
+
+    if (mandatoryReq) {
+      // Mover de mandatory a optional - actualizar ambos arrays en batch
+      const newMandatory = mandatoryRequirements.filter(r => r.id !== id);
+      const newOptional = [...optionalRequirements, { ...mandatoryReq, required: false }];
+      setMandatoryRequirements(newMandatory);
+      setOptionalRequirements(newOptional);
+    } else if (optionalReq) {
+      // Mover de optional a mandatory - actualizar ambos arrays en batch
+      const newOptional = optionalRequirements.filter(r => r.id !== id);
+      const newMandatory = [...mandatoryRequirements, { ...optionalReq, required: true }];
+      setOptionalRequirements(newOptional);
+      setMandatoryRequirements(newMandatory);
+    }
   };
 
   const removeRequirement = (id: string) => {
-    setAnalyzedRequirements(prev => prev.filter(req => req.id !== id));
+    setMandatoryRequirements(prev => prev.filter(req => req.id !== id));
+    setOptionalRequirements(prev => prev.filter(req => req.id !== id));
   };
 
   const addRequirement = (category: ProfileRequirement['category']) => {
@@ -256,7 +279,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       years: category === 'experience' ? 1 : undefined,
       required: false
     };
-    setAnalyzedRequirements(prev => [...prev, newReq]);
+    setOptionalRequirements(prev => [...prev, newReq]);
   };
 
   const getCategoryLabel = (category: string) => {
@@ -282,13 +305,21 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   const handleCreateProfile = () => {
     const profile: JobProfile = {
       title: profileTitle,
-      requirements: analyzedRequirements,
+      mandatoryRequirements,
+      optionalRequirements,
       customPrompt: customPrompt.trim() || undefined
     };
     onProfileCreated(profile);
   };
 
-  const groupedRequirements = analyzedRequirements.reduce((acc, req) => {
+  const allRequirements = [...mandatoryRequirements, ...optionalRequirements].sort((a, b) => {
+    // Mantener orden de inserción original basado en el ID
+    const aNum = parseInt(a.id.split('-')[1] || '0');
+    const bNum = parseInt(b.id.split('-')[1] || '0');
+    return aNum - bNum;
+  });
+
+  const groupedRequirements = allRequirements.reduce((acc, req) => {
     if (!acc[req.category]) {
       acc[req.category] = [];
     }
@@ -600,20 +631,21 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
             />
 
             <div className="flex gap-3 pt-4">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => {
                   setShowResults(false);
-                  setAnalyzedRequirements([]);
+                  setMandatoryRequirements([]);
+                  setOptionalRequirements([]);
                   setProfileTitle('');
                   setCustomPrompt('');
                 }}
               >
                 Analizar nuevo texto
               </Button>
-              <Button 
+              <Button
                 onClick={handleCreateProfile}
-                disabled={analyzedRequirements.length === 0}
+                disabled={mandatoryRequirements.length === 0 && optionalRequirements.length === 0}
                 className="flex items-center gap-2 flex-1"
               >
                 Continuar al Resumen

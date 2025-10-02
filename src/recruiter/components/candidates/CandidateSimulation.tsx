@@ -94,7 +94,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
 
   // Generar pregunta filtro basada en requisitos imprescindibles
   const generateFilterQuestion = () => {
-    const mandatoryRequirements = jobPosting.profile.requirements.filter(req => req.required);
+    const mandatoryRequirements = jobPosting.profile.mandatoryRequirements;
     if (mandatoryRequirements.length > 0) {
       const firstMandatory = mandatoryRequirements[0];
       let question = '';
@@ -125,7 +125,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
     const mockQuestions: Question[] = [
       {
         id: '1',
-        question: `¿Podrías detallar tu experiencia específica con ${jobPosting.profile.requirements.find(r => r.category === 'tools')?.title || 'las herramientas mencionadas'}?`,
+        question: `¿Podrías detallar tu experiencia específica con ${[...jobPosting.profile.mandatoryRequirements, ...jobPosting.profile.optionalRequirements].find(r => r.category === 'tools')?.title || 'las herramientas mencionadas'}?`,
         category: 'Herramientas'
       },
       {
@@ -830,8 +830,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
                     <span className="text-sm font-medium">Requisitos obligatorios</span>
                   </div>
                   <ul className="space-y-2 ml-4">
-                    {jobPosting.profile.requirements
-                      .filter(req => req.required)
+                    {jobPosting.profile.mandatoryRequirements
                       .slice(0, 3) // Mostrar solo algunos para simular que los cumple
                       .map(req => (
                         <li key={req.id} className="flex items-start gap-2">
@@ -849,8 +848,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
                     <span className="text-sm font-medium">Requisitos adicionales que tienes</span>
                   </div>
                   <ul className="space-y-2 ml-4">
-                    {jobPosting.profile.requirements
-                      .filter(req => !req.required)
+                    {jobPosting.profile.optionalRequirements
                       .slice(0, 2) // Mostrar solo algunos para simular que los cumple
                       .map(req => (
                         <li key={req.id} className="flex items-start gap-2">
@@ -876,8 +874,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
                     <span className="text-sm font-medium">Oportunidades de crecimiento</span>
                   </div>
                   <ul className="space-y-2 ml-4">
-                    {jobPosting.profile.requirements
-                      .filter(req => !req.required)
+                    {jobPosting.profile.optionalRequirements
                       .slice(2) // Mostrar los restantes como que no los cumple
                       .map(req => (
                         <li key={req.id} className="flex items-start gap-2">
@@ -886,7 +883,7 @@ export function CandidateSimulation({ jobPosting, onBack }: CandidateSimulationP
                         </li>
                       ))}
                     {/* Agregar algunos ejemplos si no hay suficientes */}
-                    {jobPosting.profile.requirements.filter(req => !req.required).length <= 2 && (
+                    {jobPosting.profile.optionalRequirements.length <= 2 && (
                       <>
                         <li className="flex items-start gap-2">
                           <div className="w-4 h-4 border-2 border-orange-400 rounded-full mt-0.5"></div>

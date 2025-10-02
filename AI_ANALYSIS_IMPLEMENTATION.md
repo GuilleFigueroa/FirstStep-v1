@@ -4,7 +4,7 @@
 
 **Progreso:** 3/7 pasos completados (43%)
 **Fecha inicio:** 30-09-2024
-**Última actualización:** 01-10-2025
+**Última actualización:** 02-10-2025
 
 | Paso | Estado | Descripción |
 |------|--------|-------------|
@@ -524,6 +524,37 @@ POST /api/save-recruiter-answers (PASO 5)
 - Sub-paso 4.3: Integrar en `CVUploadStep.tsx`
 - Sub-paso 4.4: Probar con CVs reales y validar calidad
 - Sub-paso 4.5: Validar costos y optimizar
+
+---
+
+### **Sesión 2 - 02/10/2025 (Parte 2)**
+**Objetivo:** Mejorar UX de requisitos y optimizar análisis IA
+
+**Completado:**
+- ✅ **Niveles explícitos con experiencia:**
+  - Actualizado mapeo: básico (0-2 años), intermedio (2-4 años), avanzado (5+ años)
+  - Display en UI: Solo nombre en selector, detalle completo en dropdown
+  - BD: Guarda texto completo para claridad en prompts IA
+  - Aplicado a todas las categorías (herramientas, técnicas, habilidades)
+
+- ✅ **Optimización de sinónimos:**
+  - Eliminado botón "Sugerir similares con IA" (innecesario con GPT-4o-mini)
+  - Agregado tooltip informativo: "La IA ya reconoce variaciones y sinónimos automáticamente"
+  - Panel de sinónimos conservado como mock (UX/confianza del reclutador)
+  - Decisión: No procesar sinónimos en análisis real (ahorro ~$0.00002/candidato)
+
+- ✅ **Decisión descartada:**
+  - Diccionario de ~200 tecnologías creado y eliminado (causaba loop infinito)
+  - Conservado sistema de keywords hardcoded (funciona correctamente)
+  - Prioridad: estabilidad sobre expansión prematura
+
+**Decisiones técnicas documentadas:**
+- Mapeo de niveles a años = más objetivo y medible para IA
+- GPT-4o-mini reconoce sinónimos nativamente (React = ReactJS = React.js)
+- Extracción de requisitos: Regex + keywords (0 costo, 70% calidad suficiente para MVP)
+
+**Próximo:**
+- Continuar PASO 4 con configuración OpenAI API key
 
 ---
 

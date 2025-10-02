@@ -8,7 +8,8 @@ import { Switch } from '../../../ui/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { Input } from '../../../ui/components/ui/input';
 import { Separator } from '../../../ui/components/ui/separator';
-import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X } from 'lucide-react';
+import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../ui/components/ui/tooltip';
 import { CustomPromptBox } from './CustomPromptBox';
 import type { JobProfile, ProfileRequirement } from '../../../app/App';
 
@@ -52,7 +53,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     const lowercaseText = text.toLowerCase();
     const requirements: ProfileRequirement[] = [];
     let id = 0;
-    
+
     // Determinar título del puesto
     let title = 'Perfil Personalizado';
     if (lowercaseText.includes('desarrollador') || lowercaseText.includes('developer')) {
@@ -80,16 +81,16 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
 
     // Herramientas y tecnologías
     const tools = [
-      { keywords: ['figma'], title: 'Figma', level: 'intermedio' as const },
-      { keywords: ['photoshop', 'adobe'], title: 'Adobe Creative Suite', level: 'intermedio' as const },
-      { keywords: ['javascript', 'js'], title: 'JavaScript', level: 'avanzado' as const },
-      { keywords: ['react'], title: 'React', level: 'avanzado' as const },
-      { keywords: ['python'], title: 'Python', level: 'avanzado' as const },
-      { keywords: ['sql', 'base de datos', 'database'], title: 'Bases de datos SQL', level: 'intermedio' as const },
-      { keywords: ['git'], title: 'Git', level: 'intermedio' as const },
-      { keywords: ['excel'], title: 'Excel', level: 'intermedio' as const },
-      { keywords: ['crm', 'salesforce', 'hubspot'], title: 'CRM', level: 'intermedio' as const },
-      { keywords: ['google ads', 'adwords'], title: 'Google Ads', level: 'intermedio' as const },
+      { keywords: ['figma'], title: 'Figma', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['photoshop', 'adobe'], title: 'Adobe Creative Suite', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['javascript', 'js'], title: 'JavaScript', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['react'], title: 'React', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['python'], title: 'Python', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['sql', 'base de datos', 'database'], title: 'Bases de datos SQL', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['git'], title: 'Git', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['excel'], title: 'Excel', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['crm', 'salesforce', 'hubspot'], title: 'CRM', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['google ads', 'adwords'], title: 'Google Ads', level: 'intermedio (2-4 años de experiencia)' as const },
     ];
 
     tools.forEach(tool => {
@@ -106,11 +107,11 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
 
     // Habilidades técnicas
     const technicalSkills = [
-      { keywords: ['seo'], title: 'SEO', level: 'intermedio' as const },
-      { keywords: ['ui', 'ux', 'user experience'], title: 'Diseño UX/UI', level: 'avanzado' as const },
-      { keywords: ['api', 'rest'], title: 'APIs REST', level: 'intermedio' as const },
-      { keywords: ['docker'], title: 'Docker', level: 'básico' as const },
-      { keywords: ['scrum', 'agile'], title: 'Metodologías Ágiles', level: 'básico' as const },
+      { keywords: ['seo'], title: 'SEO', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['ui', 'ux', 'user experience'], title: 'Diseño UX/UI', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['api', 'rest'], title: 'APIs REST', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['docker'], title: 'Docker', level: 'básico (0-2 años de experiencia)' as const },
+      { keywords: ['scrum', 'agile'], title: 'Metodologías Ágiles', level: 'básico (0-2 años de experiencia)' as const },
     ];
 
     technicalSkills.forEach(skill => {
@@ -125,16 +126,16 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       }
     });
 
-    // Otras habilidades (consolidando idiomas, habilidades blandas y certificaciones)
+    // Otras habilidades (idiomas, habilidades blandas - opcionales por defecto)
     const otherSkills = [
-      { keywords: ['inglés', 'english'], title: 'Inglés', level: 'intermedio' as const },
-      { keywords: ['comunicación', 'communication'], title: 'Comunicación efectiva', level: 'intermedio' as const },
-      { keywords: ['liderazgo', 'leadership'], title: 'Liderazgo', level: 'intermedio' as const },
-      { keywords: ['trabajo en equipo', 'teamwork'], title: 'Trabajo en equipo', level: 'intermedio' as const },
-      { keywords: ['creatividad', 'creativity'], title: 'Creatividad', level: 'intermedio' as const },
-      { keywords: ['resolución de problemas', 'problem solving'], title: 'Resolución de problemas', level: 'intermedio' as const },
-      { keywords: ['certificación', 'certification'], title: 'Certificaciones profesionales', level: 'básico' as const },
-      { keywords: ['pmp', 'scrum master'], title: 'Certificación PMP/Scrum', level: 'básico' as const }
+      { keywords: ['inglés', 'english'], title: 'Inglés', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['comunicación', 'communication'], title: 'Comunicación efectiva', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['liderazgo', 'leadership'], title: 'Liderazgo', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['trabajo en equipo', 'teamwork'], title: 'Trabajo en equipo', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['creatividad', 'creativity'], title: 'Creatividad', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['resolución de problemas', 'problem solving'], title: 'Resolución de problemas', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['certificación', 'certification'], title: 'Certificaciones profesionales', level: 'básico (0-2 años de experiencia)' as const },
+      { keywords: ['pmp', 'scrum master'], title: 'Certificación PMP/Scrum', level: 'básico (0-2 años de experiencia)' as const }
     ];
 
     otherSkills.forEach(skill => {
@@ -554,9 +555,21 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                               <div className="ml-6 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-200">
                                 <div className="mb-3">
                                   <h5 className="font-medium text-gray-900 mb-1">Sinónimos y palabras similares</h5>
-                                  <p className="text-sm text-gray-600">
-                                    La IA buscará estas palabras en los CVs para detectar este requisito
-                                  </p>
+                                  <div className="flex items-center gap-1">
+                                    <p className="text-sm text-gray-600">
+                                      La IA ya reconoce variaciones y sinónimos automáticamente
+                                    </p>
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger>
+                                          <Info className="w-4 h-4 text-red-500" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>La IA ya reconoce variaciones y sinónimos automáticamente</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </div>
                                 </div>
 
                                 {/* Lista de sinónimos existentes */}
@@ -589,8 +602,8 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                       }
                                     }}
                                   />
-                                  <Button 
-                                    variant="outline" 
+                                  <Button
+                                    variant="outline"
                                     size="sm"
                                     onClick={() => addSynonym(req.id)}
                                     disabled={!newSynonym[req.id]?.trim()}
@@ -598,17 +611,6 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                     Agregar
                                   </Button>
                                 </div>
-
-                                {/* Botón para sugerir más sinónimos */}
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => generateMoreSynonyms(req.id)}
-                                  className="flex items-center gap-2 text-purple-600 border-purple-200 hover:bg-purple-50"
-                                >
-                                  <Sparkles className="w-4 h-4" />
-                                  Sugerir similares con IA
-                                </Button>
                               </div>
                             )}
                           </div>

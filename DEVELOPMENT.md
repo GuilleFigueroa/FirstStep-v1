@@ -441,9 +441,9 @@ npm run build
 
 **Última actualización**: 02-10-2025
 
-**Estado**: REFACTOR completado - PASO 4 pendiente de continuar
+**Estado**: UI mejorada - PASO 4 pendiente de continuar
 
-**Completado en Sesión 02/10/2025:**
+**Completado en Sesión 02/10/2025 (Parte 1):**
 - ✅ **REFACTOR ARQUITECTÓNICO COMPLETO**: Separación de requisitos (5 commits)
   - FASE 1: Tipos actualizados (`JobProfile` + `Process` interfaces)
   - FASE 2: Backend guarda a columnas separadas en Supabase
@@ -453,13 +453,38 @@ npm run build
 - ✅ Branch `refactor/separate-requirements` mergeado exitosamente a `main`
 - ✅ Build exitoso + flujo completo probado sin breaking changes
 - ✅ Base de datos limpia (procesos viejos eliminados)
-- ✅ Documentación actualizada (DEVELOPMENT.md)
+
+**Completado en Sesión 02/10/2025 (Parte 2):**
+- ✅ **MEJORAS UX/UI EN REQUISITOS**: Niveles explícitos + sinónimos optimizados
+  - Niveles actualizados con años de experiencia explícitos:
+    - `básico (0-2 años de experiencia)`
+    - `intermedio (2-4 años de experiencia)`
+    - `avanzado (5+ años de experiencia)`
+  - Display en UI: Solo nombre nivel en selector, detalle completo en dropdown
+  - Base de datos: Guarda texto completo para claridad en análisis IA
+  - Panel de sinónimos simplificado:
+    - ✅ Eliminado botón "Sugerir similares con IA" (GPT-4o-mini ya reconoce variaciones)
+    - ✅ Tooltip informativo: "La IA ya reconoce variaciones y sinónimos automáticamente"
+    - ✅ Panel conservado como mock para confianza del reclutador
+    - ✅ No se usan sinónimos en análisis real (optimización de costos)
 
 **Decisión arquitectónica final:**
 - **Opción B implementada**: Separación completa (mandatory/optional)
 - `JobProfile`: `mandatoryRequirements` + `optionalRequirements` (arrays separados)
 - `Process`: `mandatory_requirements` + `optional_requirements` (columnas JSONB)
 - UI: Render unificado `allRequirements.sort()` para mantener orden visual estable
+
+**Decisión técnica: Mapeo de niveles a experiencia**
+- **Problema**: "básico/intermedio/avanzado" es subjetivo para la IA
+- **Solución**: Mapeo explícito a años de experiencia
+- **Aplicación**: Todas las categorías (herramientas, habilidades técnicas, idiomas, etc.)
+- **Ejemplo**: "React avanzado (5+ años de experiencia)" es objetivo y medible
+
+**Decisión técnica: Sinónimos y extracción de requisitos**
+- **Extracción**: Regex + keywords hardcoded (no IA, 0 costo)
+- **Sinónimos**: No se usan en análisis (GPT-4o-mini entiende variaciones nativamente)
+- **UX**: Panel de sinónimos conservado como mock (confianza del usuario)
+- **Ahorro**: ~$0.00002 por candidato al no procesar sinónimos
 
 **Próximo**: Continuar PASO 4 - Usuario consigue API key OpenAI → Sub-paso 4.1 (configurar en Vercel) → Sub-paso 4.2 (crear endpoint)
 

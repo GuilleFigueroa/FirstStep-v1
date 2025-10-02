@@ -22,9 +22,8 @@ export interface Process {
   title: string
   company_name: string
   description: string
-  requirements: any[]
-  mandatory_requirements?: any[]
-  optional_requirements?: any[]
+  mandatory_requirements: any[]
+  optional_requirements: any[]
   custom_prompt?: string
   form_questions: any[]
   candidate_limit?: number

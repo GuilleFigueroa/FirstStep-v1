@@ -246,19 +246,22 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   };
 
   const toggleRequirement = (id: string) => {
-    // Buscar en mandatory primero
+    // Buscar en qué array está el requisito
     const mandatoryReq = mandatoryRequirements.find(r => r.id === id);
+    const optionalReq = optionalRequirements.find(r => r.id === id);
+
     if (mandatoryReq) {
-      // Mover de mandatory a optional
-      setMandatoryRequirements(prev => prev.filter(r => r.id !== id));
-      setOptionalRequirements(prev => [...prev, { ...mandatoryReq, required: false }]);
-    } else {
-      // Buscar en optional y mover a mandatory
-      const optionalReq = optionalRequirements.find(r => r.id === id);
-      if (optionalReq) {
-        setOptionalRequirements(prev => prev.filter(r => r.id !== id));
-        setMandatoryRequirements(prev => [...prev, { ...optionalReq, required: true }]);
-      }
+      // Mover de mandatory a optional - actualizar ambos arrays en batch
+      const newMandatory = mandatoryRequirements.filter(r => r.id !== id);
+      const newOptional = [...optionalRequirements, { ...mandatoryReq, required: false }];
+      setMandatoryRequirements(newMandatory);
+      setOptionalRequirements(newOptional);
+    } else if (optionalReq) {
+      // Mover de optional a mandatory - actualizar ambos arrays en batch
+      const newOptional = optionalRequirements.filter(r => r.id !== id);
+      const newMandatory = [...mandatoryRequirements, { ...optionalReq, required: true }];
+      setOptionalRequirements(newOptional);
+      setMandatoryRequirements(newMandatory);
     }
   };
 
@@ -309,7 +312,13 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     onProfileCreated(profile);
   };
 
-  const allRequirements = [...mandatoryRequirements, ...optionalRequirements];
+  const allRequirements = [...mandatoryRequirements, ...optionalRequirements].sort((a, b) => {
+    // Mantener orden de inserción original basado en el ID
+    const aNum = parseInt(a.id.split('-')[1] || '0');
+    const bNum = parseInt(b.id.split('-')[1] || '0');
+    return aNum - bNum;
+  });
+
   const groupedRequirements = allRequirements.reduce((acc, req) => {
     if (!acc[req.category]) {
       acc[req.category] = [];

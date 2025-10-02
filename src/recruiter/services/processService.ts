@@ -85,19 +85,24 @@ export async function getProcessesByRecruiter(recruiterId: string): Promise<Proc
 // Obtener proceso por unique link
 export async function getProcessByUniqueId(uniqueId: string): Promise<ProcessResponse> {
   try {
-    const { data: process, error } = await supabase
+    // Buscar por el uniqueId en el unique_link (ignorando el dominio/puerto)
+    // Esto permite que funcione en diferentes entornos (dev/prod)
+    const { data: processes, error } = await supabase
       .from('processes')
       .select('*')
-      .eq('id', uniqueId)
       .eq('status', 'active')
-      .single()
+      .like('unique_link', `%/apply/${uniqueId}`)
 
     if (error) {
-      console.error('Error fetching process by unique ID:', error)
+      console.error('Error fetching process by unique link:', error)
       return { success: false, error: 'Proceso no encontrado o inactivo' }
     }
 
-    return { success: true, process }
+    if (!processes || processes.length === 0) {
+      return { success: false, error: 'Proceso no encontrado o inactivo' }
+    }
+
+    return { success: true, process: processes[0] }
   } catch (error) {
     console.error('Unexpected error fetching process:', error)
     return { success: false, error: 'Error inesperado al obtener el proceso' }

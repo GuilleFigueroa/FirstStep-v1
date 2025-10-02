@@ -192,41 +192,82 @@ src/
      - Soporte para bucket `candidate-cvs`
      - Validación de texto extraído (mínimo 50 caracteres)
      - Probado exitosamente con CV real
-   - ⏳ **PASO 4 EN PROGRESO**: Integración con OpenAI usando Vercel AI SDK
+   - ⏳ **PASO 4 EN PROGRESO**: `/api/analyze-cv` + Integración CVUploadStep
      - ✅ Vercel AI SDK instalado (`ai` + `@ai-sdk/openai`)
      - ✅ `/api/utils/openai.ts` creado con helper `generateAIResponse()`
-     - ⏳ Implementación de `/api/analyze-cv.ts` (próximo)
-   - ⏳ **PASO 5**: UI de preguntas para candidato
-   - ⏳ **PASO 6**: Cálculo de scoring y resultado final
+     - ⏳ Sub-paso 4.1: Configurar API key OpenAI en Vercel
+     - ⏳ Sub-paso 4.2: Crear `/api/analyze-cv.ts` con OpenAI real
+     - ⏳ Sub-paso 4.3: Integrar en `CVUploadStep.tsx`
+     - ⏳ Sub-paso 4.4: Probar con CVs reales y validar calidad
+     - ⏳ Sub-paso 4.5: Validar costos y optimizar prompts
+   - ⏳ **PASO 5**: UI AIQuestionsStep + RecruiterQuestionsStep
+     - Sub-paso 5.1: AIQuestionsStep + `/api/save-ai-answers`
+     - Sub-paso 5.2: RecruiterQuestionsStep + `/api/save-recruiter-answers`
+     - Sub-paso 5.3: Integrar ambos en CandidateFlow (6 steps)
+   - ⏳ **PASO 6**: `/api/calculate-scoring` + Filtro eliminatorio
+   - ⏳ **PASO 7**: Dashboard reclutador con análisis completo
 
 ### Decisiones Arquitectónicas Clave (Sesión 01-10-2025)
-**Decisión crítica:** Usar **Vercel AI SDK** en lugar del SDK directo de OpenAI
+
+**1. Vercel AI SDK (no SDK directo OpenAI)**
 - ✅ Multi-proveedor: Cambiar entre OpenAI, Claude, Gemini sin refactorizar
 - ✅ Optimizado para Vercel serverless
 - ✅ Timeout y JSON mode integrados
 - ✅ Menor overhead y sin vendor lock-in
 
-**Flujo de IA (2 llamadas):**
-- LLAMADA 1: Análisis CV + Generación de preguntas personalizadas (~$0.03/candidato)
-- LLAMADA 2: Scoring final (después de que candidato responda) (~$0.04/candidato)
+**2. Desarrollo directo con API real**
+- ✅ Implementación incremental con OpenAI desde el principio
+- ✅ Resultados y feedback reales en cada iteración
+- ✅ Sin sorpresas al pasar a producción
+- ✅ Costo de desarrollo estimado: $2-5 USD (testing y ajustes de prompts)
+
+**3. Flujo candidato con 6 steps (actualizado):**
+```
+1. registration → CandidateRegistration ✅
+2. verification → VerificationStep ✅
+3. profile → CVUploadStep ✅ + POST /api/analyze-cv
+4. ai_questions → AIQuestionsStep (NUEVO) + POST /api/calculate-scoring
+5. recruiter_questions → RecruiterQuestionsStep (NUEVO)
+6. confirmation → Confirmación ✅
+```
+
+**4. Separación AI Questions vs Recruiter Questions**
+- **ai_questions:** Generadas por IA → Usadas para scoring → Filtro eliminatorio
+- **recruiter_questions:** Configuradas por reclutador → Solo informativas
+- **Razón:** Scoring ANTES de formulario = No desperdiciar tiempo candidatos rechazados
+
+**5. Integración `/api/analyze-cv` desde CVUploadStep**
+- Llamada DESPUÉS de subir CV a Storage
+- Loading state: "Analizando tu CV..." (blocking)
+- Si error parsing/IA → Mostrar error, NO avanzar
+- Si éxito → Avanzar a ai_questions
+
+**6. Flujo de IA (2 llamadas):**
+- **LLAMADA 1 (POST /api/analyze-cv):** Análisis CV + Generación 3-5 preguntas (~$0.03/candidato)
+- **LLAMADA 2 (POST /api/calculate-scoring):** Evaluar CV + respuestas + filtro eliminatorio (~$0.04/candidato)
 - **Total: $0.07 USD por candidato**
 
-**Manejo de candidatos rechazados:**
-- Candidato responde TODAS las preguntas (IA + formulario)
-- Validación al final: Si no cumple requisitos indispensables → Hard delete (no guardar en BD)
-- Mensaje transparente indicando qué requisito no cumplió
+**7. Filtro eliminatorio optimizado:**
+- Candidato responde ai_questions → Scoring se calcula
+- Si `meetsAllMandatory = false` → Hard delete + Mensaje específico
+- Si `meetsAllMandatory = true` → Avanza a recruiter_questions
+- **Ventaja:** Candidatos rechazados no pierden tiempo en formulario
 
-**Tipos de requisitos:**
-- Indispensables (`required: true`): Filtro eliminatorio
-- Deseables (`required: false`): Suman al scoring
+**8. Dashboard reclutador:**
+- Layout split screen: CV parseado (texto, no PDF embebido) + Análisis completo
+- Solo candidatos aprobados visibles (rechazados eliminados de BD)
+- Secciones: Scoring + Requisitos + AI Questions + Recruiter Questions
 
-**Tipos de preguntas:**
-- Preguntas IA: Generadas dinámicamente, para scoring
-- Preguntas formulario: Configuradas por reclutador, solo informativas
+**9. Estructura de requisitos (confirmada con proceso real):**
+- Una sola columna: `requirements` (JSONB array)
+- Campo `required: true/false` determina si es indispensable o deseable
+- Backend separa al leer: `mandatoryReqs = requirements.filter(r => r.required)`
+- Columnas `mandatory_requirements` y `optional_requirements` quedan sin usar (disponibles para migración futura)
 
-**Dashboard reclutador:**
-- Layout split screen: PDF original (izquierda) + Análisis/Scoring (derecha)
-- Secciones colapsables: Análisis de Compatibilidad, Respuestas del Proceso
+**10. Form questions (dual):**
+- Mantener `form_questions` (JSONB) para compatibilidad con código existente del reclutador
+- Tabla `recruiter_questions` usada por flujo candidato
+- Al crear proceso: guardar en ambos lados (sincronización)
 
 ### Prioridad Alta - SIGUIENTE SESIÓN
 1. **✅ COMPLETADO: Persistencia de Procesos de Reclutamiento**
@@ -236,14 +277,15 @@ src/
    - ✅ Edición/eliminación de procesos implementada
    - ✅ Dashboard conectado con datos reales de Supabase
 
-2. **✅ PARCIALMENTE COMPLETADO: Desarrollo del flujo candidato** (`/src/candidate/components/`)
+2. **🚧 PARCIALMENTE COMPLETADO: Desarrollo del flujo candidato** (`/src/candidate/components/`)
    - ✅ Acceso por link único a procesos implementado
    - ✅ Verificación captcha implementada y funcional
    - ✅ UI de subida de CV completa (drag & drop, validación)
-   - ❌ **PENDIENTE**: Integración con Supabase Storage para persistir CVs
-   - ❌ **PENDIENTE**: Creación de candidateService.ts
-   - ❌ **PENDIENTE**: Sistema de preguntas personalizadas generadas por IA (en progreso)
-   - ❌ **PENDIENTE**: Lógica de scoring y evaluación (arquitectura definida)
+   - ✅ Integración Supabase Storage funcional (`CandidateService.updateCandidateCV()`)
+   - ✅ `candidateService.ts` creado con CRUD básico
+   - ⏳ **EN PROGRESO**: Sistema de preguntas personalizadas generadas por IA (PASO 4)
+   - ⏳ **EN PROGRESO**: Lógica de scoring y evaluación (arquitectura definida, PASO 6)
+   - ❌ **PENDIENTE**: AIQuestionsStep + RecruiterQuestionsStep (PASO 5)
    - ❌ **PENDIENTE**: Resultado final para candidato con feedback
 
 3. **Gestión de candidatos** (`/src/recruiter/components/candidates/`)
@@ -397,5 +439,25 @@ npm run build
 ---
 
 **Última actualización**: 01-10-2025
-**Estado**: PASO 4 en progreso - Vercel AI SDK instalado y configurado. Cliente helper `generateAIResponse()` creado. Documentación AI_ANALYSIS_IMPLEMENTATION.md optimizada (888→266 líneas). Próximo: Implementar `/api/analyze-cv.ts` endpoint. Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado.
-**Repositorio**: GitHub sincronizado y actualizado
+
+**Estado**: PASO 4 en progreso - Arquitectura completa definida y documentada
+
+**Completado en esta sesión:**
+- ✅ Vercel AI SDK instalado + `generateAIResponse()` helper creado
+- ✅ Decisiones arquitectónicas críticas tomadas (10 decisiones documentadas)
+- ✅ Flujo técnico completo definido: 6 steps frontend + 7 pasos implementación
+- ✅ Documentación optimizada y sincronizada (AI_ANALYSIS_IMPLEMENTATION.md + DEVELOPMENT.md)
+- ✅ Plan de implementación atómico por sub-pasos (5 sub-pasos por paso)
+- ✅ **Decisión crítica:** Desarrollo directo con API real (eliminado enfoque de mocks)
+- ✅ **Bug corregido:** `getProcessByUniqueId()` ahora soporta diferentes puertos (dev/prod)
+- ✅ **Decisión arquitectónica:** Leer `requirements` con campo `required: true/false` (Opción A)
+- ✅ **Decisión arquitectónica:** Mantener dual `form_questions` + tabla `recruiter_questions`
+- ✅ Estructura de requisitos confirmada mediante inspección de proceso real
+
+**Preguntas pendientes para próxima sesión:**
+- ❓ ¿Campo `level` importante para prompts OpenAI?
+- ❓ ¿Migrar procesos viejos a columnas separadas?
+
+**Próximo**: Usuario consigue API key OpenAI → Sub-paso 4.1 (configurar en Vercel) → Sub-paso 4.2 (crear endpoint)
+
+**Repositorio**: GitHub sincronizado | Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado paso a paso

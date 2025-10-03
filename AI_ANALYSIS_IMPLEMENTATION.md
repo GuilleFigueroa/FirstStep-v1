@@ -4,14 +4,14 @@
 
 **Progreso:** 3/7 pasos completados (43%)
 **Fecha inicio:** 30-09-2024
-**Última actualización:** 02-10-2025
+**Última actualización:** 03-10-2025
 
 | Paso | Estado | Descripción |
 |------|--------|-------------|
 | 1 | ✅ | Backend Vercel configurado |
 | 2 | ✅ | Base de datos modificada |
 | 3 | ✅ | Parser PDF/DOCX funcional |
-| 4 | ⏳ | `/api/analyze-cv` + integración CVUploadStep (EN PROGRESO) |
+| 4 | 🔄 | `/api/analyze-cv` + integración CVUploadStep (LISTO PARA IMPLEMENTAR) |
 | 5 | ⏳ | UI AIQuestionsStep + RecruiterQuestionsStep |
 | 6 | ⏳ | `/api/calculate-scoring` + filtro eliminatorio |
 | 7 | ⏳ | Dashboard reclutador con análisis completo |
@@ -186,15 +186,16 @@ POST /api/save-recruiter-answers (PASO 5)
 **Objetivo:** Estructura BD para flujo IA completo
 
 **Tareas completadas:**
-- [x] Modificar tabla `processes` (2 columnas)
-- [x] Modificar tabla `candidates` (5 columnas)
-- [x] Crear tabla `ai_questions`
+- [x] Modificar tabla `processes` (2 columnas: `mandatory_requirements`, `optional_requirements`)
+- [x] Modificar tabla `candidates` (columnas: `cv_text`, `cv_analysis`, `scoring_details`, `parsing_failed`, `parsing_error`, `ai_analysis_failed`)
+- [x] Agregar columna `rejection_reason` a tabla `candidates` (para soft delete - COMPLETADO 03/10/2025)
+- [x] Crear tabla `ai_questions` (con `is_mandatory` para priorización)
 - [x] Crear tabla `recruiter_questions`
 - [x] Crear tabla `recruiter_answers`
 - [x] Índices creados
 - [x] Tipos TypeScript actualizados en `supabase.ts`
 
-**Verificación:** ✅ 3 tablas creadas, 7 columnas agregadas, SQL sin errores
+**Verificación:** ✅ 3 tablas creadas, 8 columnas agregadas en `candidates` + 2 en `processes`, SQL ejecutado en Supabase
 
 ---
 
@@ -457,6 +458,257 @@ POST /api/save-recruiter-answers (PASO 5)
 
 ---
 
+## 📝 DECISIONES ARQUITECTÓNICAS FINALES
+
+### **Sesión de Clarificación - 03/10/2025**
+**Objetivo:** Resolver 7 dudas críticas antes de implementar PASO 4
+
+---
+
+### **✅ DECISIÓN 1: Flujo de Scoring y Feedback al Candidato**
+
+**Pregunta:** ¿Cuándo y cómo se muestra el resultado al candidato?
+
+**Respuesta:**
+- ❌ **NO** mostrar scoring durante el proceso (Steps 1-5)
+- ✅ Scoring se ejecuta **silenciosamente** después de ai_questions (Step 4)
+- ✅ Resultado se muestra **UNA SOLA VEZ** en Step 6 (confirmation)
+- ✅ **Sin re-acceso**: Candidato no puede volver a ver el resultado
+
+**Flujo confirmado:**
+```
+Step 4 (ai_questions) → Responde todas → "Continuar"
+                              ↓
+                POST /api/calculate-scoring (silencioso)
+                              ↓
+                      ¿Cumple mandatory?
+                   ✓                    ✗
+                   |                    |
+    setApproved(true)           setRejected(true)
+    Continue to Step 5          Go to Step 6 (rejected)
+                   |                    ↓
+    Step 5 (recruiter_qs)      Pantalla rechazo
+                   |            "No cumples: React 5+ años"
+    Step 6 (confirmation)       + Guard (no escape)
+    "Cumples X requisitos"              ↓
+    "Atento al contacto"               FIN
+```
+
+**Razón de seguridad:** Evitar que candidato salga y reintente con otro email/respuestas diferentes.
+
+**Implementación:** Guard en CandidateFlow que fuerza `currentStep='rejected'` si `rejected=true`.
+
+---
+
+### **✅ DECISIÓN 2: Estructura ai_questions con `is_mandatory`**
+
+**Pregunta:** ¿Guardar `is_mandatory` en BD o recalcular en scoring?
+
+**Respuesta:**
+- ✅ **SÍ, guardar `is_mandatory` en BD**
+- ✅ IA decide priorización en `/api/analyze-cv` (tiene contexto completo)
+- ✅ Scoring usa el flag para ponderar correctamente
+- ✅ Reclutador ve en dashboard qué preguntas eran críticas
+
+**Schema confirmado:**
+```typescript
+interface AIQuestion {
+  id: string
+  candidate_id: string
+  question_text: string
+  question_reason?: string
+  is_mandatory: boolean  // ← Guardado en BD
+  answer_text?: string
+  is_answered: boolean
+  created_at: string
+}
+```
+
+**Ventajas:**
+- Performance (no re-calcular)
+- Consistencia (decisión única en generación)
+- Auditoría (visible para reclutador)
+
+---
+
+### **✅ DECISIÓN 3: Custom Prompt del Reclutador**
+
+**Pregunta:** ¿Dónde se configura y dónde se usa?
+
+**Respuesta:**
+- ✅ **Ya integrado** en UI: `TextAnalysisMode.tsx` → `CustomPromptBox` (línea 649-652)
+- ✅ Se guarda en BD: columna `processes.custom_prompt`
+- ✅ **Se usa en AMBOS endpoints:**
+  - `/api/analyze-cv`: Influye en generación de preguntas
+  - `/api/calculate-scoring`: Influye en evaluación y ponderación
+
+**Ejemplo de uso:**
+```
+Custom Prompt: "Priorizar candidatos con experiencia en SaaS"
+
+→ /api/analyze-cv:
+  Genera pregunta: "¿Has trabajado en empresas SaaS?"
+
+→ /api/calculate-scoring:
+  Si menciona SaaS → +peso en scoring final
+```
+
+---
+
+### **✅ DECISIÓN 4: Schema ai_questions - Confirmado**
+
+**Pregunta:** ¿Es correcto el schema con ON DELETE CASCADE?
+
+**Respuesta:**
+- ✅ Tabla ya existe en Supabase (verificado)
+- ✅ `ON DELETE CASCADE` es correcto
+- ✅ Schema alineado con TypeScript interface
+
+**Comportamiento CASCADE:**
+- Si candidate es eliminado → ai_questions se eliminan automáticamente
+- Mantiene integridad referencial
+- Útil para rollback de errores
+
+---
+
+### **✅ DECISIÓN 5: CV Upload - Storage Path**
+
+**Pregunta:** ¿Cuál es el path pattern y quién genera el filename?
+
+**Respuesta:**
+- ✅ **Path actual:** `{candidateId}-{timestamp}-{cleanFileName}` (flat, sin subcarpetas)
+- ✅ Ejemplo: `550e8400-e29b-41d4-a716-446655440000-1733425689012-cv_juan_perez.pdf`
+- ✅ Nombre original se conserva (sanitizado)
+- ✅ Bucket: `candidate-cvs`
+
+**Decisión:** Mantener estructura actual (simple y funcional para MVP)
+
+**Mejoras V2:** Agregar subcarpetas por proceso para mejor organización
+
+---
+
+### **✅ DECISIÓN 6: Error Handling - Parsing/IA Failures**
+
+**Pregunta:** ¿Qué pasa si falla parsing o análisis IA?
+
+**Respuesta:**
+- ✅ **Reintento permitido** en la misma pantalla (CVUploadStep)
+- ✅ **SÍ guardar error en BD** (`parsing_failed`, `parsing_error`, `ai_analysis_failed`)
+- ❌ **NO aparecen en dashboard** del reclutador (filtrados por defecto)
+- ✅ Retornar error al frontend + guardar en BD para tracking
+
+**Flujo de error:**
+```
+CV Upload → Análisis IA falla
+              ↓
+    Backend guarda error en BD:
+    parsing_failed = true
+    parsing_error = "mensaje del error"
+              ↓
+    Frontend muestra error:
+    "No pudimos leer tu CV. Intenta con otro archivo."
+              ↓
+    Candidato selecciona otro archivo
+              ↓
+    Reintenta (nueva llamada completa)
+              ↓
+    Si éxito: parsing_failed = false
+```
+
+**Razón para guardar errores:** Tracking y debugging del sistema (analítica de fallos)
+
+**Dashboard:** Reclutador NO ve candidatos con errores (query: `WHERE parsing_failed = false OR parsing_failed IS NULL`)
+
+---
+
+### **✅ DECISIÓN 7: Límite de Candidatos**
+
+**Pregunta:** ¿Los candidatos rechazados cuentan para el límite?
+
+**Respuesta:**
+- ✅ **SÍ, cuentan** todos los candidatos con `cv_text IS NOT NULL`
+- ✅ Tanto aprobados como rechazados
+- ❌ **NO cuentan** candidatos que abandonaron o con error parsing
+
+**Lógica de conteo:**
+```typescript
+const { count } = await supabase
+  .from('candidates')
+  .select('*', { count: 'exact', head: true })
+  .eq('process_id', processId)
+  .not('cv_text', 'is', null);
+
+if (count >= process.candidate_limit) {
+  // Auto-cerrar proceso
+  await supabase
+    .from('processes')
+    .update({ status: 'closed' })
+    .eq('id', processId);
+}
+```
+
+**Razón:** El límite representa slots de evaluación IA (cuestan $0.07 cada uno), no solo aprobados.
+
+**Ejemplo:**
+```
+Proceso límite: 50
+  - 25 completed (aprobados)
+  - 30 rejected (no cumplían requisitos)
+  - 5 registered (abandonaron sin análisis)
+
+Total CONTADOS: 55 (25 + 30)
+Estado: CERRADO (55 >= 50)
+```
+
+---
+
+### **✅ DECISIÓN EXTRA: Soft Delete (no Hard Delete)**
+
+**Cambio crítico respecto a documentación anterior:**
+
+**Antes (documentado):**
+- Hard delete de candidatos rechazados
+
+**AHORA (corregido):**
+- ✅ **Soft delete**: Marcar como `status='rejected'` con `rejection_reason`
+- ✅ Previene re-intentos infinitos (email/LinkedIn quedan en BD)
+- ✅ Permite auditoría y analytics
+- ✅ Validación de duplicados ya cubre candidatos rechazados
+
+**Columna agregada:**
+```sql
+ALTER TABLE candidates
+ADD COLUMN rejection_reason TEXT;
+```
+
+---
+
+### **✅ DECISIÓN EXTRA: Candidato puede postularse a múltiples procesos**
+
+**Pregunta (adicional):** ¿Un candidato puede aplicar a varios procesos?
+
+**Respuesta:**
+- ✅ **SÍ, puede aplicar a diferentes procesos** con mismo email/LinkedIn
+- ❌ **NO puede aplicar 2+ veces al MISMO proceso**
+
+**Validación actual:**
+```typescript
+.eq('process_id', processId)  // ← Filtra por proceso
+.eq('email', email)
+```
+
+**Ejemplo:**
+```
+Juan Pérez (juan@email.com):
+  ├── Proceso A: "Frontend" → ✅ Permitido
+  ├── Proceso B: "Backend"  → ✅ Permitido
+  └── Proceso A: Reintento  → ❌ Rechazado (duplicado)
+```
+
+**Razón:** Cada proceso evalúa requisitos diferentes, mismo CV puede ajustarse a distintos roles.
+
+---
+
 ## 📝 REGISTRO DE SESIONES
 
 ### **Sesión 1 - 30/09/2024**
@@ -468,11 +720,11 @@ POST /api/save-recruiter-answers (PASO 5)
 - Plan 6 pasos atómicos
 - Documento tracking creado
 
-**Decisiones:**
+**Decisiones iniciales:**
 - Backend Vercel Serverless (no Supabase Edge Functions)
 - GPT-4o-mini ($0.07/candidato)
 - Vercel AI SDK (multi-proveedor)
-- Hard delete candidatos rechazados
+- ~~Hard delete candidatos rechazados~~ ← CORREGIDO en Sesión 3
 
 ---
 
@@ -517,13 +769,70 @@ POST /api/save-recruiter-answers (PASO 5)
 - ✅ 5 commits atómicos mergeados a main
 - ✅ Build exitoso + flujo probado sin breaking changes
 
-**Próximo (Sesión 3):**
-- API key OpenAI lista (usuario la consigue)
-- Sub-paso 4.1: Configurar API key OpenAI en Vercel
-- Sub-paso 4.2: Crear `/api/analyze-cv.ts` leyendo `mandatory_requirements` y `optional_requirements` (columnas separadas)
-- Sub-paso 4.3: Integrar en `CVUploadStep.tsx`
-- Sub-paso 4.4: Probar con CVs reales y validar calidad
-- Sub-paso 4.5: Validar costos y optimizar
+---
+
+### **Sesión 3 - 03/10/2025**
+**Objetivo:** Resolver dudas arquitectónicas críticas antes de implementar PASO 4
+
+**Completado:**
+- ✅ **7 dudas críticas resueltas** (scoring, ai_questions, custom_prompt, schema, storage, errores, límite)
+- ✅ **3 decisiones adicionales** (soft delete, múltiples procesos, guard rejected)
+- ✅ **Documentación actualizada** con todas las decisiones finales
+- ✅ **Base de datos confirmada** (tabla ai_questions ya existe en Supabase)
+- ✅ **Arquitectura validada** para implementación directa
+
+**Decisiones críticas:**
+1. Scoring silencioso → Resultado solo en Step 6 (una vez, sin re-acceso)
+2. `is_mandatory` guardado en BD para priorización
+3. `custom_prompt` usado en ambos endpoints (analyze-cv + scoring)
+4. Schema ai_questions confirmado con ON DELETE CASCADE
+5. Storage path: flat structure (candidateId-timestamp-filename)
+6. Error handling: Reintento en misma pantalla, NO guardar en BD, NO mostrar en dashboard
+7. Límite candidatos: Contar todos con cv_text (aprobados + rechazados)
+8. **Soft delete** (no hard delete) para prevenir re-intentos
+9. Candidato puede aplicar a múltiples procesos diferentes
+10. Guard en frontend para prevenir navegación desde rejected
+
+**Columnas BD actualizadas:**
+- ✅ Agregar: `rejection_reason TEXT` a `candidates`
+- ✅ Mantener: `parsing_failed`, `parsing_error`, `ai_analysis_failed` (se usan para tracking)
+
+**Próximo (Sesión 4):**
+- ✅ Sub-paso 4.0: Usuario obtiene API key OpenAI (COMPLETADO 03/10/2025)
+- ✅ Sub-paso 4.1: Configurar `OPENAI_API_KEY` en Vercel (COMPLETADO 03/10/2025)
+- ✅ Sub-paso 4.1b: Verificar configuración con `/api/test-openai` (COMPLETADO 03/10/2025)
+- ⏳ Sub-paso 4.2: Crear `/api/analyze-cv.ts` con lógica completa (SIGUIENTE)
+- ⏳ Sub-paso 4.3: Integrar en `CVUploadStep.tsx` con loading states
+- ⏳ Sub-paso 4.4: Probar con CVs reales y validar calidad
+- ⏳ Sub-paso 4.5: Validar costos (~$0.002/análisis con gpt-4o-mini) y optimizar si necesario
+
+---
+
+### **Sesión 4 - 03/10/2025**
+**Objetivo:** Configurar OpenAI API y comenzar implementación análisis CV
+
+**Completado:**
+- ✅ **Revisión completa código vs documentación** (7 decisiones arquitectónicas validadas)
+- ✅ **Corrección documentación DECISIÓN 6:** Sí guardar errores parsing/IA en BD para tracking
+- ✅ **Columna `rejection_reason` agregada** a tabla `candidates` en Supabase (soft delete)
+- ✅ **API key OpenAI obtenida** y créditos recargados
+- ✅ **Variable `OPENAI_API_KEY` configurada** en Vercel (Production + Preview + Development)
+- ✅ **Endpoint `/api/test-openai` creado** para verificación
+- ✅ **Verificación exitosa:** OpenAI funcionando con gpt-4o-mini
+  - Modelo: `gpt-4o-mini-2024-07-18`
+  - Test: 27 tokens (21 input + 6 output)
+  - Costo: ~$0.000005 USD
+  - Latencia: 1.3 segundos
+  - Rate limits: 10,000 req/min, 200K tokens/min
+
+**Decisiones técnicas:**
+- **Modelo confirmado:** `gpt-4o-mini` (mejor balance calidad/precio vs gpt-5-nano)
+- **Costo estimado real:** $0.002 por candidato (no $0.07 como estimación anterior)
+- **Structured outputs:** Habilitado (JSON garantizado)
+- **Timeout:** 30 segundos por request
+
+**Próximo:**
+- Sub-paso 4.2: Implementar `/api/analyze-cv.ts` completo (parsing + IA + generación preguntas)
 
 ---
 

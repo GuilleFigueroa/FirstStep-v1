@@ -137,4 +137,34 @@ export class CandidateService {
       return false;
     }
   }
+
+  // Analizar CV con IA (generar preguntas)
+  static async analyzeCVWithAI(candidateId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch('/api/analyze-cv', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ candidateId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'Error al analizar CV'
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Analyze CV error:', error);
+      return {
+        success: false,
+        error: 'Error de conexión al analizar CV'
+      };
+    }
+  }
 }

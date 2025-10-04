@@ -15,6 +15,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepPr
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const validateFile = (file: File) => {
     const validTypes = [
@@ -86,19 +87,34 @@ export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepPr
     setError(null);
 
     try {
-      const success = await CandidateService.updateCandidateCV(candidateId, selectedFile);
+      // 1. Subir CV
+      setLoadingMessage('Subiendo tu CV...');
+      const uploadSuccess = await CandidateService.updateCandidateCV(candidateId, selectedFile);
 
-      if (success) {
-        console.log('CV uploaded successfully');
-        onContinue();
-      } else {
+      if (!uploadSuccess) {
         setError('Error al subir el CV. Intenta de nuevo.');
+        return;
       }
+
+      // 2. Analizar CV con IA
+      setLoadingMessage('Analizando tu CV con IA...');
+      const analysisResult = await CandidateService.analyzeCVWithAI(candidateId);
+
+      if (!analysisResult.success) {
+        setError(analysisResult.error || 'Error al analizar CV. Intenta de nuevo.');
+        return;
+      }
+
+      // 3. Éxito - continuar al siguiente paso
+      console.log('CV uploaded and analyzed successfully');
+      onContinue();
+
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error('Upload/Analysis error:', error);
       setError('Error inesperado. Intenta de nuevo.');
     } finally {
       setUploading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -261,7 +277,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepPr
                 className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {uploading
-                  ? 'Subiendo...'
+                  ? (loadingMessage || 'Procesando...')
                   : selectedFile
                     ? (candidateId ? 'Subir y Continuar' : 'Continuar')
                     : 'Selecciona un archivo'

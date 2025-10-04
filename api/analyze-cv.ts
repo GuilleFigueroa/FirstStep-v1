@@ -111,19 +111,28 @@ export default async function handler(
       });
     }
 
-    // 7. Parsear respuesta JSON
+    // 7. Limpiar y parsear respuesta JSON
     let parsedResponse;
     try {
-      parsedResponse = JSON.parse(aiResponse.text);
+      // Remover markdown code blocks si existen (```json ... ```)
+      let cleanedText = aiResponse.text.trim();
+      if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText
+          .replace(/^```json\n/, '')
+          .replace(/^```\n/, '')
+          .replace(/\n```$/, '')
+          .trim();
+      }
+
+      parsedResponse = JSON.parse(cleanedText);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
       console.error('Raw AI response:', aiResponse.text);
-      console.error('Response length:', aiResponse.text?.length);
       return res.status(500).json({
         success: false,
         error: 'Error al procesar respuesta de IA',
         debug: {
-          rawResponse: aiResponse.text?.substring(0, 200),
+          rawResponse: aiResponse.text?.substring(0, 300),
           parseError: parseError instanceof Error ? parseError.message : 'Unknown'
         }
       });

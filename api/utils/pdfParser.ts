@@ -30,9 +30,23 @@ export async function extractTextFromCV(cvUrl: string): Promise<ParseResult> {
     }
 
     // Descargar archivo desde Supabase Storage
-    // Detectar bucket del path (candidate-cvs/file.pdf o solo file.pdf)
-    const bucketName = cvUrl.includes('/') ? cvUrl.split('/')[0] : 'candidate-cvs';
-    const fileName = cvUrl.includes('/') ? cvUrl.split('/').slice(1).join('/') : cvUrl;
+    // Extraer path del archivo de la URL completa o path relativo
+    let bucketName = 'candidate-cvs';
+    let fileName = cvUrl;
+
+    // Si es URL completa de Supabase, extraer solo el path del archivo
+    if (cvUrl.includes('supabase.co/storage/v1/object/public/')) {
+      const parts = cvUrl.split('supabase.co/storage/v1/object/public/')[1];
+      const pathParts = parts.split('/');
+      bucketName = pathParts[0]; // candidate-cvs
+      fileName = pathParts.slice(1).join('/'); // resto del path
+    } else if (cvUrl.includes('/')) {
+      // Path relativo con bucket (ej: candidate-cvs/file.pdf)
+      const pathParts = cvUrl.split('/');
+      bucketName = pathParts[0];
+      fileName = pathParts.slice(1).join('/');
+    }
+    // Si no tiene '/', asumir que fileName es solo el nombre del archivo
 
     const { data, error } = await supabaseAdmin.storage
       .from(bucketName)

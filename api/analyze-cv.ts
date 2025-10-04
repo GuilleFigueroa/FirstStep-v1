@@ -116,10 +116,16 @@ export default async function handler(
     try {
       parsedResponse = JSON.parse(aiResponse.text);
     } catch (parseError) {
-      console.error('JSON parse error:', parseError, 'Response:', aiResponse.text);
+      console.error('JSON parse error:', parseError);
+      console.error('Raw AI response:', aiResponse.text);
+      console.error('Response length:', aiResponse.text?.length);
       return res.status(500).json({
         success: false,
-        error: 'Error al procesar respuesta de IA'
+        error: 'Error al procesar respuesta de IA',
+        debug: {
+          rawResponse: aiResponse.text?.substring(0, 200),
+          parseError: parseError instanceof Error ? parseError.message : 'Unknown'
+        }
       });
     }
 

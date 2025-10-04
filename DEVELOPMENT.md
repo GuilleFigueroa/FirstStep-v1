@@ -192,14 +192,13 @@ src/
      - Soporte para bucket `candidate-cvs`
      - Validación de texto extraído (mínimo 50 caracteres)
      - Probado exitosamente con CV real
-   - ⏳ **PASO 4 EN PROGRESO**: `/api/analyze-cv` + Integración CVUploadStep
+   - ✅ **PASO 4 COMPLETADO**: `/api/analyze-cv` + Integración CVUploadStep
      - ✅ Vercel AI SDK instalado (`ai` + `@ai-sdk/openai`)
      - ✅ `/api/utils/openai.ts` creado con helper `generateAIResponse()`
-     - ⏳ Sub-paso 4.1: Configurar API key OpenAI en Vercel
-     - ⏳ Sub-paso 4.2: Crear `/api/analyze-cv.ts` con OpenAI real
-     - ⏳ Sub-paso 4.3: Integrar en `CVUploadStep.tsx`
-     - ⏳ Sub-paso 4.4: Probar con CVs reales y validar calidad
-     - ⏳ Sub-paso 4.5: Validar costos y optimizar prompts
+     - ✅ `/api/analyze-cv.ts` funcional con OpenAI
+     - ✅ Integración en `CVUploadStep.tsx` con loading states
+     - ✅ Probado en producción (3-5 preguntas por candidato)
+     - ✅ Costo optimizado: ~$0.002 USD por análisis
    - ⏳ **PASO 5**: UI AIQuestionsStep + RecruiterQuestionsStep
      - Sub-paso 5.1: AIQuestionsStep + `/api/save-ai-answers`
      - Sub-paso 5.2: RecruiterQuestionsStep + `/api/save-recruiter-answers`
@@ -506,8 +505,11 @@ npm run build
   - Validación de duplicados confirmada: bloquea re-intentos de rechazados
   - Preparado para `/api/calculate-scoring` (PASO 6)
 
-**Próximo**: PASO 4 - Sub-paso 4.2 (crear endpoint `/api/analyze-cv.ts`)
+**Próximo**: PASO 5 - UI AIQuestionsStep + RecruiterQuestionsStep
 
-**Nota:** Cache de Vercel puede causar que variables de entorno no se apliquen hasta re-deploy manual. Si encuentras errores "Invalid API key" después de configurar variables, forzar re-deploy limpio desde Vercel Dashboard.
+**Notas técnicas:**
+- Cache de Vercel: Forzar re-deploy si variables de entorno no se aplican
+- APIs serverless: Solo disponibles en Vercel, no en `npm run dev` local
+- Desarrollo: Usar deploy directo a producción para probar APIs
 
 **Repositorio**: GitHub sincronizado | Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado paso a paso

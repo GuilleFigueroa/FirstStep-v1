@@ -290,131 +290,130 @@ POST /api/save-recruiter-answers (PASO 5)
 
 ---
 
-## 🎯 PASO 5: UI Preguntas (IA + Reclutador) ⏳ PENDIENTE
+## 🎯 PASO 5: UI Preguntas (IA + Reclutador) + Scoring ⏳ EN PROGRESO
 
-**Objetivo:** Interfaces para responder preguntas IA y preguntas formulario
+**Objetivo:** Interfaces para responder preguntas, evaluación con scoring y filtro eliminatorio
 
 **DECISIÓN ARQUITECTÓNICA:** 2 steps separados (no combinar)
-- **Step 4 (ai_questions):** Preguntas generadas por IA → Usado para scoring → Filtro eliminatorio
+- **Step 4 (ai_questions):** Preguntas generadas por IA → Respuestas + **Scoring con filtro eliminatorio**
 - **Step 5 (recruiter_questions):** Preguntas formulario configuradas por reclutador → Solo informativas
 
-**Sub-paso 5.1: AI Questions Step**
-- [ ] Crear `/src/candidate/components/AIQuestionsStep.tsx`
-- [ ] Crear `/src/shared/services/aiQuestionsService.ts`:
-  - [ ] `getAIQuestions(candidateId)` - Fetch desde `ai_questions`
-  - [ ] `saveAIAnswers(candidateId, answers)` - POST a `/api/save-ai-answers`
-- [ ] UI: Progreso + Card por pregunta + Textarea + Navegación
-- [ ] Validación: No avanzar sin responder todas
-- [ ] Botón "Finalizar" → Llama a `/api/calculate-scoring`
-- [ ] **Manejo scoring:**
-  - [ ] Loading: "Calculando compatibilidad..."
-  - [ ] Si `approved: false` → Mostrar mensaje rejection + NO continuar
-  - [ ] Si `approved: true` → `onContinue()` a recruiter questions
+**IMPORTANTE:** Este paso SÍ incluye scoring. El scoring se ejecuta INMEDIATAMENTE después de responder ai_questions.
 
-**Sub-paso 5.2: Recruiter Questions Step**
-- [ ] Crear `/src/candidate/components/RecruiterQuestionsStep.tsx`
-- [ ] Crear `/src/shared/services/recruiterQuestionsService.ts`:
-  - [ ] `getRecruiterQuestions(processId)` - Fetch desde `recruiter_questions`
+### **Tareas Atómicas (15 pasos):**
+
+**Bloque A: Diseño UI (Tareas 1-2)**
+- [x] **5.1:** Definir diseño UI de AIQuestionsStep:
+  - Layout: CVUploadStep style (Card centrado, header con back + título)
+  - Título: "Responde las siguientes preguntas para mejorar la información de tu perfil"
+  - Descripción: "Estas preguntas nos ayudan a conocer mejor tu experiencia"
+  - Display: Una pregunta a la vez (navegación lineal)
+  - ❌ SIN badges/señales de mandatory (evitar sugestión para mentir)
+  - ❌ SIN validación mínimo caracteres
+  - Navegación: Anterior/Siguiente → Última: "Continuar"
+  - Loading final: "Evaluando si se cumplen requisitos excluyentes"
+  - Icono: MessageSquare o ClipboardList
+- [x] **5.2:** Definir diseño UI de RecruiterQuestionsStep:
+  - Reutilizar 80% de AIQuestionsStep
+  - Título: "Completa el formulario del reclutador"
+  - Descripción: "Estas preguntas fueron configuradas específicamente para este proceso"
+  - Botón final: "Enviar Postulación" (no "Continuar")
+  - Sin scoring, solo guardar respuestas
+  - Loading: "Enviando postulación..."
+
+**Bloque A-BIS: Code Splitting (Optimización - Completada 04/10/2025)**
+- [x] **5.2-bis:** Implementar code splitting para optimizar bundle:
+  - [x] Lazy load RecruiterApp y CandidateApplication
+  - [x] Loading fallback con spinner
+  - [x] Bundle reducido de 774 KB → 427 KB (reclutador) / 352 KB (candidato)
+  - [x] Eliminado warning "chunks larger than 500 KB"
+  - [x] Build verificado: 4 chunks separados funcionales
+  - [x] HMR funcionando correctamente
+
+**Bloque B: AI Questions - Backend + Frontend (Tareas 3-6)**
+- [x] **5.3:** Crear `/src/shared/services/aiQuestionsService.ts`:
+  - [x] `getAIQuestions(candidateId)` - Fetch desde `ai_questions`
+  - [x] `saveAIAnswers(candidateId, answers)` - POST a `/api/save-ai-answers`
+  - [x] `calculateScoring(candidateId)` - POST a `/api/calculate-scoring`
+- [x] **5.4:** Crear `/api/save-ai-answers.ts`:
+  - [x] Input: `{ candidateId, answers: [{questionId, answerText}] }`
+  - [x] Update `ai_questions` → `answer_text`, `is_answered = true`
+  - [x] Output: `{ success: true }`
+- [ ] **5.5:** Crear `/api/calculate-scoring.ts` (SCORING + FILTRO ELIMINATORIO):
+  - [ ] Input: `{ candidateId }`
+  - [ ] Obtener: `cv_text`, `mandatory_requirements`, `optional_requirements`, `custom_prompt`, `ai_questions` + respuestas
+  - [ ] Construir prompt de scoring (priorizar mandatory)
+  - [ ] Llamar `generateAIResponse()` (temperature: 0.3)
+  - [ ] Si `meetsAllMandatory = false` → Soft delete: `status='rejected'`, `rejection_reason`
+  - [ ] Si `meetsAllMandatory = true` → Guardar `score`, `scoring_details`
+  - [ ] Output: `{ approved: true/false, reason?: string, score?: number }`
+- [ ] **5.6:** Implementar `/src/candidate/components/AIQuestionsStep.tsx`:
+  - [ ] Progreso visual (ej: "Pregunta 2 de 4")
+  - [ ] Una pregunta a la vez, navegación anterior/siguiente
+  - [ ] Textarea por pregunta (sin mínimo caracteres)
+  - [ ] Botón "Continuar" en última pregunta
+  - [ ] Al hacer clic "Continuar":
+    1. Guardar respuestas (POST /api/save-ai-answers)
+    2. Calcular scoring (POST /api/calculate-scoring)
+    3. Loading: "Evaluando si se cumplen requisitos excluyentes"
+    4. Si rechazado → Mostrar mensaje + NO continuar
+    5. Si aprobado → `onContinue()` a Step 5
+
+**Bloque C: AI Questions - Testing (Tarea 7)**
+- [ ] **5.7:** Probar AIQuestionsStep completo:
+  - [ ] Cargar preguntas desde BD
+  - [ ] Guardar respuestas correctamente
+  - [ ] Scoring se ejecuta correctamente
+  - [ ] Rechazado: Mensaje específico, no avanza
+  - [ ] Aprobado: `onContinue()` funciona
+
+**Bloque D: Recruiter Questions - Backend + Frontend (Tareas 8-10)**
+- [ ] **5.8:** Crear `/src/shared/services/recruiterQuestionsService.ts`:
+  - [ ] `getRecruiterQuestions(processId)` - Fetch desde `processes.form_questions`
   - [ ] `saveRecruiterAnswers(candidateId, answers)` - POST a `/api/save-recruiter-answers`
-- [ ] UI: Similar a AIQuestionsStep
-- [ ] Validación: No avanzar sin responder todas
-- [ ] Botón "Enviar Postulación" → `onContinue()` a confirmation
-
-**Sub-paso 5.3: Backend endpoints**
-- [ ] `/api/save-ai-answers.ts`:
-  - [ ] Input: `{ candidateId, answers: [{questionId, answerText}] }`
-  - [ ] Update `ai_questions` → `answer_text`, `is_answered = true`
-  - [ ] Output: `{ success: true }`
-- [ ] `/api/save-recruiter-answers.ts`:
+- [ ] **5.9:** Crear `/api/save-recruiter-answers.ts`:
   - [ ] Input: `{ candidateId, answers: [{questionId, answerText}] }`
   - [ ] Insert en `recruiter_answers`
   - [ ] Output: `{ success: true }`
+- [ ] **5.10:** Implementar `/src/candidate/components/RecruiterQuestionsStep.tsx`:
+  - [ ] UI similar a AIQuestionsStep
+  - [ ] Progreso visual
+  - [ ] Sin scoring (solo guardar respuestas)
+  - [ ] Botón "Enviar Postulación" → `onContinue()` a confirmation
 
-**Sub-paso 5.4: Integrar en CandidateFlow.tsx**
-- [ ] Modificar step 'questions' → usar AIQuestionsStep
-- [ ] Agregar nuevo step 'recruiter_questions' → usar RecruiterQuestionsStep
-- [ ] Actualizar progress indicator (ahora son 6 steps)
+**Bloque E: Recruiter Questions - Testing (Tarea 11)**
+- [ ] **5.11:** Probar RecruiterQuestionsStep aisladamente:
+  - [ ] Cargar preguntas desde process
+  - [ ] Guardar respuestas correctamente
+  - [ ] `onContinue()` se ejecuta
 
-**Verificación:**
+**Bloque F: Integración Final (Tareas 12-13)**
+- [ ] **5.12:** Integrar ambos steps en CandidateFlow.tsx:
+  - [ ] Actualizar steps de 4 a 6 (agregar `ai_questions` y `recruiter_questions`)
+  - [ ] Actualizar progress indicator
+  - [ ] Navegación correcta entre steps
+  - [ ] Manejar estado rejected (no permitir avanzar)
+- [ ] **5.13:** Probar flujo completo con scoring:
+  - [ ] Candidato aprobado: registration → verification → profile → ai_questions → recruiter_questions → confirmation
+  - [ ] Candidato rechazado: registration → verification → profile → ai_questions → mensaje rechazo (fin)
+  - [ ] Soft delete funciona correctamente
+
+**Verificación final PASO 5:**
 - [ ] Candidato ve preguntas IA correctamente
-- [ ] Respuestas se guardan en BD
-- [ ] Scoring se calcula y filtra candidatos rechazados
-- [ ] Candidatos aprobados ven preguntas formulario
-- [ ] Respuestas formulario se guardan en BD
+- [ ] Scoring se ejecuta después de ai_questions
+- [ ] Rechazados ven mensaje específico y no continúan
+- [ ] Aprobados ven preguntas formulario
+- [ ] Respuestas AI se guardan en `ai_questions`
+- [ ] Respuestas formulario se guardan en `recruiter_answers`
+- [ ] Scoring guardado en `candidates` (aprobados)
 
 ---
 
-## 🎯 PASO 6: Scoring Backend ⏳ PENDIENTE
-
-**Objetivo:** Calcular scoring con IA y filtrar candidatos rechazados
-
-**IMPORTANTE:** Scoring se ejecuta DESPUÉS de responder ai_questions, ANTES de recruiter_questions
-
-**Sub-paso 6.1: Crear `/api/calculate-scoring.ts`**
-- [ ] Input validation: `{ candidateId }` requerido
-- [ ] Obtener de BD:
-  - [ ] `candidates.cv_text`
-  - [ ] `process.mandatory_requirements`
-  - [ ] `process.optional_requirements`
-  - [ ] `process.custom_prompt` (criterios adicionales del reclutador)
-  - [ ] `ai_questions` con `answer_text` (solo is_answered = true)
-- [ ] Construir prompt de scoring con priorización:
-  - [ ] CV completo
-  - [ ] Requisitos indispensables (lista con peso alto)
-  - [ ] Requisitos deseables (lista con peso medio)
-  - [ ] `custom_prompt` del reclutador (criterios adicionales)
-  - [ ] Preguntas + Respuestas del candidato (ponderar según `is_mandatory`)
-  - [ ] **Instrucciones de evaluación:**
-    - [ ] Evaluar PRIMERO si cumple TODOS los requisitos mandatory (evidencia en CV + respuestas a preguntas `is_mandatory: true`)
-    - [ ] Si falta 1+ requisito mandatory → `meetsAllMandatory: false` + `rejectionReason` específico
-    - [ ] Si cumple todos mandatory → Calcular `finalScore` (0-100) considerando optional + respuestas
-    - [ ] JSON: `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`, `rejectionReason`
-- [ ] Llamar `generateAIResponse()` (temperature: 0.3 para consistencia)
-- [ ] Parsear JSON response
-- [ ] **Si `meetsAllMandatory = false`:**
-  - [ ] DELETE FROM candidates WHERE id = candidateId
-  - [ ] Retornar: `{ approved: false, reason: "No cumples con: React 3+ años" }`
-- [ ] **Si `meetsAllMandatory = true`:**
-  - [ ] Guardar `score`, `scoring_details` en candidates
-  - [ ] Retornar: `{ approved: true, score: 85, details: {...} }`
-
-**Sub-paso 6.2: Construir prompt de scoring (con priorización)**
-- [ ] Formatear requisitos indispensables con descripción y nivel (si existe)
-- [ ] Formatear requisitos deseables con descripción
-- [ ] Incluir `custom_prompt` del reclutador para criterios adicionales
-- [ ] Incluir CV completo
-- [ ] Incluir preguntas IA con respuestas, marcando cuáles son `is_mandatory: true`
-- [ ] **Instrucciones claras para IA:**
-  - [ ] Priorizar verificación de requisitos mandatory primero
-  - [ ] Ponderar respuestas a preguntas `is_mandatory: true` con mayor peso
-  - [ ] Si falta 1+ requisito mandatory → rechazar automáticamente
-  - [ ] JSON con `meetsAllMandatory`, `mandatoryDetails`, `optionalDetails`, `finalScore`, `recommendation`, `rejectionReason`
-
-**Sub-paso 6.3: Implementar lógica de scoring**
-- [ ] Llamar `generateAIResponse(prompt, { temperature: 0.3, maxTokens: 2000 })`
-- [ ] Parsear JSON response
-- [ ] Validar estructura completa
-- [ ] Si `meetsAllMandatory = false` → DELETE candidate + retornar reason
-- [ ] Si `meetsAllMandatory = true` → Guardar score + details en BD
-
-**Sub-paso 6.4: Probar scoring con casos reales**
-- [ ] Candidato que cumple todos los requisitos → debe aprobar
-- [ ] Candidato que NO cumple requisito indispensable → debe ser rechazado y eliminado
-- [ ] Verificar que scoring refleja cumplimiento de requisitos
-- [ ] Validar mensajes de rechazo son específicos y claros
-
-**Verificación:**
-- [ ] Candidatos rechazados son eliminados de BD
-- [ ] Candidatos aprobados tienen score guardado
-- [ ] Frontend recibe mensaje claro de rechazo/aprobación
-
----
-
-## 🎯 PASO 7: Dashboard Reclutador ⏳ PENDIENTE
+## 🎯 PASO 6: Dashboard Reclutador ⏳ PENDIENTE
 
 **Objetivo:** Mostrar análisis completo de candidatos aprobados
 
-**Sub-paso 7.1: Crear `/api/get-candidate-analysis.ts`**
+**Sub-paso 6.1: Crear `/api/get-candidate-analysis.ts`**
 - [ ] Input: `{ candidateId }`
 - [ ] Obtener de BD:
   - [ ] `candidates.cv_text` (texto parseado)

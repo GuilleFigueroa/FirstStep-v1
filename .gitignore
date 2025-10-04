@@ -1,3 +1,8 @@
 node_modules/
 dist/
 .vscode/
+
+# Environment variables (NO subir a GitHub)
+.env
+.env.local
+.env*.local

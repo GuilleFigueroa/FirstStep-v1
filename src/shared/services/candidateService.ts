@@ -114,4 +114,27 @@ export class CandidateService {
       return false;
     }
   }
+
+  // Marcar candidato como rechazado (soft delete)
+  static async rejectCandidate(candidateId: string, reason: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('candidates')
+        .update({
+          status: 'rejected',
+          rejection_reason: reason
+        })
+        .eq('id', candidateId);
+
+      if (error) {
+        console.error('Error rejecting candidate:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Reject candidate error:', error);
+      return false;
+    }
+  }
 }

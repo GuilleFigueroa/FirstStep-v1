@@ -439,9 +439,9 @@ npm run build
 
 ---
 
-**Última actualización**: 02-10-2025
+**Última actualización**: 03-10-2025
 
-**Estado**: UI mejorada - PASO 4 pendiente de continuar
+**Estado**: Variables de entorno implementadas + rejection_reason configurado - PASO 4 listo para continuar
 
 **Completado en Sesión 02/10/2025 (Parte 1):**
 - ✅ **REFACTOR ARQUITECTÓNICO COMPLETO**: Separación de requisitos (5 commits)
@@ -486,6 +486,21 @@ npm run build
 - **UX**: Panel de sinónimos conservado como mock (confianza del usuario)
 - **Ahorro**: ~$0.00002 por candidato al no procesar sinónimos
 
-**Próximo**: Continuar PASO 4 - Usuario consigue API key OpenAI → Sub-paso 4.1 (configurar en Vercel) → Sub-paso 4.2 (crear endpoint)
+**Completado en Sesión 03/10/2025:**
+- ✅ **VARIABLES DE ENTORNO IMPLEMENTADAS**: Migración de hardcoded a .env
+  - Archivo `.env` creado con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`
+  - `src/shared/services/supabase.ts` actualizado para usar `import.meta.env.VITE_*`
+  - `.gitignore` actualizado para proteger archivos `.env`
+  - Variables `VITE_*` configuradas en Vercel Dashboard (Production, Preview, Development)
+  - Re-deploy en Vercel completado
+  - Build local y producción verificados exitosamente
+
+- ✅ **SOFT DELETE IMPLEMENTADO**: Sistema de rechazo de candidatos
+  - Interface `Candidate` actualizada: `status` incluye `'rejected'` + campo `rejection_reason`
+  - Función `CandidateService.rejectCandidate()` creada (soft delete)
+  - Validación de duplicados confirmada: bloquea re-intentos de rechazados
+  - Preparado para `/api/calculate-scoring` (PASO 6)
+
+**Próximo**: PASO 4 - Sub-paso 4.2 (crear endpoint `/api/analyze-cv.ts`)
 
 **Repositorio**: GitHub sincronizado | Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado paso a paso

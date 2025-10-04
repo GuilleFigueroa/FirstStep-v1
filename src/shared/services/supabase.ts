@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://csmkihhubfemcvwtakix.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzbWtpaGh1YmZlbWN2d3Rha2l4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkwMTQ3NjEsImV4cCI6MjA3NDU5MDc2MX0.uzuXTK1UgPJOQR-G77IknRFRu4PHzqo-Wl-y5XDwjX8'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables. Check your .env file.')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
@@ -44,11 +48,12 @@ export interface Candidate {
   cv_text?: string
   cv_analysis?: any
   scoring_details?: any
-  status: 'registered' | 'cv_uploaded' | 'questions_answered' | 'completed'
+  status: 'registered' | 'cv_uploaded' | 'questions_answered' | 'completed' | 'rejected'
   score?: number
   parsing_failed?: boolean
   parsing_error?: string
   ai_analysis_failed?: boolean
+  rejection_reason?: string
   created_at: string
   updated_at: string
 }

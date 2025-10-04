@@ -491,7 +491,12 @@ npm run build
   - Archivo `.env` creado con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`
   - `src/shared/services/supabase.ts` actualizado para usar `import.meta.env.VITE_*`
   - `.gitignore` actualizado para proteger archivos `.env`
-  - Variables `VITE_*` configuradas en Vercel Dashboard (Production, Preview, Development)
+  - Variables configuradas en Vercel Dashboard (Production, Preview, Development):
+    - ✅ `VITE_SUPABASE_URL` (frontend)
+    - ✅ `VITE_SUPABASE_ANON_KEY` (frontend)
+    - ✅ `OPENAI_API_KEY` (backend)
+    - ✅ `SUPABASE_URL` (backend)
+    - ✅ `SUPABASE_SERVICE_ROLE_KEY` (backend)
   - Re-deploy en Vercel completado
   - Build local y producción verificados exitosamente
 
@@ -502,5 +507,7 @@ npm run build
   - Preparado para `/api/calculate-scoring` (PASO 6)
 
 **Próximo**: PASO 4 - Sub-paso 4.2 (crear endpoint `/api/analyze-cv.ts`)
+
+**Nota:** Cache de Vercel puede causar que variables de entorno no se apliquen hasta re-deploy manual. Si encuentras errores "Invalid API key" después de configurar variables, forzar re-deploy limpio desde Vercel Dashboard.
 
 **Repositorio**: GitHub sincronizado | Ver AI_ANALYSIS_IMPLEMENTATION.md para tracking detallado paso a paso

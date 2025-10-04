@@ -11,7 +11,7 @@
 | 1 | ✅ | Backend Vercel configurado |
 | 2 | ✅ | Base de datos modificada |
 | 3 | ✅ | Parser PDF/DOCX funcional |
-| 4 | 🔄 | `/api/analyze-cv` + integración CVUploadStep (LISTO PARA IMPLEMENTAR) |
+| 4 | 🔄 | `/api/analyze-cv` + integración CVUploadStep (Sub-paso 4.1 ✅ | 4.2-4.5 ⏳) |
 | 5 | ⏳ | UI AIQuestionsStep + RecruiterQuestionsStep |
 | 6 | ⏳ | `/api/calculate-scoring` + filtro eliminatorio |
 | 7 | ⏳ | Dashboard reclutador con análisis completo |
@@ -234,12 +234,13 @@ POST /api/save-recruiter-answers (PASO 5)
 - ✅ Sin sorpresas al pasar a producción
 - ✅ Costo de desarrollo estimado: $2-5 USD (testing y ajustes)
 
-**Sub-paso 4.1: Configurar API key en Vercel**
-- [ ] Obtener API key de OpenAI (https://platform.openai.com/api-keys)
-- [ ] Vercel Dashboard → Settings → Environment Variables
-- [ ] Agregar `OPENAI_API_KEY=sk-proj-...`
-- [ ] Re-deploy para aplicar cambios
-- [ ] Verificar variable accesible: `process.env.OPENAI_API_KEY`
+**Sub-paso 4.1: Configurar API key en Vercel** ✅ COMPLETADO (03/10/2025)
+- [x] Obtener API key de OpenAI (https://platform.openai.com/api-keys)
+- [x] Vercel Dashboard → Settings → Environment Variables
+- [x] Agregar `OPENAI_API_KEY=sk-proj-...`
+- [x] Re-deploy para aplicar cambios
+- [x] Verificar variable accesible: `process.env.OPENAI_API_KEY`
+- [x] Endpoint `/api/test-openai` creado y verificado (27 tokens, ~$0.000005 USD, latencia 1.3s)
 
 **Sub-paso 4.2: Crear `/api/analyze-cv.ts` con OpenAI**
 - [ ] Input validation: `candidateId` requerido

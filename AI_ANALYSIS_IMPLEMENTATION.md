@@ -1,20 +1,32 @@
-# FirstStep - Implementación de Análisis de CV con IA
+# FirstStep - Análisis de CV con IA
+
+> **📋 ESPECIFICACIÓN DEL DOCUMENTO:**
+> Este es un documento de **hoja de ruta técnica y estructural**, NO un registro de sesiones.
+>
+> **Al actualizar:**
+> - ✅ Actualizar estados de pasos y tareas
+> - ✅ Marcar items completados/pendientes
+> - ✅ Agregar/modificar especificaciones técnicas
+> - ❌ NO agregar secciones de "Sesión X"
+> - ❌ NO registrar historial de commits
+> - ❌ NO incluir narrativa de proceso
+> - ❌ NO duplicar información ya existente
+
+---
 
 ## 📊 Estado General
 
-**Progreso:** 4/7 pasos completados (57%)
-**Fecha inicio:** 30-09-2024
-**Última actualización:** 03-10-2025
+**Progreso:** 4/6 pasos completados (67%)
+**Última actualización:** 05-10-2025
 
 | Paso | Estado | Descripción |
 |------|--------|-------------|
 | 1 | ✅ | Backend Vercel configurado |
 | 2 | ✅ | Base de datos modificada |
 | 3 | ✅ | Parser PDF/DOCX funcional |
-| 4 | ✅ | `/api/analyze-cv` + integración CVUploadStep |
-| 5 | ⏳ | UI AIQuestionsStep + RecruiterQuestionsStep |
-| 6 | ⏳ | `/api/calculate-scoring` + filtro eliminatorio |
-| 7 | ⏳ | Dashboard reclutador con análisis completo |
+| 4 | ✅ | Análisis CV con IA + generación preguntas |
+| 5 | ⏳ | UI preguntas + scoring + filtro eliminatorio |
+| 6 | ⏳ | Dashboard reclutador con análisis completo |
 
 ---
 
@@ -27,385 +39,317 @@ IA: Vercel AI SDK + GPT-4o-mini
 BD: Supabase (PostgreSQL + Storage)
 ```
 
-**Decisión clave:** Vercel AI SDK (no SDK directo OpenAI)
-- ✅ Multi-proveedor: Cambiar entre OpenAI/Claude/Gemini sin refactorizar
-- ✅ Optimizado para serverless
-- ✅ Timeout y JSON mode integrados
+**Decisiones arquitectónicas:**
+- ✅ Vercel AI SDK (multi-proveedor, optimizado serverless)
+- ✅ GPT-4o-mini (~$0.002/candidato)
+- ✅ Soft delete candidatos rechazados (no hard delete)
+- ✅ Code splitting (RecruiterApp + CandidateApplication separados)
 
 ---
 
-## 🔄 Flujo Técnico Completo (Candidato)
+## 🔄 Flujo Técnico Completo
 
-### **FRONTEND: CandidateFlow.tsx - Steps definidos**
-
-```
-Step 1: registration → CandidateRegistration.tsx ✅
-  ↓ CandidateService.createCandidate() → BD
-
-Step 2: verification → VerificationStep.tsx ✅
-  ↓ Captcha visual
-
-Step 3: profile → CVUploadStep.tsx ✅
-  ↓ CandidateService.updateCandidateCV() → Supabase Storage
-  ↓ **INTEGRACIÓN CRÍTICA:** POST /api/analyze-cv (loading: "Analizando CV...")
-  ↓ Si error parsing/IA → Mostrar error, bloquear avance
-  ↓ Si éxito → onContinue()
-
-Step 4: ai_questions → AIQuestionsStep.tsx (NUEVO - PASO 5)
-  ↓ Fetch ai_questions desde BD
-  ↓ Candidato responde preguntas IA
-  ↓ POST /api/save-ai-answers
-  ↓ **LLAMADA IA #2:** POST /api/calculate-scoring
-  ↓ Si REJECTED (no cumple requisitos indispensables) → Hard delete + Mensaje
-  ↓ Si APPROVED → onContinue()
-
-Step 5: recruiter_questions → RecruiterQuestionsStep.tsx (NUEVO - PASO 5)
-  ↓ Fetch form_questions desde process
-  ↓ Candidato responde formulario reclutador
-  ↓ POST /api/save-recruiter-answers
-  ↓ onContinue()
-
-Step 6: confirmation → Confirmación final ✅
-  ↓ "Postulación enviada exitosamente"
-```
-
-### **BACKEND: Flujo de APIs**
+### **Frontend: Steps del candidato**
 
 ```
-POST /api/analyze-cv (PASO 4 - EN PROGRESO)
-  Input: { candidateId }
-  1. Obtener candidate.cv_url desde BD
-  2. extractTextFromCV(cv_url) → cv_text
-  3. Obtener process.mandatory_requirements + optional_requirements
-  4. Construir prompt para IA
-  5. generateAIResponse() → JSON con 3-5 preguntas
-  6. Guardar preguntas en ai_questions
-  7. Guardar cv_text en candidates
-  8. Si error → candidates.parsing_failed / ai_analysis_failed = true
-  Output: { success: true, questionsCount: 3 } | { success: false, error: "..." }
+1. registration → CandidateRegistration.tsx ✅
+   ↓ CandidateService.createCandidate() → BD
 
-POST /api/save-ai-answers (PASO 5)
-  Input: { candidateId, answers: [{questionId, answer}] }
-  1. Actualizar ai_questions con answer_text
-  Output: { success: true }
+2. verification → VerificationStep.tsx ✅
+   ↓ Captcha visual
 
-POST /api/calculate-scoring (PASO 6)
-  Input: { candidateId }
-  1. Obtener cv_text + mandatory_requirements + ai_questions + answers
-  2. Construir prompt de scoring
-  3. generateAIResponse() → JSON con score + details
-  4. Si meetsAllMandatory = false → DELETE candidate + retornar reason
-  5. Si true → Guardar score + scoring_details en candidates
-  Output: { approved: true, score: 85 } | { approved: false, reason: "..." }
+3. profile → CVUploadStep.tsx ✅
+   ↓ CandidateService.updateCandidateCV() → Supabase Storage
+   ↓ POST /api/analyze-cv (loading: "Analizando CV...")
+   ↓ Si error → Mostrar error, bloquear avance
+   ↓ Si éxito → onContinue()
 
-POST /api/save-recruiter-answers (PASO 5)
-  Input: { candidateId, answers: [{questionId, answer}] }
-  1. Guardar en recruiter_answers
-  Output: { success: true }
+4. ai_questions → AIQuestionsStep.tsx (PENDIENTE - PASO 5)
+   ↓ AIQuestionsService.getAIQuestions()
+   ↓ Candidato responde preguntas (una a la vez)
+   ↓ AIQuestionsService.saveAIAnswers()
+   ↓ AIQuestionsService.calculateScoring()
+   ↓ Si REJECTED → Mensaje rechazo + no continúa
+   ↓ Si APPROVED → onContinue()
+
+5. recruiter_questions → RecruiterQuestionsStep.tsx (PENDIENTE - PASO 5)
+   ↓ Fetch form_questions desde process
+   ↓ Candidato responde formulario
+   ↓ POST /api/save-recruiter-answers
+   ↓ onContinue()
+
+6. confirmation → Confirmación final ✅
+   ↓ "Postulación enviada exitosamente"
 ```
 
-**Costos IA por candidato:**
-- Análisis: ~$0.03 (2000-3000 tokens)
-- Scoring: ~$0.04 (3000-4000 tokens)
-- **Total: $0.07 USD**
+### **Backend: APIs implementadas**
 
----
+```
+✅ POST /api/analyze-cv
+   Input: { candidateId }
+   1. Obtener cv_url desde BD
+   2. extractTextFromCV(cv_url) → cv_text
+   3. Obtener mandatory/optional requirements + custom_prompt
+   4. Construir prompt con priorización mandatory
+   5. generateAIResponse() → JSON con 3-5 preguntas
+   6. Guardar preguntas en ai_questions (con is_mandatory)
+   7. Guardar cv_text en candidates
+   8. Si error → parsing_failed / ai_analysis_failed = true
+   Output: { success: true, questionsCount: 3 } | error
 
-## 🎯 Decisiones Técnicas: Evaluación de Requisitos
+✅ POST /api/save-ai-answers
+   Input: { candidateId, answers: [{questionId, answerText}] }
+   1. Actualizar ai_questions con answer_text
+   Output: { success: true }
 
-### **Mapeo nivel → años (TODAS las categorías)**
+⏳ POST /api/calculate-scoring (PASO 5 - Tarea 5.5)
+   Input: { candidateId }
+   1. Obtener cv_text + requirements + ai_questions + answers
+   2. Construir prompt de scoring
+   3. generateAIResponse() → JSON con score + meetsAllMandatory
+   4. Si meetsAllMandatory = false → status='rejected', rejection_reason
+   5. Si true → Guardar score + scoring_details
+   Output: { approved: true/false, reason?: string, score?: number }
 
-**Valores guardados en BD:**
-- `"básico (0-2 años de experiencia)"`
-- `"intermedio (2-4 años de experiencia)"`
-- `"avanzado (5+ años de experiencia)"`
-
-**Aplicación:**
-- `tools` (React, Node.js, etc.) → Años de uso
-- `technical` (Arquitectura, Patrones) → Años aplicando
-- `other-skills` (Git, Scrum, etc.) → Años de experiencia
-
-**Interpretación IA:**
-- "React intermedio (2-4 años de experiencia)" → Buscar evidencia de 2-4 años con React
-- Si CV no menciona años → IA genera pregunta para verificar
-- Scoring usa el rango como criterio objetivo
-
-**Ventaja:** Texto explícito elimina ambigüedad interpretativa para la IA
-
-**UI:** Select muestra solo "Básico", "Intermedio", "Avanzado" (dropdown muestra años)
-
-### **Requisitos no medibles por CV (FUERA DE SCOPE)**
-- Soft skills, pensamiento crítico, liderazgo → Se evalúan en entrevista presencial
-- FirstStep se enfoca en skills técnicos verificables mediante CV + preguntas IA
-
-### **Feature pospuesta a V2:**
-- Descripción custom por requisito (ej: "React avanzado con hooks + performance")
-- Razón: Priorizar MVP funcional, agregar refinamientos post-validación
+⏳ POST /api/save-recruiter-answers (PASO 5 - Tarea 5.9)
+   Input: { candidateId, answers: [{questionId, answerText}] }
+   1. Guardar en recruiter_answers
+   Output: { success: true }
+```
 
 ---
 
 ## 🗄️ Base de Datos
 
 ### Tablas creadas:
-- `ai_questions` - Preguntas generadas por IA
+- `ai_questions` - Preguntas generadas por IA con `is_mandatory`
 - `recruiter_questions` - Preguntas configuradas por reclutador
 - `recruiter_answers` - Respuestas a preguntas formulario
 
 ### Columnas agregadas:
+
 **`processes`:**
 - `mandatory_requirements` (JSONB) - Requisitos indispensables
 - `optional_requirements` (JSONB) - Requisitos deseables
+- `custom_prompt` (TEXT) - Criterios adicionales del reclutador
 
 **`candidates`:**
 - `cv_text` (TEXT) - CV parseado
 - `cv_analysis` (JSONB) - Análisis estructurado IA
 - `scoring_details` (JSONB) - Desglose scoring
+- `rejection_reason` (TEXT) - Razón de rechazo (soft delete)
 - `parsing_failed` (BOOL) - Flag error parsing
 - `parsing_error` (TEXT) - Mensaje error parsing
 - `ai_analysis_failed` (BOOL) - Flag error IA
 
+### Estructura de requisitos:
+
+**Frontend (JobProfile):**
+```json
+{
+  "mandatoryRequirements": [
+    { "id": "req-0", "title": "React", "level": "avanzado (5+ años)", "category": "tools", "required": true }
+  ],
+  "optionalRequirements": [
+    { "id": "req-1", "title": "Node.js", "level": "intermedio (2-4 años)", "category": "tools", "required": false }
+  ]
+}
+```
+
+**Backend (Process table):**
+```json
+{
+  "mandatory_requirements": [...],
+  "optional_requirements": [...]
+}
+```
+
 ---
 
-## 🎯 PASO 1: Setup Backend ✅ COMPLETADO
+## 🎯 PASO 1: Backend Vercel ✅ COMPLETADO
 
-**Objetivo:** Infraestructura backend básica
+**Implementado:**
+- ✅ Carpeta `/api` creada
+- ✅ `vercel.json` configurado
+- ✅ `/api/health.ts` funcional
+- ✅ Deploy en Vercel
+- ✅ Variables entorno configuradas
 
-**Tareas completadas:**
-- [x] Carpeta `/api` creada
-- [x] `vercel.json` configurado
-- [x] `/api/health.ts` funcional
-- [x] Deploy en Vercel
-- [x] Variables entorno configuradas
-
-**Verificación:** ✅ `https://first-step-v1.vercel.app/api/health` retorna `{ status: "ok" }`
+**Verificación:** `https://first-step-v1.vercel.app/api/health` → `{ status: "ok" }`
 
 ---
 
 ## 🎯 PASO 2: Base de Datos ✅ COMPLETADO
 
-**Objetivo:** Estructura BD para flujo IA completo
-
-**Tareas completadas:**
-- [x] Modificar tabla `processes` (2 columnas: `mandatory_requirements`, `optional_requirements`)
-- [x] Modificar tabla `candidates` (columnas: `cv_text`, `cv_analysis`, `scoring_details`, `parsing_failed`, `parsing_error`, `ai_analysis_failed`)
-- [x] Agregar columna `rejection_reason` a tabla `candidates` (para soft delete - COMPLETADO 03/10/2025)
-- [x] Crear tabla `ai_questions` (con `is_mandatory` para priorización)
-- [x] Crear tabla `recruiter_questions`
-- [x] Crear tabla `recruiter_answers`
-- [x] Índices creados
-- [x] Tipos TypeScript actualizados en `supabase.ts`
-
-**Verificación:** ✅ 3 tablas creadas, 8 columnas agregadas en `candidates` + 2 en `processes`, SQL ejecutado en Supabase
+**Implementado:**
+- ✅ Modificar tabla `processes` (mandatory_requirements, optional_requirements, custom_prompt)
+- ✅ Modificar tabla `candidates` (cv_text, cv_analysis, scoring_details, rejection_reason, parsing_failed, parsing_error, ai_analysis_failed)
+- ✅ Crear tabla `ai_questions` (con is_mandatory, ON DELETE CASCADE)
+- ✅ Crear tabla `recruiter_questions`
+- ✅ Crear tabla `recruiter_answers`
+- ✅ Índices creados
+- ✅ Tipos TypeScript actualizados en `supabase.ts`
 
 ---
 
 ## 🎯 PASO 3: Parser PDF/DOCX ✅ COMPLETADO
 
-**Objetivo:** Extraer texto de CVs
+**Implementado:**
+- ✅ `/api/utils/pdfParser.ts` con soporte PDF y DOCX
+- ✅ `/api/utils/supabase.ts` con SERVICE_ROLE_KEY
+- ✅ Validación texto extraído (mín 50 chars)
+- ✅ Manejo errores completo
+- ✅ Bucket: `candidate-cvs` (flat structure)
 
-**Tareas completadas:**
-- [x] Instalar `pdf-parse` + `mammoth`
-- [x] `/api/utils/pdfParser.ts` funcional
-- [x] `/api/utils/supabase.ts` con SERVICE_ROLE_KEY
-- [x] `/api/test-parser.ts` endpoint prueba
-- [x] Soporte PDF y DOCX
-- [x] Validación texto extraído (mín 50 chars)
-- [x] Manejo errores completo
-- [x] Detección dinámica bucket `candidate-cvs`
-- [x] Probado con CV real en producción
-
-**Verificación:** ✅ `POST /api/test-parser` funcional en producción
+**Path pattern:** `{candidateId}-{timestamp}-{fileName}`
 
 ---
 
-## 🎯 PASO 4: Integración OpenAI ⏳ EN PROGRESO
+## 🎯 PASO 4: Análisis CV con IA ✅ COMPLETADO
 
-**Objetivo:** Análisis CV y generación preguntas con IA
+**Implementado:**
 
-**Prerequisitos:**
-- ✅ PASO 3 completado
-- ✅ API key OpenAI configurada en Vercel (REQUERIDO)
+### Backend:
+- ✅ `/api/utils/openai.ts` - Wrapper Vercel AI SDK
+- ✅ `/api/analyze-cv.ts` - Análisis completo con priorización
+- ✅ `/api/save-ai-answers.ts` - Guardar respuestas
+- ✅ Prompt estructurado con mandatory/optional + custom_prompt
+- ✅ Validación JSON con limpieza markdown code blocks
+- ✅ Batch insert preguntas en `ai_questions`
+- ✅ Manejo errores parsing/IA guardados en BD
 
-**Decisión arquitectónica:** Vercel AI SDK (no SDK directo)
+### Frontend:
+- ✅ `aiQuestionsService.ts` - getAIQuestions, saveAIAnswers, calculateScoring
+- ✅ `candidateService.analyzeCVWithAI()` - Llamada a API
+- ✅ CVUploadStep integrado con loading states
+- ✅ Manejo errores en UI
 
-**Decisión de desarrollo:** Implementación directa con API real
-- ✅ Desarrollo incremental con OpenAI desde el principio
-- ✅ Resultados reales en cada iteración
-- ✅ Sin sorpresas al pasar a producción
-- ✅ Costo de desarrollo estimado: $2-5 USD (testing y ajustes)
+### API Key:
+- ✅ `OPENAI_API_KEY` configurada en Vercel
+- ✅ Modelo: `gpt-4o-mini-2024-07-18`
+- ✅ Costo verificado: ~$0.002/análisis
 
-**Sub-paso 4.1: Configurar API key en Vercel** ✅ COMPLETADO
-- [x] API key configurada en Vercel
-- [x] Endpoint `/api/test-openai` verificado
-
-**Sub-paso 4.2: Crear `/api/analyze-cv.ts` con OpenAI** ✅ COMPLETADO
-- [x] Input validation: `candidateId` requerido
-- [x] Obtener `cv_url` y `process_id` desde BD (candidates)
-- [x] Llamar `extractTextFromCV(cv_url)` → `cv_text`
-- [x] Si parsing falla → Actualizar BD (`parsing_failed = true, parsing_error`) + retornar error
-- [x] Obtener de BD: `mandatory_requirements`, `optional_requirements`, `custom_prompt` (columnas separadas)
-- [x] Construir prompt estructurado con lógica de priorización:
-  - [x] CV completo (`cv_text`)
-  - [x] Requisitos indispensables (`mandatory_requirements`) con descripción
-  - [x] Requisitos deseables (`optional_requirements`) con descripción
-  - [x] `custom_prompt` del reclutador (si existe)
-  - [x] **Instrucciones de priorización para IA:**
-    - [x] Analizar qué requisitos mandatory NO se pueden verificar completamente en el CV
-    - [x] Generar preguntas dirigidas a verificar PRIMERO esos requisitos mandatory (`is_mandatory: true`)
-    - [x] Si quedan preguntas disponibles (máx 5), generar para requisitos optional (`is_mandatory: false`)
-    - [x] Cantidad adaptativa: más requisitos mandatory sin evidencia = más preguntas mandatory
-    - [x] Cada pregunta debe tener: `question`, `reason` (qué requisito verifica), `is_mandatory` (boolean)
-- [x] Llamar `generateAIResponse(prompt, { responseFormat: 'json', temperature: 0.7, maxTokens: 1500 })`
-- [x] Parsear JSON response con limpieza de markdown code blocks
-- [x] Validar estructura (array, máx 5 preguntas, campos requeridos)
-- [x] Guardar preguntas en `ai_questions` (batch insert)
-- [x] Guardar `cv_text` en `candidates`
-- [x] Manejo errores IA: Try/catch → Actualizar BD (`ai_analysis_failed = true`) + retornar error
-- [x] Retornar: `{ success: true, questionsCount: N }` o `{ success: false, error: "..." }`
-- [x] Fix: Extraer path correcto de URL completa Supabase Storage
-
-**Sub-paso 4.3: Integrar en `CVUploadStep.tsx`** ✅ COMPLETADO
-- [x] Crear función `analyzeCVWithAI(candidateId)` en `candidateService.ts`
-- [x] Modificar `handleContinue()` en CVUploadStep
-- [x] Loading states: "Subiendo tu CV..." → "Analizando tu CV con IA..."
-- [x] Manejo de errores de análisis
-- [x] onContinue() solo si análisis exitoso
-
-**Sub-paso 4.4: Probar flujo completo** ✅ COMPLETADO
-- [x] Flujo probado en producción
-- [x] Preguntas generadas correctamente (3-5 por candidato)
-- [x] Priorización mandatory/optional funcionando
-- [x] cv_text guardado en BD
-
-**Sub-paso 4.5: Validar costos** ✅ COMPLETADO
-- [x] Costo estimado: ~$0.002 USD por análisis (gpt-4o-mini)
-- [x] Muy por debajo del estimado inicial ($0.07)
-
-**Verificación final:**
-- [x] API key configurada correctamente
-- [x] Endpoint retorna preguntas relevantes al CV
-- [x] Errores parsing/IA se manejan y guardan en BD
-- [x] Frontend muestra errores claros al candidato
-- [x] Costos optimizados (~$0.002/análisis)
+**Archivos:**
+- `api/analyze-cv.ts` (293 líneas)
+- `api/save-ai-answers.ts` (86 líneas)
+- `src/shared/services/aiQuestionsService.ts` (112 líneas)
+- `src/candidate/components/CVUploadStep.tsx` (integración líneas 100-110)
 
 ---
 
-## 🎯 PASO 5: UI Preguntas (IA + Reclutador) + Scoring ⏳ EN PROGRESO
+## 🎯 PASO 5: UI Preguntas + Scoring ⏳ EN PROGRESO (40%)
 
-**Objetivo:** Interfaces para responder preguntas, evaluación con scoring y filtro eliminatorio
+**Objetivo:** Interfaces para responder preguntas + evaluación con scoring + filtro eliminatorio
 
-**DECISIÓN ARQUITECTÓNICA:** 2 steps separados (no combinar)
-- **Step 4 (ai_questions):** Preguntas generadas por IA → Respuestas + **Scoring con filtro eliminatorio**
-- **Step 5 (recruiter_questions):** Preguntas formulario configuradas por reclutador → Solo informativas
+### Progreso: 6/15 tareas completadas
 
-**IMPORTANTE:** Este paso SÍ incluye scoring. El scoring se ejecuta INMEDIATAMENTE después de responder ai_questions.
+**✅ Completado:**
+- **Tarea 5.1-5.2:** Diseño UI definido (AIQuestionsStep + RecruiterQuestionsStep)
+- **Tarea 5.2-bis:** Code splitting implementado
+  - Bundle: 774 KB → 427 KB (reclutador) / 352 KB (candidato)
+  - Lazy load RecruiterApp + CandidateApplication
+- **Tarea 5.3:** `aiQuestionsService.ts` creado
+- **Tarea 5.4:** `/api/save-ai-answers.ts` implementado
 
-### **Tareas Atómicas (15 pasos):**
+**⏳ Pendiente:**
 
-**Bloque A: Diseño UI (Tareas 1-2)**
-- [x] **5.1:** Definir diseño UI de AIQuestionsStep:
-  - Layout: CVUploadStep style (Card centrado, header con back + título)
-  - Título: "Responde las siguientes preguntas para mejorar la información de tu perfil"
-  - Descripción: "Estas preguntas nos ayudan a conocer mejor tu experiencia"
-  - Display: Una pregunta a la vez (navegación lineal)
-  - ❌ SIN badges/señales de mandatory (evitar sugestión para mentir)
-  - ❌ SIN validación mínimo caracteres
-  - Navegación: Anterior/Siguiente → Última: "Continuar"
-  - Loading final: "Evaluando si se cumplen requisitos excluyentes"
-  - Icono: MessageSquare o ClipboardList
-- [x] **5.2:** Definir diseño UI de RecruiterQuestionsStep:
-  - Reutilizar 80% de AIQuestionsStep
-  - Título: "Completa el formulario del reclutador"
-  - Descripción: "Estas preguntas fueron configuradas específicamente para este proceso"
-  - Botón final: "Enviar Postulación" (no "Continuar")
-  - Sin scoring, solo guardar respuestas
-  - Loading: "Enviando postulación..."
+**Tarea 5.5:** Crear `/api/calculate-scoring.ts` 🔴 BLOQUEADOR
+```typescript
+// FASE 1 (Implementación inicial - MVP):
+// Input: { candidateId }
+// 1. Obtener cv_text, requirements, ai_questions + answers
+// 2. Prompt de scoring MODERADO (temperature: 0.3)
+//    - Rechaza solo si claramente no cumple mandatory
+//    - Acepta candidatos "borderline" (ej: pide 5 años, tiene 4)
+// 3. generateAIResponse() → { score, meetsAllMandatory, details }
+// 4. Si meetsAllMandatory = false → status='rejected', rejection_reason
+// 5. Si true → status='completed', score + scoring_details
+// Output: { approved: true/false, reason?: string, score?: number }
 
-**Bloque A-BIS: Code Splitting (Optimización - Completada 04/10/2025)**
-- [x] **5.2-bis:** Implementar code splitting para optimizar bundle:
-  - [x] Lazy load RecruiterApp y CandidateApplication
-  - [x] Loading fallback con spinner
-  - [x] Bundle reducido de 774 KB → 427 KB (reclutador) / 352 KB (candidato)
-  - [x] Eliminado warning "chunks larger than 500 KB"
-  - [x] Build verificado: 4 chunks separados funcionales
-  - [x] HMR funcionando correctamente
+// Estructura scoring_details (flexible):
+// {
+//   "score": 75,
+//   "meetsAllMandatory": true,
+//   "mandatory_evaluation": [{ requirement, meets, evidence }],
+//   "optional_evaluation": [{ requirement, meets, evidence }],
+//   "summary": "..."
+// }
+```
 
-**Bloque B: AI Questions - Backend + Frontend (Tareas 3-6)**
-- [x] **5.3:** Crear `/src/shared/services/aiQuestionsService.ts`:
-  - [x] `getAIQuestions(candidateId)` - Fetch desde `ai_questions`
-  - [x] `saveAIAnswers(candidateId, answers)` - POST a `/api/save-ai-answers`
-  - [x] `calculateScoring(candidateId)` - POST a `/api/calculate-scoring`
-- [x] **5.4:** Crear `/api/save-ai-answers.ts`:
-  - [x] Input: `{ candidateId, answers: [{questionId, answerText}] }`
-  - [x] Update `ai_questions` → `answer_text`, `is_answered = true`
-  - [x] Output: `{ success: true }`
-- [ ] **5.5:** Crear `/api/calculate-scoring.ts` (SCORING + FILTRO ELIMINATORIO):
-  - [ ] Input: `{ candidateId }`
-  - [ ] Obtener: `cv_text`, `mandatory_requirements`, `optional_requirements`, `custom_prompt`, `ai_questions` + respuestas
-  - [ ] Construir prompt de scoring (priorizar mandatory)
-  - [ ] Llamar `generateAIResponse()` (temperature: 0.3)
-  - [ ] Si `meetsAllMandatory = false` → Soft delete: `status='rejected'`, `rejection_reason`
-  - [ ] Si `meetsAllMandatory = true` → Guardar `score`, `scoring_details`
-  - [ ] Output: `{ approved: true/false, reason?: string, score?: number }`
-- [ ] **5.6:** Implementar `/src/candidate/components/AIQuestionsStep.tsx`:
-  - [ ] Progreso visual (ej: "Pregunta 2 de 4")
-  - [ ] Una pregunta a la vez, navegación anterior/siguiente
-  - [ ] Textarea por pregunta (sin mínimo caracteres)
-  - [ ] Botón "Continuar" en última pregunta
-  - [ ] Al hacer clic "Continuar":
-    1. Guardar respuestas (POST /api/save-ai-answers)
-    2. Calcular scoring (POST /api/calculate-scoring)
-    3. Loading: "Evaluando si se cumplen requisitos excluyentes"
-    4. Si rechazado → Mostrar mensaje + NO continuar
-    5. Si aprobado → `onContinue()` a Step 5
+**Tarea 5.5-bis:** Agregar selector de modo de filtro (Feature adicional)
+```typescript
+// FASE 2 (Después de validar Tarea 5.5):
+// 1. Agregar columna a processes:
+//    ALTER TABLE processes ADD COLUMN scoring_mode VARCHAR(20) DEFAULT 'moderate';
+//    Valores: 'strict' | 'moderate'
+//
+// 2. Frontend (JobProfile): Agregar selector
+//    <Select value={scoringMode}>
+//      <option value="moderate">Moderado (recomendado)</option>
+//      <option value="strict">Estricto</option>
+//    </Select>
+//
+// 3. Backend: Actualizar /api/calculate-scoring.ts
+//    - Leer process.scoring_mode
+//    - buildStrictPrompt() vs buildModeratePrompt()
+//
+// Modo STRICT: Rechaza si no cumple exactamente requisitos
+// Modo MODERATE: Tolerante con experiencia cercana
+//
+// Esfuerzo: ~30-40 minutos
+// Beneficio: Control total del reclutador sobre filtro
+```
 
-**Bloque C: AI Questions - Testing (Tarea 7)**
-- [ ] **5.7:** Probar AIQuestionsStep completo:
-  - [ ] Cargar preguntas desde BD
-  - [ ] Guardar respuestas correctamente
-  - [ ] Scoring se ejecuta correctamente
-  - [ ] Rechazado: Mensaje específico, no avanza
-  - [ ] Aprobado: `onContinue()` funciona
+**Tarea 5.6:** Crear `AIQuestionsStep.tsx` 🔴 BLOQUEADOR
+```
+- Layout: Card centrado, header con back + título
+- Título: "Responde las siguientes preguntas para mejorar la información de tu perfil"
+- Display: Una pregunta a la vez (navegación lineal)
+- ❌ SIN badges mandatory (evitar sugestión para mentir)
+- ❌ SIN validación mínimo caracteres
+- Navegación: Anterior/Siguiente → Última: "Continuar"
+- Al hacer clic "Continuar":
+  1. saveAIAnswers()
+  2. calculateScoring()
+  3. Loading: "Evaluando si se cumplen requisitos excluyentes"
+  4. Si rechazado → Mostrar mensaje + NO continuar
+  5. Si aprobado → onContinue() a Step 5
+```
 
-**Bloque D: Recruiter Questions - Backend + Frontend (Tareas 8-10)**
-- [ ] **5.8:** Crear `/src/shared/services/recruiterQuestionsService.ts`:
-  - [ ] `getRecruiterQuestions(processId)` - Fetch desde `processes.form_questions`
-  - [ ] `saveRecruiterAnswers(candidateId, answers)` - POST a `/api/save-recruiter-answers`
-- [ ] **5.9:** Crear `/api/save-recruiter-answers.ts`:
-  - [ ] Input: `{ candidateId, answers: [{questionId, answerText}] }`
-  - [ ] Insert en `recruiter_answers`
-  - [ ] Output: `{ success: true }`
-- [ ] **5.10:** Implementar `/src/candidate/components/RecruiterQuestionsStep.tsx`:
-  - [ ] UI similar a AIQuestionsStep
-  - [ ] Progreso visual
-  - [ ] Sin scoring (solo guardar respuestas)
-  - [ ] Botón "Enviar Postulación" → `onContinue()` a confirmation
+**Tarea 5.8:** Crear `recruiterQuestionsService.ts`
+```typescript
+- getRecruiterQuestions(processId)
+- saveRecruiterAnswers(candidateId, answers)
+```
 
-**Bloque E: Recruiter Questions - Testing (Tarea 11)**
-- [ ] **5.11:** Probar RecruiterQuestionsStep aisladamente:
-  - [ ] Cargar preguntas desde process
-  - [ ] Guardar respuestas correctamente
-  - [ ] `onContinue()` se ejecuta
+**Tarea 5.9:** Crear `/api/save-recruiter-answers.ts`
 
-**Bloque F: Integración Final (Tareas 12-13)**
-- [ ] **5.12:** Integrar ambos steps en CandidateFlow.tsx:
-  - [ ] Actualizar steps de 4 a 6 (agregar `ai_questions` y `recruiter_questions`)
-  - [ ] Actualizar progress indicator
-  - [ ] Navegación correcta entre steps
-  - [ ] Manejar estado rejected (no permitir avanzar)
-- [ ] **5.13:** Probar flujo completo con scoring:
-  - [ ] Candidato aprobado: registration → verification → profile → ai_questions → recruiter_questions → confirmation
-  - [ ] Candidato rechazado: registration → verification → profile → ai_questions → mensaje rechazo (fin)
-  - [ ] Soft delete funciona correctamente
+**Tarea 5.10:** Crear `RecruiterQuestionsStep.tsx`
+```
+- Reutilizar 80% de AIQuestionsStep
+- Título: "Completa el formulario del reclutador"
+- Botón final: "Enviar Postulación"
+- Sin scoring, solo guardar respuestas
+```
 
-**Verificación final PASO 5:**
-- [ ] Candidato ve preguntas IA correctamente
-- [ ] Scoring se ejecuta después de ai_questions
-- [ ] Rechazados ven mensaje específico y no continúan
-- [ ] Aprobados ven preguntas formulario
-- [ ] Respuestas AI se guardan en `ai_questions`
-- [ ] Respuestas formulario se guardan en `recruiter_answers`
-- [ ] Scoring guardado en `candidates` (aprobados)
+**Tarea 5.12:** Actualizar `CandidateFlow.tsx`
+```typescript
+// Cambiar de 4 steps a 6 steps:
+type FlowStep = 'registration' | 'verification' | 'profile' |
+                'ai_questions' | 'recruiter_questions' | 'confirmation';
+
+// Reemplazar PlaceholderScreen por componentes reales
+case 'ai_questions':
+  return <AIQuestionsStep ... />;
+
+case 'recruiter_questions':
+  return <RecruiterQuestionsStep ... />;
+```
+
+**Tarea 5.13:** Probar flujo completo
+- Candidato aprobado: 6 steps completos
+- Candidato rechazado: 4 steps → mensaje rechazo
+- Soft delete funciona correctamente
 
 ---
 
@@ -413,446 +357,64 @@ POST /api/save-recruiter-answers (PASO 5)
 
 **Objetivo:** Mostrar análisis completo de candidatos aprobados
 
-**Sub-paso 6.1: Crear `/api/get-candidate-analysis.ts`**
-- [ ] Input: `{ candidateId }`
-- [ ] Obtener de BD:
-  - [ ] `candidates.cv_text` (texto parseado)
-  - [ ] `candidates.score`
-  - [ ] `candidates.scoring_details`
-  - [ ] `ai_questions` + respuestas
-  - [ ] `recruiter_answers`
-- [ ] Retornar JSON completo para dashboard
+**Pendiente:**
 
-**Sub-paso 7.2: Actualizar `CandidateProfile.tsx`**
-- [ ] Layout split screen:
-  - [ ] Izquierda: CV parseado (scrolleable, formato texto limpio)
-  - [ ] Derecha: Análisis completo
-- [ ] Sección "Scoring":
-  - [ ] Barra progreso con score 0-100
-  - [ ] Badge APPROVED (verde)
-- [ ] Sección "Requisitos Cumplidos":
-  - [ ] Lista con checkmarks verdes
-  - [ ] Evidencia del CV o respuestas
-- [ ] Sección "Requisitos Faltantes":
-  - [ ] Lista con X rojas (si aplica)
-- [ ] Sección "Preguntas IA":
-  - [ ] Pregunta + Respuesta + Razón
-- [ ] Sección "Preguntas Formulario":
-  - [ ] Pregunta + Respuesta
+1. Crear `/api/get-candidate-analysis.ts`
+   - Input: `{ candidateId }`
+   - Output: cv_text, score, scoring_details, ai_questions, recruiter_answers
 
-**Verificación:**
-- [ ] Reclutador ve perfil completo lado a lado
-- [ ] Información clara y organizada
-- [ ] CV legible (no PDF embebido)
+2. Actualizar `CandidateProfile.tsx`
+   - Split screen: CV parseado (izquierda) | Análisis (derecha)
+   - Sección Scoring (barra progreso 0-100, badge APPROVED)
+   - Sección Requisitos Cumplidos (checkmarks + evidencia)
+   - Sección Requisitos Faltantes (si aplica)
+   - Sección Preguntas IA (pregunta + respuesta + razón)
+   - Sección Preguntas Formulario
 
 ---
 
-## 📝 DECISIONES ARQUITECTÓNICAS FINALES
+## 📋 Decisiones Técnicas
 
-### **Sesión de Clarificación - 03/10/2025**
-**Objetivo:** Resolver 7 dudas críticas antes de implementar PASO 4
+### Niveles de experiencia (todas las categorías)
 
----
+**Valores en BD:**
+- `"básico (0-2 años de experiencia)"`
+- `"intermedio (2-4 años de experiencia)"`
+- `"avanzado (5+ años de experiencia)"`
 
-### **✅ DECISIÓN 1: Flujo de Scoring y Feedback al Candidato**
+**UI:** Select muestra solo "Básico", "Intermedio", "Avanzado" (dropdown muestra años)
 
-**Pregunta:** ¿Cuándo y cómo se muestra el resultado al candidato?
+**IA:** Interpreta texto explícito como criterio objetivo
 
-**Respuesta:**
-- ❌ **NO** mostrar scoring durante el proceso (Steps 1-5)
-- ✅ Scoring se ejecuta **silenciosamente** después de ai_questions (Step 4)
-- ✅ Resultado se muestra **UNA SOLA VEZ** en Step 6 (confirmation)
-- ✅ **Sin re-acceso**: Candidato no puede volver a ver el resultado
+### Scoring y feedback al candidato
 
-**Flujo confirmado:**
-```
-Step 4 (ai_questions) → Responde todas → "Continuar"
-                              ↓
-                POST /api/calculate-scoring (silencioso)
-                              ↓
-                      ¿Cumple mandatory?
-                   ✓                    ✗
-                   |                    |
-    setApproved(true)           setRejected(true)
-    Continue to Step 5          Go to Step 6 (rejected)
-                   |                    ↓
-    Step 5 (recruiter_qs)      Pantalla rechazo
-                   |            "No cumples: React 5+ años"
-    Step 6 (confirmation)       + Guard (no escape)
-    "Cumples X requisitos"              ↓
-    "Atento al contacto"               FIN
-```
+- ❌ NO mostrar scoring durante Steps 1-5
+- ✅ Scoring se ejecuta silenciosamente después de ai_questions
+- ✅ Resultado se muestra UNA SOLA VEZ en Step 6 (confirmation)
+- ✅ Sin re-acceso (evitar intentos múltiples)
 
-**Razón de seguridad:** Evitar que candidato salga y reintente con otro email/respuestas diferentes.
+### Custom Prompt del reclutador
 
-**Implementación:** Guard en CandidateFlow que fuerza `currentStep='rejected'` si `rejected=true`.
+- ✅ Se guarda en `processes.custom_prompt`
+- ✅ Se usa en `/api/analyze-cv` (generación preguntas)
+- ✅ Se usa en `/api/calculate-scoring` (evaluación)
 
----
+### Error handling
 
-### **✅ DECISIÓN 2: Estructura ai_questions con `is_mandatory`**
+- ✅ Reintento permitido en CVUploadStep
+- ✅ Errores guardados en BD (tracking)
+- ❌ Candidatos con errores NO aparecen en dashboard
 
-**Pregunta:** ¿Guardar `is_mandatory` en BD o recalcular en scoring?
+### Límite de candidatos
 
-**Respuesta:**
-- ✅ **SÍ, guardar `is_mandatory` en BD**
-- ✅ IA decide priorización en `/api/analyze-cv` (tiene contexto completo)
-- ✅ Scoring usa el flag para ponderar correctamente
-- ✅ Reclutador ve en dashboard qué preguntas eran críticas
-
-**Schema confirmado:**
-```typescript
-interface AIQuestion {
-  id: string
-  candidate_id: string
-  question_text: string
-  question_reason?: string
-  is_mandatory: boolean  // ← Guardado en BD
-  answer_text?: string
-  is_answered: boolean
-  created_at: string
-}
-```
-
-**Ventajas:**
-- Performance (no re-calcular)
-- Consistencia (decisión única en generación)
-- Auditoría (visible para reclutador)
-
----
-
-### **✅ DECISIÓN 3: Custom Prompt del Reclutador**
-
-**Pregunta:** ¿Dónde se configura y dónde se usa?
-
-**Respuesta:**
-- ✅ **Ya integrado** en UI: `TextAnalysisMode.tsx` → `CustomPromptBox` (línea 649-652)
-- ✅ Se guarda en BD: columna `processes.custom_prompt`
-- ✅ **Se usa en AMBOS endpoints:**
-  - `/api/analyze-cv`: Influye en generación de preguntas
-  - `/api/calculate-scoring`: Influye en evaluación y ponderación
-
-**Ejemplo de uso:**
-```
-Custom Prompt: "Priorizar candidatos con experiencia en SaaS"
-
-→ /api/analyze-cv:
-  Genera pregunta: "¿Has trabajado en empresas SaaS?"
-
-→ /api/calculate-scoring:
-  Si menciona SaaS → +peso en scoring final
-```
-
----
-
-### **✅ DECISIÓN 4: Schema ai_questions - Confirmado**
-
-**Pregunta:** ¿Es correcto el schema con ON DELETE CASCADE?
-
-**Respuesta:**
-- ✅ Tabla ya existe en Supabase (verificado)
-- ✅ `ON DELETE CASCADE` es correcto
-- ✅ Schema alineado con TypeScript interface
-
-**Comportamiento CASCADE:**
-- Si candidate es eliminado → ai_questions se eliminan automáticamente
-- Mantiene integridad referencial
-- Útil para rollback de errores
-
----
-
-### **✅ DECISIÓN 5: CV Upload - Storage Path**
-
-**Pregunta:** ¿Cuál es el path pattern y quién genera el filename?
-
-**Respuesta:**
-- ✅ **Path actual:** `{candidateId}-{timestamp}-{cleanFileName}` (flat, sin subcarpetas)
-- ✅ Ejemplo: `550e8400-e29b-41d4-a716-446655440000-1733425689012-cv_juan_perez.pdf`
-- ✅ Nombre original se conserva (sanitizado)
-- ✅ Bucket: `candidate-cvs`
-
-**Decisión:** Mantener estructura actual (simple y funcional para MVP)
-
-**Mejoras V2:** Agregar subcarpetas por proceso para mejor organización
-
----
-
-### **✅ DECISIÓN 6: Error Handling - Parsing/IA Failures**
-
-**Pregunta:** ¿Qué pasa si falla parsing o análisis IA?
-
-**Respuesta:**
-- ✅ **Reintento permitido** en la misma pantalla (CVUploadStep)
-- ✅ **SÍ guardar error en BD** (`parsing_failed`, `parsing_error`, `ai_analysis_failed`)
-- ❌ **NO aparecen en dashboard** del reclutador (filtrados por defecto)
-- ✅ Retornar error al frontend + guardar en BD para tracking
-
-**Flujo de error:**
-```
-CV Upload → Análisis IA falla
-              ↓
-    Backend guarda error en BD:
-    parsing_failed = true
-    parsing_error = "mensaje del error"
-              ↓
-    Frontend muestra error:
-    "No pudimos leer tu CV. Intenta con otro archivo."
-              ↓
-    Candidato selecciona otro archivo
-              ↓
-    Reintenta (nueva llamada completa)
-              ↓
-    Si éxito: parsing_failed = false
-```
-
-**Razón para guardar errores:** Tracking y debugging del sistema (analítica de fallos)
-
-**Dashboard:** Reclutador NO ve candidatos con errores (query: `WHERE parsing_failed = false OR parsing_failed IS NULL`)
-
----
-
-### **✅ DECISIÓN 7: Límite de Candidatos**
-
-**Pregunta:** ¿Los candidatos rechazados cuentan para el límite?
-
-**Respuesta:**
-- ✅ **SÍ, cuentan** todos los candidatos con `cv_text IS NOT NULL`
+- ✅ Cuentan todos con `cv_text IS NOT NULL`
 - ✅ Tanto aprobados como rechazados
-- ❌ **NO cuentan** candidatos que abandonaron o con error parsing
+- ❌ NO cuentan abandonos o errores parsing
 
-**Lógica de conteo:**
-```typescript
-const { count } = await supabase
-  .from('candidates')
-  .select('*', { count: 'exact', head: true })
-  .eq('process_id', processId)
-  .not('cv_text', 'is', null);
+### Candidatos múltiples procesos
 
-if (count >= process.candidate_limit) {
-  // Auto-cerrar proceso
-  await supabase
-    .from('processes')
-    .update({ status: 'closed' })
-    .eq('id', processId);
-}
-```
-
-**Razón:** El límite representa slots de evaluación IA (cuestan $0.07 cada uno), no solo aprobados.
-
-**Ejemplo:**
-```
-Proceso límite: 50
-  - 25 completed (aprobados)
-  - 30 rejected (no cumplían requisitos)
-  - 5 registered (abandonaron sin análisis)
-
-Total CONTADOS: 55 (25 + 30)
-Estado: CERRADO (55 >= 50)
-```
-
----
-
-### **✅ DECISIÓN EXTRA: Soft Delete (no Hard Delete)**
-
-**Cambio crítico respecto a documentación anterior:**
-
-**Antes (documentado):**
-- Hard delete de candidatos rechazados
-
-**AHORA (corregido):**
-- ✅ **Soft delete**: Marcar como `status='rejected'` con `rejection_reason`
-- ✅ Previene re-intentos infinitos (email/LinkedIn quedan en BD)
-- ✅ Permite auditoría y analytics
-- ✅ Validación de duplicados ya cubre candidatos rechazados
-
-**Columna agregada:**
-```sql
-ALTER TABLE candidates
-ADD COLUMN rejection_reason TEXT;
-```
-
----
-
-### **✅ DECISIÓN EXTRA: Candidato puede postularse a múltiples procesos**
-
-**Pregunta (adicional):** ¿Un candidato puede aplicar a varios procesos?
-
-**Respuesta:**
-- ✅ **SÍ, puede aplicar a diferentes procesos** con mismo email/LinkedIn
-- ❌ **NO puede aplicar 2+ veces al MISMO proceso**
-
-**Validación actual:**
-```typescript
-.eq('process_id', processId)  // ← Filtra por proceso
-.eq('email', email)
-```
-
-**Ejemplo:**
-```
-Juan Pérez (juan@email.com):
-  ├── Proceso A: "Frontend" → ✅ Permitido
-  ├── Proceso B: "Backend"  → ✅ Permitido
-  └── Proceso A: Reintento  → ❌ Rechazado (duplicado)
-```
-
-**Razón:** Cada proceso evalúa requisitos diferentes, mismo CV puede ajustarse a distintos roles.
-
----
-
-## 📝 REGISTRO DE SESIONES
-
-### **Sesión 1 - 30/09/2024**
-**Objetivo:** Planificación y arquitectura
-
-**Completado:**
-- Arquitectura definida (Vercel + Vercel AI SDK + Supabase)
-- Diseño BD y flujo técnico
-- Plan 6 pasos atómicos
-- Documento tracking creado
-
-**Decisiones iniciales:**
-- Backend Vercel Serverless (no Supabase Edge Functions)
-- GPT-4o-mini ($0.07/candidato)
-- Vercel AI SDK (multi-proveedor)
-- ~~Hard delete candidatos rechazados~~ ← CORREGIDO en Sesión 3
-
----
-
-### **Sesión 2 - 01/10/2025 (Parte 1)**
-**Objetivo:** Definir arquitectura completa y comenzar PASO 4
-
-**Completado:**
-- ✅ Vercel AI SDK instalado (`ai` + `@ai-sdk/openai`)
-- ✅ `/api/utils/openai.ts` creado con `generateAIResponse()`
-- ✅ Documentación optimizada (888 → 266 líneas)
-- ✅ **Decisión crítica:** 2 steps separados (ai_questions + recruiter_questions)
-- ✅ **Decisión crítica:** Scoring ANTES de recruiter questions (filtro eliminatorio optimizado)
-- ✅ **Decisión crítica:** Desarrollo directo con API real (no mocks)
-- ✅ **Decisión crítica:** `/api/analyze-cv` llamado desde CVUploadStep con loading state
-- ✅ Flujo técnico completo documentado (6 steps frontend + 4 endpoints backend)
-- ✅ Plan de implementación atómico por sub-pasos (5 sub-pasos por paso)
-- ✅ **Bug corregido:** `getProcessByUniqueId()` ahora usa `.like()` para soportar diferentes puertos (dev/prod)
-- ✅ **Decisión arquitectónica:** Usar `requirements` con campo `required: true/false` (no `mandatory_requirements` separado)
-- ✅ **Decisión arquitectónica:** Mantener `form_questions` (JSONB) + tabla `recruiter_questions` (dual, no romper código existente)
-
-**Estructura de requisitos (ACTUALIZADO - Sesión 02/10/2025):**
-```json
-// Frontend (JobProfile)
-{
-  mandatoryRequirements: [
-    { id: "req-0", title: "React", level: "avanzado", category: "tools", required: true }
-  ],
-  optionalRequirements: [
-    { id: "req-1", title: "Node.js", level: "intermedio", category: "tools", required: false }
-  ]
-}
-
-// Backend (Process table)
-{
-  mandatory_requirements: [...],
-  optional_requirements: [...]
-}
-```
-
-**Refactor completado (Sesión 02/10/2025):**
-- ✅ Separación arquitectónica completa: frontend + backend + BD
-- ✅ 5 commits atómicos mergeados a main
-- ✅ Build exitoso + flujo probado sin breaking changes
-
----
-
-### **Sesión 3 - 03/10/2025**
-**Objetivo:** Resolver dudas arquitectónicas críticas antes de implementar PASO 4
-
-**Completado:**
-- ✅ **7 dudas críticas resueltas** (scoring, ai_questions, custom_prompt, schema, storage, errores, límite)
-- ✅ **3 decisiones adicionales** (soft delete, múltiples procesos, guard rejected)
-- ✅ **Documentación actualizada** con todas las decisiones finales
-- ✅ **Base de datos confirmada** (tabla ai_questions ya existe en Supabase)
-- ✅ **Arquitectura validada** para implementación directa
-
-**Decisiones críticas:**
-1. Scoring silencioso → Resultado solo en Step 6 (una vez, sin re-acceso)
-2. `is_mandatory` guardado en BD para priorización
-3. `custom_prompt` usado en ambos endpoints (analyze-cv + scoring)
-4. Schema ai_questions confirmado con ON DELETE CASCADE
-5. Storage path: flat structure (candidateId-timestamp-filename)
-6. Error handling: Reintento en misma pantalla, NO guardar en BD, NO mostrar en dashboard
-7. Límite candidatos: Contar todos con cv_text (aprobados + rechazados)
-8. **Soft delete** (no hard delete) para prevenir re-intentos
-9. Candidato puede aplicar a múltiples procesos diferentes
-10. Guard en frontend para prevenir navegación desde rejected
-
-**Columnas BD actualizadas:**
-- ✅ Agregar: `rejection_reason TEXT` a `candidates`
-- ✅ Mantener: `parsing_failed`, `parsing_error`, `ai_analysis_failed` (se usan para tracking)
-
-**Próximo (Sesión 4):**
-- ✅ Sub-paso 4.0: Usuario obtiene API key OpenAI (COMPLETADO 03/10/2025)
-- ✅ Sub-paso 4.1: Configurar `OPENAI_API_KEY` en Vercel (COMPLETADO 03/10/2025)
-- ✅ Sub-paso 4.1b: Verificar configuración con `/api/test-openai` (COMPLETADO 03/10/2025)
-- ⏳ Sub-paso 4.2: Crear `/api/analyze-cv.ts` con lógica completa (SIGUIENTE)
-- ⏳ Sub-paso 4.3: Integrar en `CVUploadStep.tsx` con loading states
-- ⏳ Sub-paso 4.4: Probar con CVs reales y validar calidad
-- ⏳ Sub-paso 4.5: Validar costos (~$0.002/análisis con gpt-4o-mini) y optimizar si necesario
-
----
-
-### **Sesión 4 - 03/10/2025**
-**Objetivo:** Configurar OpenAI API y comenzar implementación análisis CV
-
-**Completado:**
-- ✅ **Revisión completa código vs documentación** (7 decisiones arquitectónicas validadas)
-- ✅ **Corrección documentación DECISIÓN 6:** Sí guardar errores parsing/IA en BD para tracking
-- ✅ **Columna `rejection_reason` agregada** a tabla `candidates` en Supabase (soft delete)
-- ✅ **API key OpenAI obtenida** y créditos recargados
-- ✅ **Variable `OPENAI_API_KEY` configurada** en Vercel (Production + Preview + Development)
-- ✅ **Endpoint `/api/test-openai` creado** para verificación
-- ✅ **Verificación exitosa:** OpenAI funcionando con gpt-4o-mini
-  - Modelo: `gpt-4o-mini-2024-07-18`
-  - Test: 27 tokens (21 input + 6 output)
-  - Costo: ~$0.000005 USD
-  - Latencia: 1.3 segundos
-  - Rate limits: 10,000 req/min, 200K tokens/min
-
-**Decisiones técnicas:**
-- **Modelo confirmado:** `gpt-4o-mini` (mejor balance calidad/precio vs gpt-5-nano)
-- **Costo estimado real:** $0.002 por candidato (no $0.07 como estimación anterior)
-- **Structured outputs:** Habilitado (JSON garantizado)
-- **Timeout:** 30 segundos por request
-
-**Próximo:**
-- Sub-paso 4.2: Implementar `/api/analyze-cv.ts` completo (parsing + IA + generación preguntas)
-
----
-
-### **Sesión 2 - 02/10/2025 (Parte 2)**
-**Objetivo:** Mejorar UX de requisitos y optimizar análisis IA
-
-**Completado:**
-- ✅ **Niveles explícitos con experiencia:**
-  - Actualizado mapeo: básico (0-2 años), intermedio (2-4 años), avanzado (5+ años)
-  - Display en UI: Solo nombre en selector, detalle completo en dropdown
-  - BD: Guarda texto completo para claridad en prompts IA
-  - Aplicado a todas las categorías (herramientas, técnicas, habilidades)
-
-- ✅ **Optimización de sinónimos:**
-  - Eliminado botón "Sugerir similares con IA" (innecesario con GPT-4o-mini)
-  - Agregado tooltip informativo: "La IA ya reconoce variaciones y sinónimos automáticamente"
-  - Panel de sinónimos conservado como mock (UX/confianza del reclutador)
-  - Decisión: No procesar sinónimos en análisis real (ahorro ~$0.00002/candidato)
-
-- ✅ **Decisión descartada:**
-  - Diccionario de ~200 tecnologías creado y eliminado (causaba loop infinito)
-  - Conservado sistema de keywords hardcoded (funciona correctamente)
-  - Prioridad: estabilidad sobre expansión prematura
-
-**Decisiones técnicas documentadas:**
-- Mapeo de niveles a años = más objetivo y medible para IA
-- GPT-4o-mini reconoce sinónimos nativamente (React = ReactJS = React.js)
-- Extracción de requisitos: Regex + keywords (0 costo, 70% calidad suficiente para MVP)
-
-**Próximo:**
-- Continuar PASO 4 con configuración OpenAI API key
+- ✅ Mismo email/LinkedIn puede aplicar a diferentes procesos
+- ❌ NO puede aplicar 2+ veces al MISMO proceso
 
 ---
 
@@ -867,18 +429,29 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ---
 
-## ✅ Checklist Final (Antes de producción)
+## 📝 Archivos Clave
 
-- [ ] 6 pasos completados y verificados
-- [ ] Tests manuales flujo candidato completo
-- [ ] Tests manuales dashboard reclutador
-- [ ] Rate limiting implementado
-- [ ] Manejo errores robusto
-- [ ] Logs configurados
-- [ ] Documentación actualizada DEVELOPMENT.md
-- [ ] Monitoreo costos OpenAI
+### Backend
+- `api/analyze-cv.ts` - Análisis CV + generación preguntas
+- `api/save-ai-answers.ts` - Guardar respuestas IA
+- `api/utils/openai.ts` - Wrapper Vercel AI SDK
+- `api/utils/pdfParser.ts` - Extracción texto PDF/DOCX
+- `api/utils/supabase.ts` - Cliente Supabase admin
+
+### Frontend
+- `src/candidate/components/CandidateFlow.tsx` - Orquestador steps
+- `src/candidate/components/CVUploadStep.tsx` - Upload + análisis IA
+- `src/shared/services/aiQuestionsService.ts` - Servicio preguntas IA
+- `src/shared/services/candidateService.ts` - CRUD candidatos
+
+### Pendientes (PASO 5)
+- `api/calculate-scoring.ts` - Scoring + filtro eliminatorio
+- `api/save-recruiter-answers.ts` - Guardar respuestas formulario
+- `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
+- `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
+- `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
 
 ---
 
-**Responsables:** [Tu nombre] + Claude
-**Estado:** 🟢 En desarrollo - PASO 4 en progreso
+**Última actualización:** 05-10-2025
+**Siguiente tarea crítica:** Implementar `/api/calculate-scoring.ts` (Tarea 5.5)

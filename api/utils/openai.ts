@@ -17,16 +17,18 @@ export async function generateAIResponse(
     responseFormat?: 'json' | 'text';
   }
 ) {
-  const model = openai('gpt-4o-mini', {
-    structuredOutputs: options?.responseFormat === 'json',
-  });
+  const model = openai('gpt-4o-mini');
+
+  // Si se requiere JSON, agregarlo al prompt
+  const finalPrompt = options?.responseFormat === 'json'
+    ? `${prompt}\n\nResponde ÚNICAMENTE con JSON válido, sin texto adicional.`
+    : prompt;
 
   return await generateText({
     model,
-    prompt,
+    prompt: finalPrompt,
     temperature: options?.temperature ?? 0.7,
     maxTokens: options?.maxTokens ?? 1500,
-    abortSignal: AbortSignal.timeout(30000), // Timeout 30s
   });
 }
 

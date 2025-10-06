@@ -100,17 +100,10 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
   };
 
   const handleAIQuestionsComplete = () => {
-    // DEBUG TEMPORAL
-    console.log('🔍 FULL PROCESS:', JSON.stringify(process, null, 2));
-    console.log('🔍 form_questions:', process.form_questions);
-    console.log('🔍 Tiene preguntas?:', process.form_questions && process.form_questions.length > 0);
-
     // Verificar si hay preguntas del formulario del reclutador
     if (process.form_questions && process.form_questions.length > 0) {
-      console.log('✅ Navegando a recruiter_questions');
       setCurrentStep('recruiter_questions');
     } else {
-      console.log('⏭️ Sin preguntas, navegando a confirmation');
       // Si no hay preguntas del reclutador, ir directo a confirmación
       setCurrentStep('confirmation');
     }
@@ -341,8 +334,6 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
       );
 
     case 'recruiter_questions':
-      console.log('🎯 RENDERING recruiter_questions case');
-      console.log('🎯 process.form_questions:', process.form_questions);
       return (
         <RecruiterQuestionsStep
           onContinue={handleRecruiterQuestionsComplete}

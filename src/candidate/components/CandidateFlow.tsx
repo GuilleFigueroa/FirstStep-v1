@@ -164,6 +164,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center space-x-2">
+            {/* Step 1: Registro */}
             <div className="flex items-center">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                 <CheckCircle className="w-5 h-5 text-white" />
@@ -173,59 +174,30 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
             <div className="w-6 h-px bg-gray-300"></div>
 
+            {/* Step 2: Verificación */}
             <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'verification'
-                  ? 'bg-[#7572FF] text-white'
-                  : step === 'profile' || step === 'questions' || step === 'confirmation'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-              }`}>
-                {step === 'profile' || step === 'questions' || step === 'confirmation' ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : (
-                  <Shield className="w-5 h-5" />
-                )}
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className={`ml-2 text-sm font-medium ${
-                step === 'verification' || step === 'profile' || step === 'questions' || step === 'confirmation'
-                  ? 'text-[#7572FF]'
-                  : 'text-gray-500'
-              }`}>
-                Verificación
-              </span>
+              <span className="ml-2 text-sm font-medium text-green-600">Verificación</span>
             </div>
 
             <div className="w-6 h-px bg-gray-300"></div>
 
+            {/* Step 3: Perfil */}
             <div className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'profile'
-                  ? 'bg-[#7572FF] text-white'
-                  : step === 'questions' || step === 'confirmation'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-              }`}>
-                {step === 'questions' || step === 'confirmation' ? (
-                  <CheckCircle className="w-5 h-5" />
-                ) : (
-                  <User className="w-5 h-5" />
-                )}
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <span className={`ml-2 text-sm font-medium ${
-                step === 'profile' || step === 'questions' || step === 'confirmation'
-                  ? 'text-[#7572FF]'
-                  : 'text-gray-500'
-              }`}>
-                Perfil
-              </span>
+              <span className="ml-2 text-sm font-medium text-green-600">Perfil</span>
             </div>
 
             <div className="w-6 h-px bg-gray-300"></div>
 
+            {/* Step 4: Preguntas (dinámico: puede ser recruiter_questions o confirmation dependiendo del step) */}
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                step === 'questions'
+                step === 'recruiter_questions'
                   ? 'bg-[#7572FF] text-white'
                   : step === 'confirmation'
                     ? 'bg-green-500 text-white'
@@ -238,7 +210,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
                 )}
               </div>
               <span className={`ml-2 text-sm font-medium ${
-                step === 'questions' || step === 'confirmation'
+                step === 'recruiter_questions' || step === 'confirmation'
                   ? 'text-[#7572FF]'
                   : 'text-gray-500'
               }`}>
@@ -248,6 +220,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
             <div className="w-6 h-px bg-gray-300"></div>
 
+            {/* Step 5: Envío */}
             <div className="flex items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 step === 'confirmation'

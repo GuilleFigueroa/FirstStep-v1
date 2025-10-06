@@ -41,7 +41,6 @@ export interface FormQuestion {
   question: string;
   type: 'open' | 'multiple-choice';
   options?: string[];
-  required: boolean;
 }
 
 export interface JobProfile {

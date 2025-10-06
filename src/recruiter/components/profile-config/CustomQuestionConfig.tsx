@@ -7,7 +7,6 @@ import { Badge } from '../../../ui/components/ui/badge';
 import { Separator } from '../../../ui/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { Textarea } from '../../../ui/components/ui/textarea';
-import { Switch } from '../../../ui/components/ui/switch';
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -34,14 +33,12 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
       {
         id: '1',
         question: '',
-        type: 'open',
-        required: false
+        type: 'open'
       },
       {
         id: '2',
         question: '',
-        type: 'open',
-        required: false
+        type: 'open'
       }
     ]
   );
@@ -216,19 +213,6 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
                     </div>
                   )}
 
-                  {/* Pregunta obligatoria */}
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id={`required-${question.id}`}
-                      checked={question.required}
-                      onCheckedChange={(checked) => updateQuestion(question.id, { required: checked })}
-                    />
-                    <Label htmlFor={`required-${question.id}`} className="text-sm">
-                      Respuesta obligatoria
-                    </Label>
-                  </div>
-
-
                 </CardContent>
               </Card>
             ))}
@@ -244,7 +228,6 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
                     <div className="flex items-start gap-2 mb-2">
                       <span className="text-sm font-medium">
                         {index + 1}. {question.question}
-                        {question.required && <span className="text-red-500 ml-1">*</span>}
                       </span>
                     </div>
                     {question.type === 'open' ? (

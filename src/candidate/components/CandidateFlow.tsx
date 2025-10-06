@@ -39,7 +39,7 @@ interface CandidateData {
   linkedin: string;
 }
 
-type FlowStep = 'registration' | 'verification' | 'profile' | 'questions' | 'confirmation';
+type FlowStep = 'registration' | 'verification' | 'profile' | 'ai_questions' | 'recruiter_questions' | 'confirmation';
 
 export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('registration');
@@ -95,10 +95,20 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
   };
 
   const handleCVUploadComplete = () => {
-    setCurrentStep('questions');
+    setCurrentStep('ai_questions');
   };
 
-  const handleQuestionsComplete = () => {
+  const handleAIQuestionsComplete = () => {
+    // Verificar si hay preguntas del formulario del reclutador
+    if (process.form_questions && process.form_questions.length > 0) {
+      setCurrentStep('recruiter_questions');
+    } else {
+      // Si no hay preguntas del reclutador, ir directo a confirmación
+      setCurrentStep('confirmation');
+    }
+  };
+
+  const handleRecruiterQuestionsComplete = () => {
     setCurrentStep('confirmation');
   };
 
@@ -340,15 +350,25 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
         />
       );
 
-    case 'questions':
+    case 'ai_questions':
       return (
         <AIQuestionsStep
-          onContinue={handleQuestionsComplete}
+          onContinue={handleAIQuestionsComplete}
           onBack={handleBackToProfile}
           candidateId={candidateId || ''}
         />
       );
-    
+
+    case 'recruiter_questions':
+      return (
+        <PlaceholderScreen
+          step="recruiter_questions"
+          title="Preguntas del Formulario"
+          description="Completa las preguntas específicas del reclutador para finalizar tu postulación"
+          icon={MessageSquare}
+        />
+      );
+
     case 'confirmation':
       return (
         <PlaceholderScreen

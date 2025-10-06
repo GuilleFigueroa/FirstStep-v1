@@ -3,6 +3,7 @@ import { CandidateRegistration } from './CandidateRegistration';
 import { VerificationStep } from './VerificationStep';
 import { CVUploadStep } from './CVUploadStep';
 import { AIQuestionsStep } from './AIQuestionsStep';
+import { RecruiterQuestionsStep } from './RecruiterQuestionsStep';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
@@ -99,17 +100,17 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
   };
 
   const handleAIQuestionsComplete = () => {
-    // DEBUG: Log para verificar form_questions
-    console.log('🔍 DEBUG - process.form_questions:', process.form_questions);
-    console.log('🔍 DEBUG - form_questions length:', process.form_questions?.length);
-    console.log('🔍 DEBUG - Tiene preguntas?:', process.form_questions && process.form_questions.length > 0);
+    // DEBUG TEMPORAL
+    console.log('🔍 FULL PROCESS:', JSON.stringify(process, null, 2));
+    console.log('🔍 form_questions:', process.form_questions);
+    console.log('🔍 Tiene preguntas?:', process.form_questions && process.form_questions.length > 0);
 
     // Verificar si hay preguntas del formulario del reclutador
     if (process.form_questions && process.form_questions.length > 0) {
       console.log('✅ Navegando a recruiter_questions');
       setCurrentStep('recruiter_questions');
     } else {
-      console.log('⏭️ Saltando a confirmation (sin preguntas del formulario)');
+      console.log('⏭️ Sin preguntas, navegando a confirmation');
       // Si no hay preguntas del reclutador, ir directo a confirmación
       setCurrentStep('confirmation');
     }
@@ -340,12 +341,13 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
       );
 
     case 'recruiter_questions':
+      console.log('🎯 RENDERING recruiter_questions case');
+      console.log('🎯 process.form_questions:', process.form_questions);
       return (
-        <PlaceholderScreen
-          step="recruiter_questions"
-          title="Preguntas del Formulario"
-          description="Completa las preguntas específicas del reclutador para finalizar tu postulación"
-          icon={MessageSquare}
+        <RecruiterQuestionsStep
+          onContinue={handleRecruiterQuestionsComplete}
+          onBack={handleBackToProfile}
+          process={process}
         />
       );
 

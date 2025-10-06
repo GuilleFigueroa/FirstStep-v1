@@ -7,15 +7,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../ui/components/ui/dropdown-menu';
 import { PostulationDetails } from './PostulationDetails';
-import { 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Eye, 
+import {
+  Search,
+  Filter,
+  MoreHorizontal,
+  Eye,
   X,
   Settings,
   FileText,
-  Users
+  Users,
+  ExternalLink,
+  Copy
 } from 'lucide-react';
 import type { Profile, Process } from '../../../shared/services/supabase';
 import { getProcessesByRecruiter, updateProcessStatus, deleteProcess } from '../../services/processService';
@@ -172,6 +174,29 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
     setViewingPostulation(null);
   };
 
+  const extractUniqueId = (uniqueLink: string): string => {
+    // Extraer solo el ID del link completo
+    // Formato: http://domain/apply/unique-id -> unique-id
+    const parts = uniqueLink.split('/apply/');
+    return parts.length > 1 ? parts[1] : uniqueLink;
+  };
+
+  const copyLinkToClipboard = (uniqueLink: string) => {
+    const uniqueId = extractUniqueId(uniqueLink);
+    const fullLink = `${window.location.origin}/apply/${uniqueId}`;
+    navigator.clipboard.writeText(fullLink).then(() => {
+      alert('¡Link copiado al portapapeles!');
+    }).catch(() => {
+      alert('Error al copiar el link');
+    });
+  };
+
+  const openLinkInNewTab = (uniqueLink: string) => {
+    const uniqueId = extractUniqueId(uniqueLink);
+    const fullLink = `${window.location.origin}/apply/${uniqueId}`;
+    window.open(fullLink, '_blank');
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
@@ -320,6 +345,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
                       <TableHead>Estado de Postulación</TableHead>
                       <TableHead>Número de Postulantes</TableHead>
                       <TableHead>Fecha de Creación</TableHead>
+                      <TableHead>Link de Postulación</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -353,9 +379,33 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1 text-xs"
+                              onClick={() => openLinkInNewTab(postulation.uniqueLink)}
+                              title="Abrir link en nueva pestaña"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Abrir
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1 text-xs"
+                              onClick={() => copyLinkToClipboard(postulation.uniqueLink)}
+                              title="Copiar link al portapapeles"
+                            >
+                              <Copy className="w-3 h-3" />
+                              Copiar
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="flex items-center gap-1"
                               onClick={() => handleAction(postulation.id, 'view-postulation')}
                             >

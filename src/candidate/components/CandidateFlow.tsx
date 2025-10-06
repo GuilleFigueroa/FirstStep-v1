@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
 import { VerificationStep } from './VerificationStep';
 import { CVUploadStep } from './CVUploadStep';
+import { AIQuestionsStep } from './AIQuestionsStep';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
@@ -95,6 +96,10 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
   const handleCVUploadComplete = () => {
     setCurrentStep('questions');
+  };
+
+  const handleQuestionsComplete = () => {
+    setCurrentStep('confirmation');
   };
 
   const handleBackToRegistration = () => {
@@ -334,14 +339,13 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
           candidateId={candidateId}
         />
       );
-    
+
     case 'questions':
       return (
-        <PlaceholderScreen
-          step="questions"
-          title="Preguntas Específicas"
-          description="Responde preguntas específicas sobre tu experiencia y motivación para este puesto"
-          icon={MessageSquare}
+        <AIQuestionsStep
+          onContinue={handleQuestionsComplete}
+          onBack={handleBackToProfile}
+          candidateId={candidateId || ''}
         />
       );
     

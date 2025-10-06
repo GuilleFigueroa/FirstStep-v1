@@ -237,11 +237,11 @@ BD: Supabase (PostgreSQL + Storage)
 
 ---
 
-## 🎯 PASO 5: UI Preguntas + Scoring ⏳ EN PROGRESO (40%)
+## 🎯 PASO 5: UI Preguntas + Scoring ⏳ EN PROGRESO (50%)
 
 **Objetivo:** Interfaces para responder preguntas + evaluación con scoring + filtro eliminatorio
 
-### Progreso: 6/15 tareas completadas
+### Progreso: 7/15 tareas completadas
 
 **✅ Completado:**
 - **Tarea 5.1-5.2:** Diseño UI definido (AIQuestionsStep + RecruiterQuestionsStep)
@@ -250,10 +250,14 @@ BD: Supabase (PostgreSQL + Storage)
   - Lazy load RecruiterApp + CandidateApplication
 - **Tarea 5.3:** `aiQuestionsService.ts` creado
 - **Tarea 5.4:** `/api/save-ai-answers.ts` implementado
+- **Tarea 5.5:** ✅ `/api/calculate-scoring.ts` implementado (329 líneas)
+  - Scoring moderado con tolerance
+  - Soft delete de rechazados
+  - Evaluación mandatory/optional requirements
 
 **⏳ Pendiente:**
 
-**Tarea 5.5:** Crear `/api/calculate-scoring.ts` 🔴 BLOQUEADOR
+**Tarea 5.5 (COMPLETADA):** ~~Crear `/api/calculate-scoring.ts`~~ ✅
 ```typescript
 // FASE 1 (Implementación inicial - MVP):
 // Input: { candidateId }
@@ -418,7 +422,9 @@ case 'recruiter_questions':
 
 ---
 
-## 🔧 Variables de Entorno
+## 🔧 Configuración Vercel
+
+### Variables de Entorno
 
 ```env
 # Vercel dashboard → Settings → Environment Variables
@@ -426,6 +432,30 @@ OPENAI_API_KEY=sk-...
 SUPABASE_URL=https://...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
+
+### vercel.json (ACTUALIZADO 06-10-2025)
+
+```json
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "devCommand": "npm run dev",        // ✅ Agregado para vercel dev
+  "framework": null,                   // ✅ Especificado para Vite custom
+  "rewrites": [
+    {
+      "source": "/((?!api).*)",       // ✅ Excluye /api/* de rewrites
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+**Fix aplicado (06-10-2025):**
+- ✅ Agregado `devCommand` para que `vercel dev` use `npm run dev`
+- ✅ Especificado `framework: null` (proyecto Vite custom)
+- ✅ Cambiado rewrite de `/(.*)`  a `/((?!api).*)` para excluir rutas API
+- ✅ Resuelto error: "Failed to parse source for import analysis"
+- ✅ `vercel dev` ahora funciona correctamente
 
 ---
 
@@ -445,7 +475,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 - `src/shared/services/candidateService.ts` - CRUD candidatos
 
 ### Pendientes (PASO 5)
-- `api/calculate-scoring.ts` - Scoring + filtro eliminatorio
+- ~~`api/calculate-scoring.ts`~~ - ✅ IMPLEMENTADO
 - `api/save-recruiter-answers.ts` - Guardar respuestas formulario
 - `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
 - `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
@@ -453,5 +483,5 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ---
 
-**Última actualización:** 05-10-2025
-**Siguiente tarea crítica:** Implementar `/api/calculate-scoring.ts` (Tarea 5.5)
+**Última actualización:** 06-10-2025
+**Siguiente tarea crítica:** Implementar `AIQuestionsStep.tsx` (Tarea 5.6)

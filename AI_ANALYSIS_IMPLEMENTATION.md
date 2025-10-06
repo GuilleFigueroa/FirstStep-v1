@@ -16,8 +16,8 @@
 
 ## 📊 Estado General
 
-**Progreso:** 4/6 pasos completados (67%)
-**Última actualización:** 05-10-2025
+**Progreso:** 5/6 pasos completados (83%)
+**Última actualización:** 06-10-2025
 
 | Paso | Estado | Descripción |
 |------|--------|-------------|
@@ -25,7 +25,7 @@
 | 2 | ✅ | Base de datos modificada |
 | 3 | ✅ | Parser PDF/DOCX funcional |
 | 4 | ✅ | Análisis CV con IA + generación preguntas |
-| 5 | ⏳ | UI preguntas + scoring + filtro eliminatorio |
+| 5 | ✅ | UI preguntas + scoring + filtro eliminatorio |
 | 6 | ⏳ | Dashboard reclutador con análisis completo |
 
 ---
@@ -237,11 +237,11 @@ BD: Supabase (PostgreSQL + Storage)
 
 ---
 
-## 🎯 PASO 5: UI Preguntas + Scoring ⏳ EN PROGRESO (50%)
+## 🎯 PASO 5: UI Preguntas + Scoring ✅ COMPLETADO
 
 **Objetivo:** Interfaces para responder preguntas + evaluación con scoring + filtro eliminatorio
 
-### Progreso: 7/15 tareas completadas
+### Progreso: 12/15 tareas completadas (80%)
 
 **✅ Completado:**
 - **Tarea 5.1-5.2:** Diseño UI definido (AIQuestionsStep + RecruiterQuestionsStep)
@@ -250,12 +250,29 @@ BD: Supabase (PostgreSQL + Storage)
   - Lazy load RecruiterApp + CandidateApplication
 - **Tarea 5.3:** `aiQuestionsService.ts` creado
 - **Tarea 5.4:** `/api/save-ai-answers.ts` implementado
-- **Tarea 5.5:** ✅ `/api/calculate-scoring.ts` implementado (329 líneas)
+- **Tarea 5.5:** `/api/calculate-scoring.ts` implementado (329 líneas)
   - Scoring moderado con tolerance
   - Soft delete de rechazados
   - Evaluación mandatory/optional requirements
+- **Tarea 5.6:** `AIQuestionsStep.tsx` implementado (371 líneas)
+  - Navegación lineal entre preguntas
+  - Guardar respuestas + calcular scoring
+  - Pantalla de rechazo si no cumple mandatory
+  - Continuar a recruiter_questions si aprobado
+- **Tarea 5.8:** `recruiterQuestionsService.ts` creado
+- **Tarea 5.9:** `/api/save-recruiter-answers.ts` implementado
+  - Guarda respuestas en tabla `recruiter_answers`
+  - Estructura relacional correcta
+- **Tarea 5.10:** `RecruiterQuestionsStep.tsx` implementado (267 líneas)
+  - Carga preguntas desde tabla `recruiter_questions`
+  - Soporte para preguntas open y multiple-choice
+  - Navegación lineal con progress indicator
+- **Tarea 5.12:** `CandidateFlow.tsx` actualizado
+  - 6 steps: registration → verification → profile → ai_questions → recruiter_questions → confirmation
+  - Navegación condicional (salta recruiter_questions si no hay preguntas)
+- **Tarea 5.13:** Flujo completo probado y funcional
 
-**⏳ Pendiente:**
+**⏳ Pendiente (opcional):**
 
 **Tarea 5.5 (COMPLETADA):** ~~Crear `/api/calculate-scoring.ts`~~ ✅
 ```typescript
@@ -304,56 +321,10 @@ BD: Supabase (PostgreSQL + Storage)
 // Beneficio: Control total del reclutador sobre filtro
 ```
 
-**Tarea 5.6:** Crear `AIQuestionsStep.tsx` 🔴 BLOQUEADOR
-```
-- Layout: Card centrado, header con back + título
-- Título: "Responde las siguientes preguntas para mejorar la información de tu perfil"
-- Display: Una pregunta a la vez (navegación lineal)
-- ❌ SIN badges mandatory (evitar sugestión para mentir)
-- ❌ SIN validación mínimo caracteres
-- Navegación: Anterior/Siguiente → Última: "Continuar"
-- Al hacer clic "Continuar":
-  1. saveAIAnswers()
-  2. calculateScoring()
-  3. Loading: "Evaluando si se cumplen requisitos excluyentes"
-  4. Si rechazado → Mostrar mensaje + NO continuar
-  5. Si aprobado → onContinue() a Step 5
-```
-
-**Tarea 5.8:** Crear `recruiterQuestionsService.ts`
-```typescript
-- getRecruiterQuestions(processId)
-- saveRecruiterAnswers(candidateId, answers)
-```
-
-**Tarea 5.9:** Crear `/api/save-recruiter-answers.ts`
-
-**Tarea 5.10:** Crear `RecruiterQuestionsStep.tsx`
-```
-- Reutilizar 80% de AIQuestionsStep
-- Título: "Completa el formulario del reclutador"
-- Botón final: "Enviar Postulación"
-- Sin scoring, solo guardar respuestas
-```
-
-**Tarea 5.12:** Actualizar `CandidateFlow.tsx`
-```typescript
-// Cambiar de 4 steps a 6 steps:
-type FlowStep = 'registration' | 'verification' | 'profile' |
-                'ai_questions' | 'recruiter_questions' | 'confirmation';
-
-// Reemplazar PlaceholderScreen por componentes reales
-case 'ai_questions':
-  return <AIQuestionsStep ... />;
-
-case 'recruiter_questions':
-  return <RecruiterQuestionsStep ... />;
-```
-
-**Tarea 5.13:** Probar flujo completo
-- Candidato aprobado: 6 steps completos
-- Candidato rechazado: 4 steps → mensaje rechazo
-- Soft delete funciona correctamente
+**Tarea 5.5-bis (OPCIONAL):** Agregar selector modo filtro strict/moderate
+- Feature adicional para control del reclutador
+- Requiere columna `scoring_mode` en processes
+- Esfuerzo estimado: 30-40 minutos
 
 ---
 
@@ -474,14 +445,14 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 - `src/shared/services/aiQuestionsService.ts` - Servicio preguntas IA
 - `src/shared/services/candidateService.ts` - CRUD candidatos
 
-### Pendientes (PASO 5)
-- ~~`api/calculate-scoring.ts`~~ - ✅ IMPLEMENTADO
-- `api/save-recruiter-answers.ts` - Guardar respuestas formulario
-- `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
-- `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
-- `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
+### Archivos PASO 5 (completados)
+- ✅ `api/calculate-scoring.ts` - Scoring con filtro eliminatorio
+- ✅ `api/save-recruiter-answers.ts` - Guardar respuestas formulario
+- ✅ `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
+- ✅ `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
+- ✅ `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
 
 ---
 
 **Última actualización:** 06-10-2025
-**Siguiente tarea crítica:** Implementar `AIQuestionsStep.tsx` (Tarea 5.6)
+**Siguiente paso:** Implementar Dashboard Reclutador (Paso 6)

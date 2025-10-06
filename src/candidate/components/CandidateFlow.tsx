@@ -99,10 +99,17 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
   };
 
   const handleAIQuestionsComplete = () => {
+    // DEBUG: Log para verificar form_questions
+    console.log('🔍 DEBUG - process.form_questions:', process.form_questions);
+    console.log('🔍 DEBUG - form_questions length:', process.form_questions?.length);
+    console.log('🔍 DEBUG - Tiene preguntas?:', process.form_questions && process.form_questions.length > 0);
+
     // Verificar si hay preguntas del formulario del reclutador
     if (process.form_questions && process.form_questions.length > 0) {
+      console.log('✅ Navegando a recruiter_questions');
       setCurrentStep('recruiter_questions');
     } else {
+      console.log('⏭️ Saltando a confirmation (sin preguntas del formulario)');
       // Si no hay preguntas del reclutador, ir directo a confirmación
       setCurrentStep('confirmation');
     }

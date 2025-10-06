@@ -55,6 +55,26 @@ export async function createProcess(data: CreateProcessData): Promise<ProcessRes
       return { success: false, error: error.message }
     }
 
+    // Insertar preguntas del formulario en recruiter_questions
+    if (data.profile.formQuestions && data.profile.formQuestions.length > 0) {
+      const questionsToInsert = data.profile.formQuestions.map((q, index) => ({
+        process_id: process.id,
+        question_text: q.question,
+        question_type: q.type,
+        question_options: q.options || null,
+        question_order: index + 1
+      }))
+
+      const { error: questionsError } = await supabase
+        .from('recruiter_questions')
+        .insert(questionsToInsert)
+
+      if (questionsError) {
+        console.error('Error inserting recruiter questions:', questionsError)
+        // No retornar error, el proceso ya fue creado exitosamente
+      }
+    }
+
     return { success: true, process }
   } catch (error) {
     console.error('Unexpected error creating process:', error)

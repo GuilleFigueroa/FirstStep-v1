@@ -73,6 +73,8 @@ export interface RecruiterQuestion {
   id: string
   process_id: string
   question_text: string
+  question_type: 'open' | 'multiple-choice'
+  question_options?: string[]
   question_order?: number
   created_at: string
 }

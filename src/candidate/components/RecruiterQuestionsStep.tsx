@@ -1,21 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, MessageSquare, AlertCircle, Send, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { Process } from '../../shared/services/supabase';
+import type { Process, RecruiterQuestion } from '../../shared/services/supabase';
+import { supabase } from '../../shared/services/supabase';
+import { RecruiterQuestionsService } from '../../shared/services/recruiterQuestionsService';
 
 interface RecruiterQuestionsStepProps {
   onContinue: () => void;
   onBack: () => void;
   process: Process;
+  candidateId: string;
 }
 
-export function RecruiterQuestionsStep({ onContinue, onBack, process }: RecruiterQuestionsStepProps) {
-  const questions = process.form_questions || [];
+export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateId }: RecruiterQuestionsStepProps) {
+  const [questions, setQuestions] = useState<RecruiterQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Cargar preguntas desde recruiter_questions
+  useEffect(() => {
+    async function loadQuestions() {
+      try {
+        const { data, error } = await supabase
+          .from('recruiter_questions')
+          .select('*')
+          .eq('process_id', process.id)
+          .order('question_order', { ascending: true });
+
+        if (error) throw error;
+
+        setQuestions(data || []);
+      } catch (err) {
+        console.error('Error loading recruiter questions:', err);
+        setError('Error al cargar las preguntas');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadQuestions();
+  }, [process.id]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
@@ -47,10 +75,24 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process }: Recruite
     setError(null);
 
     try {
-      // TODO: Guardar respuestas en la BD (api/save-recruiter-answers)
-      // Por ahora solo continuamos
-      console.log('📝 Respuestas del formulario:', Object.fromEntries(answers));
+      // Preparar respuestas con IDs de recruiter_questions
+      const formattedAnswers = Array.from(answers.entries()).map(([questionId, answerText]) => ({
+        questionId,
+        answerText
+      }));
 
+      // Guardar respuestas en la BD
+      const result = await RecruiterQuestionsService.saveRecruiterAnswers(
+        candidateId,
+        formattedAnswers
+      );
+
+      if (!result.success) {
+        setError(result.error || 'Error al guardar respuestas');
+        return;
+      }
+
+      // Continuar al siguiente paso
       onContinue();
     } catch (err) {
       console.error('Error submitting answers:', err);
@@ -60,8 +102,20 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process }: Recruite
     }
   };
 
+  // Mostrar loading mientras se cargan las preguntas
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-[#7572FF]/30 border-t-[#7572FF] rounded-full animate-spin mx-auto" />
+          <p className="text-gray-600">Cargando preguntas...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Si no hay preguntas, continuar automáticamente
-  if (questions.length === 0) {
+  if (!loading && questions.length === 0) {
     onContinue();
     return null;
   }
@@ -125,11 +179,11 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process }: Recruite
               <div className="space-y-4">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-medium text-blue-900">
-                    {currentQuestion.question}
+                    {currentQuestion.question_text}
                   </h3>
                 </div>
 
-                {currentQuestion.type === 'open' ? (
+                {currentQuestion.question_type === 'open' ? (
                   <div>
                     <textarea
                       value={currentAnswer}
@@ -139,9 +193,9 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process }: Recruite
                       disabled={submitting}
                     />
                   </div>
-                ) : currentQuestion.type === 'multiple-choice' && currentQuestion.options ? (
+                ) : currentQuestion.question_type === 'multiple-choice' && currentQuestion.question_options ? (
                   <div className="space-y-2">
-                    {currentQuestion.options.map((option, index) => (
+                    {currentQuestion.question_options.map((option, index) => (
                       <label
                         key={index}
                         className="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"

@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { 
-  X, 
-  Trash2, 
-  Heart, 
+import { useState, useEffect } from 'react';
+import {
+  X,
+  Trash2,
+  Heart,
   Download,
   FileText,
   User,
@@ -21,8 +21,10 @@ import {
   Plus,
   MessageCircle,
   Linkedin,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
+import { CandidateService } from '../../../shared/services/candidateService';
 import { Button } from '../../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
 import { Badge } from '../../../ui/components/ui/badge';
@@ -36,17 +38,19 @@ import { Textarea } from '../../../ui/components/ui/textarea';
 interface CandidateProfileProps {
   candidate: {
     id: string;
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
-    phone: string;
-    position: string;
-    company: string;
-    status: 'activo' | 'cerrado';
-    fitPercentage: number;
-    avatar?: string;
-    actionStatus?: 'reviewed' | 'sent' | 'none';
+    linkedin_url?: string;
+    cv_url?: string;
+    score: number;
+    status: string; // 'completed' | 'rejected'
+    created_at: string;
+    process_title: string;
+    process_company: string;
+    process_status: string;
+    actionStatus?: 'reviewed' | 'contacted' | 'sent' | 'none';
     isFavorite?: boolean;
-    linkedInUrl?: string;
   };
   onClose: () => void;
   onAction: (action: string) => void;
@@ -66,20 +70,38 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
   const [notesExpanded, setNotesExpanded] = useState(false);
   const [newNote, setNewNote] = useState('');
   const [isAddingNote, setIsAddingNote] = useState(false);
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      content: 'Candidato con muy buena actitud durante la entrevista inicial. Mostró gran interés en el puesto y la empresa.',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 días atrás
-      author: 'Arlene McCoy'
-    },
-    {
-      id: '2',
-      content: 'Pendiente: Verificar referencias laborales de su puesto anterior.',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 día atrás
-      author: 'Arlene McCoy'
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  // Estados para datos del análisis
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Cargar análisis del candidato
+  useEffect(() => {
+    loadCandidateAnalysis();
+  }, [candidate.id]);
+
+  const loadCandidateAnalysis = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await CandidateService.getCandidateAnalysis(candidate.id);
+
+      if (!result.success || !result.data) {
+        setError(result.error || 'Error al cargar análisis del candidato');
+        return;
+      }
+
+      setAnalysisData(result.data);
+    } catch (err) {
+      console.error('Error loading candidate analysis:', err);
+      setError('Error al cargar análisis del candidato');
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
 
   // Datos simulados del perfil completo
   const fullProfile = {
@@ -204,6 +226,10 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
     return 'bg-red-600';
   };
 
+  // Estado del candidato (aprobado/rechazado)
+  const isApproved = candidate.status === 'completed';
+  const isRejected = candidate.status === 'rejected';
+
   return (
     <>
       <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
@@ -216,17 +242,29 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
             </Button>
             <div className="flex items-center gap-3">
               <Avatar className="w-12 h-12">
-                <AvatarImage src={candidate.avatar} />
                 <AvatarFallback>
-                  {candidate.name.split(' ').map(n => n[0]).join('')}
+                  {candidate.first_name[0]}{candidate.last_name[0]}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-semibold">{candidate.name}</h1>
-                  {candidate.linkedInUrl && (
+                  <h1 className="text-xl font-semibold">{candidate.first_name} {candidate.last_name}</h1>
+                  {/* Badge Aprobado/Rechazado */}
+                  {isApproved && (
+                    <Badge className="bg-green-600 text-white">
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      APROBADO
+                    </Badge>
+                  )}
+                  {isRejected && (
+                    <Badge className="bg-red-600 text-white">
+                      <XCircle className="w-3 h-3 mr-1" />
+                      RECHAZADO
+                    </Badge>
+                  )}
+                  {candidate.linkedin_url && (
                     <a
-                      href={candidate.linkedInUrl}
+                      href={candidate.linkedin_url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-md"
@@ -237,7 +275,7 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
                     </a>
                   )}
                 </div>
-                <p className="text-gray-600">Postulante a {candidate.position}</p>
+                <p className="text-gray-600">Postulante a {candidate.process_title}</p>
               </div>
             </div>
           </div>
@@ -245,13 +283,13 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
           {/* Actions */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 mr-4">
-              <span className={`font-semibold ${getFitColor(candidate.fitPercentage)}`}>
-                {candidate.fitPercentage}% Fit
+              <span className={`font-semibold ${getFitColor(candidate.score)}`}>
+                {candidate.score}% Fit
               </span>
               <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full rounded-full ${getFitBgColor(candidate.fitPercentage)}`}
-                  style={{ width: `${candidate.fitPercentage}%` }}
+                <div
+                  className={`h-full rounded-full ${getFitBgColor(candidate.score)}`}
+                  style={{ width: `${candidate.score}%` }}
                 />
               </div>
             </div>
@@ -275,7 +313,34 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
 
         {/* Content */}
         <div className="p-6">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Loading State */}
+          {loading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-12 h-12 text-[#7572FF] animate-spin mb-4" />
+              <p className="text-gray-600">Cargando análisis del candidato...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+                <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-red-900 mb-2 text-center">Error al cargar análisis</h3>
+                <p className="text-red-700 text-center mb-4">{error}</p>
+                <Button
+                  onClick={loadCandidateAnalysis}
+                  className="w-full bg-[#7572FF] hover:bg-[#6863E8]"
+                >
+                  Reintentar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Content - Solo si cargó correctamente */}
+          {!loading && !error && analysisData && (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* CV Visual - Lado Izquierdo */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -583,6 +648,8 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
               </Card>
             </div>
           </div>
+          )}
+          {/* Fin del contenido condicional */}
         </div>
       </div>
 

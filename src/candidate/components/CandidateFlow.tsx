@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
 import { VerificationStep } from './VerificationStep';
 import { CVUploadStep } from './CVUploadStep';
@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Badge } from '../../ui/components/ui/badge';
 import type { Process } from '../../shared/services/supabase';
 import { CandidateService } from '../../shared/services/candidateService';
+import { RecruiterQuestionsService } from '../../shared/services/recruiterQuestionsService';
 import {
   ArrowLeft,
   CheckCircle,
@@ -48,6 +49,27 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
   const [candidateId, setCandidateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  // Alerta de salida en pasos críticos
+  useEffect(() => {
+    const criticalSteps: FlowStep[] = ['profile', 'ai_questions', 'recruiter_questions'];
+    const shouldWarn = criticalSteps.includes(currentStep);
+
+    if (!shouldWarn) return;
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      // Navegadores modernos ignoran el mensaje personalizado, pero lo dejamos por compatibilidad
+      e.returnValue = 'Si sales ahora, perderás tu progreso y no podrás aplicar nuevamente a este proceso. ¿Estás seguro?';
+      return e.returnValue;
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [currentStep]);
 
   const handleRegistrationComplete = async (data: CandidateData) => {
     setLoading(true);
@@ -99,9 +121,11 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
     setCurrentStep('ai_questions');
   };
 
-  const handleAIQuestionsComplete = () => {
-    // Verificar si hay preguntas del formulario del reclutador
-    if (process.form_questions && process.form_questions.length > 0) {
+  const handleAIQuestionsComplete = async () => {
+    // Verificar si hay preguntas del formulario del reclutador en la tabla
+    const hasQuestions = await RecruiterQuestionsService.hasRecruiterQuestions(process.id);
+
+    if (hasQuestions) {
       setCurrentStep('recruiter_questions');
     } else {
       // Si no hay preguntas del reclutador, ir directo a confirmación

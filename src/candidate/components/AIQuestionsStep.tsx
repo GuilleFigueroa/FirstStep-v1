@@ -61,6 +61,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
+  const isCurrentAnswerValid = currentAnswer.trim().length > 0;
 
   const handleAnswerChange = (value: string) => {
     if (!currentQuestion) return;
@@ -367,7 +368,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
               {isLastQuestion ? (
                 <Button
                   onClick={handleSubmit}
-                  disabled={submitting}
+                  disabled={!isCurrentAnswerValid || submitting}
                   className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
@@ -385,8 +386,8 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
               ) : (
                 <Button
                   onClick={handleNext}
-                  disabled={submitting}
-                  className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center justify-center gap-2"
+                  disabled={!isCurrentAnswerValid || submitting}
+                  className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Siguiente
                   <ChevronRight className="w-4 h-4" />
@@ -396,8 +397,16 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
 
             {/* Help text */}
             {!submitting && (
-              <div className="text-center text-sm text-gray-500 pt-2">
-                Puedes navegar entre preguntas usando los botones Anterior/Siguiente
+              <div className="text-center text-sm pt-2">
+                {!isCurrentAnswerValid ? (
+                  <p className="text-amber-600">
+                    * Debes responder esta pregunta para continuar
+                  </p>
+                ) : (
+                  <p className="text-gray-500">
+                    Puedes navegar entre preguntas usando los botones Anterior/Siguiente
+                  </p>
+                )}
               </div>
             )}
           </CardContent>

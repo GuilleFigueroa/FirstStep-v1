@@ -38,7 +38,6 @@ export async function createProcess(data: CreateProcessData): Promise<ProcessRes
       mandatory_requirements: data.profile.mandatoryRequirements,
       optional_requirements: data.profile.optionalRequirements,
       custom_prompt: data.profile.customPrompt,
-      form_questions: data.profile.formQuestions || [],
       candidate_limit: data.candidateLimit,
       status: 'active' as const,
       unique_link: uniqueLink

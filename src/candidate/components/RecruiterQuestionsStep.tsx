@@ -21,27 +21,31 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar preguntas desde recruiter_questions
-  useEffect(() => {
-    async function loadQuestions() {
-      try {
-        const { data, error } = await supabase
-          .from('recruiter_questions')
-          .select('*')
-          .eq('process_id', process.id)
-          .order('question_order', { ascending: true });
+  // Función para cargar preguntas desde recruiter_questions
+  const loadQuestions = async () => {
+    setLoading(true);
+    setError(null);
 
-        if (error) throw error;
+    try {
+      const { data, error } = await supabase
+        .from('recruiter_questions')
+        .select('*')
+        .eq('process_id', process.id)
+        .order('question_order', { ascending: true });
 
-        setQuestions(data || []);
-      } catch (err) {
-        console.error('Error loading recruiter questions:', err);
-        setError('Error al cargar las preguntas');
-      } finally {
-        setLoading(false);
-      }
+      if (error) throw error;
+
+      setQuestions(data || []);
+    } catch (err) {
+      console.error('Error loading recruiter questions:', err);
+      setError('Error al cargar las preguntas');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  // Cargar preguntas al montar el componente
+  useEffect(() => {
     loadQuestions();
   }, [process.id]);
 
@@ -49,6 +53,11 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const isFirstQuestion = currentQuestionIndex === 0;
+
+  // Validación de respuesta según tipo de pregunta
+  const isCurrentAnswerValid = currentQuestion
+    ? currentAnswer.trim().length > 0
+    : false;
 
   const handleAnswerChange = (value: string) => {
     if (!currentQuestion) return;
@@ -109,6 +118,48 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
         <div className="text-center space-y-4">
           <div className="w-12 h-12 border-4 border-[#7572FF]/30 border-t-[#7572FF] rounded-full animate-spin mx-auto" />
           <p className="text-gray-600">Cargando preguntas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error loading questions
+  if (error && questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-6xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <Button onClick={onBack} variant="ghost" className="flex items-center gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Volver
+              </Button>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-[#7572FF] rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-[#7572FF] font-semibold">Formulario</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto px-6 py-12">
+          <Card>
+            <CardContent className="py-8">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600" />
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              </div>
+              <div className="mt-6 text-center">
+                <Button onClick={loadQuestions} className="bg-[#7572FF] hover:bg-[#6863E8]">
+                  Reintentar
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
@@ -242,7 +293,7 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
               {isLastQuestion ? (
                 <Button
                   onClick={handleSubmit}
-                  disabled={submitting}
+                  disabled={!isCurrentAnswerValid || submitting}
                   className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submitting ? (
@@ -260,8 +311,8 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
               ) : (
                 <Button
                   onClick={handleNext}
-                  disabled={submitting}
-                  className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center justify-center gap-2"
+                  disabled={!isCurrentAnswerValid || submitting}
+                  className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Siguiente
                   <ChevronRight className="w-4 h-4" />
@@ -271,8 +322,16 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
 
             {/* Help text */}
             {!submitting && (
-              <div className="text-center text-sm text-gray-500 pt-2">
-                Puedes navegar entre preguntas usando los botones Anterior/Siguiente
+              <div className="text-center text-sm pt-2">
+                {!isCurrentAnswerValid ? (
+                  <p className="text-amber-600">
+                    * Debes responder esta pregunta para continuar
+                  </p>
+                ) : (
+                  <p className="text-gray-500">
+                    Puedes navegar entre preguntas usando los botones Anterior/Siguiente
+                  </p>
+                )}
               </div>
             )}
           </CardContent>

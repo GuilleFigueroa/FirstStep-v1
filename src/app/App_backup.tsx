@@ -49,7 +49,7 @@ export interface JobProfile {
   optionalRequirements: ProfileRequirement[];
   customPrompt?: string;
   customQuestion?: string;
-  formQuestions?: FormQuestion[];
+  formQuestions?: FormQuestion[]; // Solo en memoria, NO se guarda en BD
 }
 
 export interface JobPosting {

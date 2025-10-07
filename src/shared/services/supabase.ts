@@ -29,7 +29,6 @@ export interface Process {
   mandatory_requirements: any[]
   optional_requirements: any[]
   custom_prompt?: string
-  form_questions: any[]
   candidate_limit?: number
   status: 'active' | 'closed' | 'paused'
   unique_link: string

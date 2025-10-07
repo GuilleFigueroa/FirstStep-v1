@@ -67,7 +67,14 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
     if (!currentQuestion) return;
 
     const newAnswers = new Map(answers);
-    newAnswers.set(currentQuestion.id, value);
+
+    // Si el texto está vacío, eliminar del Map para deshabilitar botón "Siguiente"
+    if (value.trim().length === 0) {
+      newAnswers.delete(currentQuestion.id);
+    } else {
+      newAnswers.set(currentQuestion.id, value);
+    }
+
     setAnswers(newAnswers);
   };
 

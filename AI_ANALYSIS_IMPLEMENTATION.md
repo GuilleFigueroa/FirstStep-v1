@@ -16,8 +16,8 @@
 
 ## 📊 Estado General
 
-**Progreso:** 5/6 pasos completados (83%)
-**Última actualización:** 06-10-2025
+**Progreso:** 6/6 pasos completados (100%)
+**Última actualización:** 07-10-2025
 
 | Paso | Estado | Descripción |
 |------|--------|-------------|
@@ -26,7 +26,7 @@
 | 3 | ✅ | Parser PDF/DOCX funcional |
 | 4 | ✅ | Análisis CV con IA + generación preguntas |
 | 5 | ✅ | UI preguntas + scoring + filtro eliminatorio |
-| 6 | ⏳ | Dashboard reclutador con análisis completo |
+| 6 | ✅ | Dashboard reclutador con análisis completo |
 
 ---
 
@@ -102,7 +102,7 @@ BD: Supabase (PostgreSQL + Storage)
    1. Actualizar ai_questions con answer_text
    Output: { success: true }
 
-⏳ POST /api/calculate-scoring (PASO 5 - Tarea 5.5)
+✅ POST /api/calculate-scoring
    Input: { candidateId }
    1. Obtener cv_text + requirements + ai_questions + answers
    2. Construir prompt de scoring
@@ -111,10 +111,19 @@ BD: Supabase (PostgreSQL + Storage)
    5. Si true → Guardar score + scoring_details
    Output: { approved: true/false, reason?: string, score?: number }
 
-⏳ POST /api/save-recruiter-answers (PASO 5 - Tarea 5.9)
+✅ POST /api/save-recruiter-answers
    Input: { candidateId, answers: [{questionId, answerText}] }
    1. Guardar en recruiter_answers
    Output: { success: true }
+
+✅ GET /api/get-candidate-analysis (PASO 6)
+   Input: candidateId (query param)
+   1. Obtener candidato (solo status='completed' o 'rejected')
+   2. Obtener ai_questions con respuestas
+   3. Obtener recruiter_questions + recruiter_answers
+   4. Extraer mandatory_evaluation y optional_evaluation de scoring_details
+   5. Combinar en array plano con is_met y evidence
+   Output: { candidate, aiQuestions, recruiterQuestions, requirements[], process }
 ```
 
 ---
@@ -241,7 +250,7 @@ BD: Supabase (PostgreSQL + Storage)
 
 **Objetivo:** Interfaces para responder preguntas + evaluación con scoring + filtro eliminatorio
 
-### Progreso: 12/15 tareas completadas (80%)
+### Progreso: 13/13 tareas completadas (100%)
 
 **✅ Completado:**
 - **Tarea 5.1-5.2:** Diseño UI definido (AIQuestionsStep + RecruiterQuestionsStep)
@@ -328,23 +337,83 @@ BD: Supabase (PostgreSQL + Storage)
 
 ---
 
-## 🎯 PASO 6: Dashboard Reclutador ⏳ PENDIENTE
+## 🎯 PASO 6: Dashboard Reclutador ✅ COMPLETADO
 
-**Objetivo:** Mostrar análisis completo de candidatos aprobados
+**Objetivo:** Mostrar análisis completo de candidatos aprobados/rechazados
 
-**Pendiente:**
+### Progreso: 100%
 
-1. Crear `/api/get-candidate-analysis.ts`
-   - Input: `{ candidateId }`
-   - Output: cv_text, score, scoring_details, ai_questions, recruiter_answers
+**✅ Backend implementado:**
 
-2. Actualizar `CandidateProfile.tsx`
-   - Split screen: CV parseado (izquierda) | Análisis (derecha)
-   - Sección Scoring (barra progreso 0-100, badge APPROVED)
-   - Sección Requisitos Cumplidos (checkmarks + evidencia)
-   - Sección Requisitos Faltantes (si aplica)
-   - Sección Preguntas IA (pregunta + respuesta + razón)
-   - Sección Preguntas Formulario
+1. **`/api/get-candidate-analysis.ts`**
+   - Input: `candidateId` (query param)
+   - Validación: solo candidatos con status 'completed' o 'rejected'
+   - Output completo:
+     - `candidate`: datos básicos + score + scoring_details + cv_url
+     - `aiQuestions`: preguntas IA con respuestas y analysis_feedback
+     - `recruiterQuestions`: preguntas formulario + respuestas
+     - `requirements`: array plano extraído de scoring_details (mandatory_evaluation + optional_evaluation)
+     - `process`: title + company_name
+
+2. **`candidateService.getCandidatesByRecruiter()`**
+   - Obtiene TODOS los procesos del reclutador
+   - Obtiene TODOS los candidatos de esos procesos
+   - Manual JOIN usando Map para performance
+   - Retorna candidatos con info del proceso (title, company, status)
+
+3. **`candidateService.getCandidateAnalysis()`**
+   - Wrapper para llamar a GET /api/get-candidate-analysis
+   - Manejo de errores estructurado
+
+**✅ Frontend implementado:**
+
+1. **`CandidatesTable.tsx` actualizado**
+   - Props: `recruiterId` (en lugar de processId)
+   - Carga todos los candidatos de todos los procesos del reclutador
+   - Filtros: nombre, puesto/rol, empresa, estado de postulación
+   - Interface actualizada con campos reales (process_title, process_company, score, etc.)
+   - Estados: loading, error, empty con mensajes apropiados
+   - Colores de fila: favorito (amarillo), revisado (violeta), contactado (verde)
+   - Badge de estado: Activo (violeta), Cerrado (gris), Pausado (naranja outline)
+
+2. **`CandidateProfile.tsx` refactorizado completo**
+   - Eliminado 100% datos mock (~150 líneas)
+   - Carga datos reales desde `CandidateService.getCandidateAnalysis()`
+   - **Header:**
+     - Nombre completo desde first_name + last_name
+     - Badge APROBADO (verde) / RECHAZADO (rojo) según status
+     - LinkedIn funcional desde linkedin_url
+     - Rol desde process_title
+     - Score real con barra de progreso
+   - **CV Visual (left):**
+     - Iframe embed del PDF desde cv_url
+     - Placeholder si no hay CV
+     - Botón descarga funcional
+   - **Análisis de Compatibilidad (right, collapsible):**
+     - Fit General con score real
+     - % Requisitos Obligatorios (calculado de scoring_details)
+     - % Requisitos Deseables (calculado de scoring_details)
+     - Requisitos Cumplidos (filtro is_met=true)
+     - Requisitos Faltantes (filtro is_met=false)
+   - **Respuestas del Proceso (right, collapsible):**
+     - Subsección "Preguntas de IA" con análisis
+     - Subsección "Preguntas del Formulario"
+   - **Funcionalidad eliminada:**
+     - Mock de notas (sin sustento estructural)
+     - Objeto fullProfile completo
+
+3. **Fixes aplicados:**
+   - Estructura requirements corregida (objeto → array plano)
+   - Keys únicas con index en .map()
+   - Validación segura con Array.isArray()
+   - Status badge con valores correctos (active/closed/paused)
+
+**Archivos:**
+- `api/get-candidate-analysis.ts` (175 líneas)
+- `src/shared/services/candidateService.ts` (getCandidatesByRecruiter + getCandidateAnalysis)
+- `src/recruiter/components/candidates/CandidatesTable.tsx` (refactorizado completo)
+- `src/recruiter/components/candidates/CandidateProfile.tsx` (refactorizado completo)
+- `src/recruiter/components/RecruiterApp.tsx` (actualizado para pasar recruiterId)
 
 ---
 
@@ -435,24 +504,28 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ### Backend
 - `api/analyze-cv.ts` - Análisis CV + generación preguntas
 - `api/save-ai-answers.ts` - Guardar respuestas IA
+- `api/calculate-scoring.ts` - Scoring con filtro eliminatorio
+- `api/save-recruiter-answers.ts` - Guardar respuestas formulario
+- `api/get-candidate-analysis.ts` - Obtener análisis completo para dashboard
 - `api/utils/openai.ts` - Wrapper Vercel AI SDK
 - `api/utils/pdfParser.ts` - Extracción texto PDF/DOCX
 - `api/utils/supabase.ts` - Cliente Supabase admin
 
-### Frontend
+### Frontend - Candidato
 - `src/candidate/components/CandidateFlow.tsx` - Orquestador steps
 - `src/candidate/components/CVUploadStep.tsx` - Upload + análisis IA
+- `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
+- `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
 - `src/shared/services/aiQuestionsService.ts` - Servicio preguntas IA
-- `src/shared/services/candidateService.ts` - CRUD candidatos
+- `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
 
-### Archivos PASO 5 (completados)
-- ✅ `api/calculate-scoring.ts` - Scoring con filtro eliminatorio
-- ✅ `api/save-recruiter-answers.ts` - Guardar respuestas formulario
-- ✅ `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
-- ✅ `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
-- ✅ `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
+### Frontend - Reclutador
+- `src/recruiter/components/RecruiterApp.tsx` - App principal reclutador
+- `src/recruiter/components/candidates/CandidatesTable.tsx` - Tabla con todos los candidatos
+- `src/recruiter/components/candidates/CandidateProfile.tsx` - Vista detalle candidato
+- `src/shared/services/candidateService.ts` - CRUD candidatos + análisis
 
 ---
 
-**Última actualización:** 06-10-2025
-**Siguiente paso:** Implementar Dashboard Reclutador (Paso 6)
+**Última actualización:** 07-10-2025
+**Estado:** Sistema completo funcional con 6 pasos implementados

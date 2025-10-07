@@ -337,8 +337,8 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
                               <div className="space-y-2">
                                 {analysisData.requirements
                                   .filter((req: any) => req.is_met)
-                                  .map((req: any) => (
-                                    <div key={req.id} className="flex items-center justify-between text-sm">
+                                  .map((req: any, index: number) => (
+                                    <div key={`met-${index}`} className="flex items-center justify-between text-sm">
                                       <span>{req.requirement_text}</span>
                                       <Badge variant="secondary" className="text-xs">
                                         {req.is_mandatory ? 'Obligatorio' : 'Deseable'}
@@ -356,8 +356,8 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
                               <div className="space-y-2">
                                 {analysisData.requirements
                                   .filter((req: any) => !req.is_met)
-                                  .map((req: any) => (
-                                    <div key={req.id} className="flex items-center justify-between text-sm text-gray-500">
+                                  .map((req: any, index: number) => (
+                                    <div key={`unmet-${index}`} className="flex items-center justify-between text-sm text-gray-500">
                                       <span>{req.requirement_text}</span>
                                       <Badge variant="outline" className="text-xs">
                                         {req.is_mandatory ? 'Obligatorio' : 'Deseable'}

@@ -105,7 +105,37 @@ export default async function handler(
       console.error('Error fetching process requirements:', processError);
     }
 
-    // 10. Retornar datos completos
+    // 10. Combinar requisitos evaluados desde scoring_details
+    const requirementsArray = [];
+
+    // Verificar que scoring_details existe antes de acceder
+    if (candidate.scoring_details) {
+      // Agregar evaluación de requisitos obligatorios
+      if (Array.isArray(candidate.scoring_details.mandatory_evaluation)) {
+        candidate.scoring_details.mandatory_evaluation.forEach((item: any) => {
+          requirementsArray.push({
+            requirement_text: item.requirement || '',
+            is_mandatory: true,
+            is_met: Boolean(item.meets),
+            evidence: item.evidence || ''
+          });
+        });
+      }
+
+      // Agregar evaluación de requisitos opcionales
+      if (Array.isArray(candidate.scoring_details.optional_evaluation)) {
+        candidate.scoring_details.optional_evaluation.forEach((item: any) => {
+          requirementsArray.push({
+            requirement_text: item.requirement || '',
+            is_mandatory: false,
+            is_met: Boolean(item.meets),
+            evidence: item.evidence || ''
+          });
+        });
+      }
+    }
+
+    // 11. Retornar datos completos
     return res.status(200).json({
       success: true,
       candidate: {
@@ -125,10 +155,7 @@ export default async function handler(
       },
       aiQuestions: aiQuestions || [],
       recruiterQuestions: questionsWithAnswers,
-      requirements: {
-        mandatory: process?.mandatory_requirements || [],
-        optional: process?.optional_requirements || []
-      },
+      requirements: requirementsArray,
       process: {
         title: process?.title || '',
         company_name: process?.company_name || ''

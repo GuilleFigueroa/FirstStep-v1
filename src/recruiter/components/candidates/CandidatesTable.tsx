@@ -180,9 +180,14 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
   };
 
   const getStatusBadge = (status: string) => {
-    return status === 'activo' 
-      ? <Badge variant="default" style={{ backgroundColor: '#BE56C8', color: 'white' }}>Activo</Badge>
-      : <Badge variant="secondary" style={{ backgroundColor: '#9E9C9E', color: 'white' }}>Cerrado</Badge>;
+    if (status === 'active') {
+      return <Badge variant="default" style={{ backgroundColor: '#BE56C8', color: 'white' }}>Activo</Badge>;
+    } else if (status === 'closed') {
+      return <Badge variant="secondary" style={{ backgroundColor: '#9E9C9E', color: 'white' }}>Cerrado</Badge>;
+    } else if (status === 'paused') {
+      return <Badge variant="outline" style={{ borderColor: '#FFA500', color: '#FFA500' }}>Pausado</Badge>;
+    }
+    return <Badge variant="secondary">Desconocido</Badge>;
   };
 
   const getFitColor = (percentage: number) => {
@@ -246,8 +251,9 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="activo">Activo</SelectItem>
-                  <SelectItem value="cerrado">Cerrado</SelectItem>
+                  <SelectItem value="active">Activo</SelectItem>
+                  <SelectItem value="closed">Cerrado</SelectItem>
+                  <SelectItem value="paused">Pausado</SelectItem>
                 </SelectContent>
               </Select>
             </div>

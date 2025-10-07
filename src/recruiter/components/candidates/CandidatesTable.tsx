@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../../ui/components/ui/button';
+import { CandidateService } from '../../../shared/services/candidateService';
 import { Input } from '../../../ui/components/ui/input';
 import { Badge } from '../../../ui/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
@@ -23,128 +24,89 @@ import {
 
 interface Candidate {
   id: string;
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  phone: string;
-  position: string;
-  company: string;
-  status: 'activo' | 'cerrado';
-  fitPercentage: number;
-  avatar?: string;
+  linkedin_url?: string;
+  cv_url?: string;
+  score: number;
+  status: string; // 'completed' | 'rejected'
+  created_at: string;
+  process_title: string;
+  process_company: string;
+  process_status: string; // 'active' | 'closed' | 'paused'
+  // UI state (local)
   actionStatus?: 'reviewed' | 'contacted' | 'sent' | 'none';
   isFavorite?: boolean;
-  linkedInUrl?: string;
 }
 
-const mockCandidates: Candidate[] = [
-  {
-    id: '1',
-    name: 'Ana García',
-    email: 'ana.garcia@email.com',
-    phone: '+34 666 123 456',
-    position: 'Frontend Developer',
-    company: 'TechCorp',
-    status: 'activo',
-    fitPercentage: 92,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/ana-garcia-frontend'
-  },
-  {
-    id: '2',
-    name: 'Carlos Rodríguez',
-    email: 'carlos.rodriguez@email.com',
-    phone: '+34 677 234 567',
-    position: 'Backend Developer',
-    company: 'DevStudio',
-    status: 'activo',
-    fitPercentage: 87,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/carlos-rodriguez-backend'
-  },
-  {
-    id: '3',
-    name: 'María López',
-    email: 'maria.lopez@email.com',
-    phone: '+34 688 345 678',
-    position: 'UX/UI Designer',
-    company: 'DesignLab',
-    status: 'cerrado',
-    fitPercentage: 95,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/maria-lopez-uxui'
-  },
-  {
-    id: '4',
-    name: 'David Martín',
-    email: 'david.martin@email.com',
-    phone: '+34 699 456 789',
-    position: 'Full Stack Developer',
-    company: 'StartupXYZ',
-    status: 'activo',
-    fitPercentage: 78,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/david-martin-fullstack'
-  },
-  {
-    id: '5',
-    name: 'Laura Fernández',
-    email: 'laura.fernandez@email.com',
-    phone: '+34 610 567 890',
-    position: 'DevOps Engineer',
-    company: 'CloudTech',
-    status: 'activo',
-    fitPercentage: 84,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/laura-fernandez-devops'
-  },
-  {
-    id: '6',
-    name: 'Javier Sánchez',
-    email: 'javier.sanchez@email.com',
-    phone: '+34 621 678 901',
-    position: 'Data Scientist',
-    company: 'DataCorp',
-    status: 'cerrado',
-    fitPercentage: 89,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/javier-sanchez-datascience'
-  },
-  {
-    id: '7',
-    name: 'Elena Ruiz',
-    email: 'elena.ruiz@email.com',
-    phone: '+34 632 789 012',
-    position: 'Mobile Developer',
-    company: 'AppFactory',
-    status: 'activo',
-    fitPercentage: 91,
-    actionStatus: 'none',
-    isFavorite: false,
-    linkedInUrl: 'https://www.linkedin.com/in/elena-ruiz-mobile'
-  }
-];
+// Mock data temporal - será reemplazado por datos reales
+const mockCandidates: Candidate[] = [];
 
-export function CandidatesTable() {
+interface CandidatesTableProps {
+  recruiterId: string; // ID del reclutador actual
+}
+
+export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
   const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [nameFilter, setNameFilter] = useState('');
   const [positionFilter, setPositionFilter] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [profileViewCandidate, setProfileViewCandidate] = useState<Candidate | null>(null);
 
+  // Cargar candidatos cuando cambia el recruiterId
+  useEffect(() => {
+    if (!recruiterId) {
+      setCandidates([]);
+      return;
+    }
+
+    loadCandidates();
+  }, [recruiterId]);
+
+  const loadCandidates = async () => {
+    if (!recruiterId) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await CandidateService.getCandidatesByRecruiter(recruiterId);
+
+      if (!result.success || !result.candidates) {
+        setError(result.error || 'Error al cargar candidatos');
+        setCandidates([]);
+        return;
+      }
+
+      // Agregar estado UI local a cada candidato
+      const candidatesWithUIState = result.candidates.map(c => ({
+        ...c,
+        actionStatus: 'none' as const,
+        isFavorite: false
+      }));
+
+      setCandidates(candidatesWithUIState);
+    } catch (err) {
+      console.error('Error loading candidates:', err);
+      setError('Error al cargar candidatos');
+      setCandidates([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtrar candidatos
   const filteredCandidates = candidates.filter(candidate => {
-    const matchesName = candidate.name.toLowerCase().includes(nameFilter.toLowerCase());
-    const matchesPosition = candidate.position.toLowerCase().includes(positionFilter.toLowerCase());
-    const matchesCompany = candidate.company.toLowerCase().includes(companyFilter.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
-    
+    const fullName = `${candidate.first_name} ${candidate.last_name}`.toLowerCase();
+    const matchesName = fullName.includes(nameFilter.toLowerCase());
+    const matchesPosition = candidate.process_title.toLowerCase().includes(positionFilter.toLowerCase());
+    const matchesCompany = candidate.process_company.toLowerCase().includes(companyFilter.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || candidate.process_status === statusFilter;
+
     return matchesName && matchesPosition && matchesCompany && matchesStatus;
   });
 
@@ -305,8 +267,33 @@ export function CandidatesTable() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
-            <Table>
+          {/* Loading state */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#7572FF] mx-auto mb-4"></div>
+              <p className="text-gray-600">Cargando candidatos...</p>
+            </div>
+          )}
+
+          {/* Error state */}
+          {error && !loading && (
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-red-800">{error}</p>
+                <Button
+                  onClick={loadCandidates}
+                  className="mt-4 bg-[#7572FF] hover:bg-[#6863E8]"
+                >
+                  Reintentar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Tabla de candidatos */}
+          {!loading && !error && (
+            <div className="rounded-md border">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nombre</TableHead>
@@ -323,35 +310,34 @@ export function CandidatesTable() {
                     <TableCell style={getRowStyle(candidate)}>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
-                          <AvatarImage src={candidate.avatar} />
                           <AvatarFallback>
-                            {candidate.name.split(' ').map(n => n[0]).join('')}
+                            {candidate.first_name[0]}{candidate.last_name[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{candidate.name}</div>
+                          <div className="font-medium">{candidate.first_name} {candidate.last_name}</div>
                           <div className="text-sm text-gray-500">{candidate.email}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
-                      <div className="font-medium">{candidate.position}</div>
+                      <div className="font-medium">{candidate.process_title}</div>
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
-                      <div className="font-medium">{candidate.company}</div>
+                      <div className="font-medium">{candidate.process_company}</div>
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
-                      {getStatusBadge(candidate.status)}
+                      {getStatusBadge(candidate.process_status)}
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full rounded-full transition-all ${getFitColor(candidate.fitPercentage)}`}
-                            style={{ width: `${candidate.fitPercentage}%` }}
+                          <div
+                            className={`h-full rounded-full transition-all ${getFitColor(candidate.score)}`}
+                            style={{ width: `${candidate.score}%` }}
                           />
                         </div>
-                        <span className="font-medium text-sm">{candidate.fitPercentage}%</span>
+                        <span className="font-medium text-sm">{candidate.score}%</span>
                       </div>
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
@@ -411,8 +397,10 @@ export function CandidatesTable() {
               </TableBody>
             </Table>
           </div>
-          
-          {filteredCandidates.length === 0 && (
+          )}
+
+          {/* Mensaje cuando hay candidatos pero los filtros no coinciden */}
+          {!loading && !error && candidates.length > 0 && filteredCandidates.length === 0 && (
             <div className="text-center py-8">
               <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -420,6 +408,19 @@ export function CandidatesTable() {
               </h3>
               <p className="text-gray-500">
                 Intenta ajustar los filtros para encontrar candidatos
+              </p>
+            </div>
+          )}
+
+          {/* Mensaje cuando no hay candidatos */}
+          {!loading && !error && candidates.length === 0 && (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No hay candidatos aún
+              </h3>
+              <p className="text-gray-500">
+                Los candidatos aparecerán aquí cuando completen el proceso de aplicación
               </p>
             </div>
           )}

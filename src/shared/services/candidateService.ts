@@ -167,4 +167,135 @@ export class CandidateService {
       };
     }
   }
+
+  // Obtener todos los candidatos del reclutador con info de sus procesos
+  static async getCandidatesByRecruiter(recruiterId: string): Promise<{
+    success: boolean;
+    candidates?: Array<{
+      id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+      linkedin_url?: string;
+      cv_url?: string;
+      score?: number;
+      status: string;
+      created_at: string;
+      process_title: string;
+      process_company: string;
+      process_status: string;
+    }>;
+    error?: string;
+  }> {
+    try {
+      // 1. Obtener todos los procesos del reclutador
+      const { data: processes, error: processesError } = await supabase
+        .from('processes')
+        .select('id, title, company_name, status')
+        .eq('recruiter_id', recruiterId);
+
+      if (processesError) {
+        console.error('Error fetching processes:', processesError);
+        return {
+          success: false,
+          error: 'Error al obtener procesos'
+        };
+      }
+
+      if (!processes || processes.length === 0) {
+        // El reclutador no tiene procesos aún
+        return {
+          success: true,
+          candidates: []
+        };
+      }
+
+      // 2. Obtener candidatos de todos los procesos
+      const processIds = processes.map(p => p.id);
+
+      const { data: candidates, error: candidatesError } = await supabase
+        .from('candidates')
+        .select('*')
+        .in('process_id', processIds)
+        .in('status', ['completed', 'rejected']) // Solo candidatos que completaron el proceso
+        .order('created_at', { ascending: false });
+
+      if (candidatesError) {
+        console.error('Error fetching candidates:', candidatesError);
+        return {
+          success: false,
+          error: 'Error al obtener candidatos'
+        };
+      }
+
+      // 3. Crear map de procesos para lookup rápido
+      const processMap = new Map(processes.map(p => [p.id, p]));
+
+      // 4. Combinar datos de candidatos + proceso
+      const candidatesWithProcess = (candidates || []).map(candidate => {
+        const process = processMap.get(candidate.process_id);
+        return {
+          id: candidate.id,
+          first_name: candidate.first_name,
+          last_name: candidate.last_name,
+          email: candidate.email,
+          linkedin_url: candidate.linkedin_url,
+          cv_url: candidate.cv_url,
+          score: candidate.score || 0,
+          status: candidate.status,
+          created_at: candidate.created_at,
+          process_title: process?.title || 'Proceso desconocido',
+          process_company: process?.company_name || 'Empresa desconocida',
+          process_status: process?.status || 'unknown'
+        };
+      });
+
+      return {
+        success: true,
+        candidates: candidatesWithProcess
+      };
+    } catch (error) {
+      console.error('Get candidates by recruiter error:', error);
+      return {
+        success: false,
+        error: 'Error al cargar candidatos'
+      };
+    }
+  }
+
+  // Obtener análisis completo de un candidato
+  static async getCandidateAnalysis(candidateId: string): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    try {
+      const response = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'Error al obtener análisis del candidato'
+        };
+      }
+
+      return {
+        success: true,
+        data: data
+      };
+    } catch (error) {
+      console.error('Get candidate analysis error:', error);
+      return {
+        success: false,
+        error: 'Error de conexión al obtener análisis'
+      };
+    }
+  }
 }

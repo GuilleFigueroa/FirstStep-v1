@@ -243,7 +243,9 @@ export function RecruiterApp() {
       {activeSection === "dashboard" && userProfile && <Dashboard userProfile={userProfile} />}
 
       {/* Candidates Section */}
-      {activeSection === "candidates" && <CandidatesTable />}
+      {activeSection === "candidates" && userProfile && (
+        <CandidatesTable recruiterId={userProfile.id} />
+      )}
 
       {/* Applications Section - Flujo de configuración por pasos */}
       {activeSection === "applications" && (

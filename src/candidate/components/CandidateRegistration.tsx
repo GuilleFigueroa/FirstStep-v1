@@ -130,11 +130,12 @@ export function CandidateRegistration({ jobInfo, onBack, onContinue, loading = f
               Volver
             </Button>
             
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#7572FF] rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-[#7572FF] font-semibold">FirstStep</span>
+            <div className="flex items-center gap-2">
+              <img
+                src="/firststep-logo.png"
+                alt="FirstStep"
+                className="h-10"
+              />
             </div>
           </div>
         </div>

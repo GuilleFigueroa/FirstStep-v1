@@ -346,6 +346,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
           onContinue={handleCVUploadComplete}
           onBack={handleBackToVerification}
           candidateId={candidateId}
+          process={process}
         />
       );
 

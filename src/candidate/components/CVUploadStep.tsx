@@ -3,14 +3,16 @@ import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, Upload, FileText, CheckCircle, AlertCircle, Download, Clock, MessageSquare, FileSearch } from 'lucide-react';
 import { CandidateService } from '../../shared/services/candidateService';
+import type { Process } from '../../shared/services/supabase';
 
 interface CVUploadStepProps {
   onContinue: () => void;
   onBack: () => void;
-  candidateId?: string; // ID del candidato para subir el CV
+  candidateId?: string;
+  process?: Process;
 }
 
-export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepProps) {
+export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUploadStepProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -153,6 +155,11 @@ export function CVUploadStep({ onContinue, onBack, candidateId }: CVUploadStepPr
                   <FileSearch className="w-6 h-6 text-[#7572FF]" />
                   ¿Cómo funciona el proceso?
                 </CardTitle>
+                {process?.company_name && (
+                  <CardDescription className="text-sm mt-2">
+                    Proceso conducido por <strong>{process.company_name}</strong>
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-4">

@@ -4,6 +4,7 @@ import { VerificationStep } from './VerificationStep';
 import { CVUploadStep } from './CVUploadStep';
 import { AIQuestionsStep } from './AIQuestionsStep';
 import { RecruiterQuestionsStep } from './RecruiterQuestionsStep';
+import { ConfirmationStep } from './ConfirmationStep';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { Badge } from '../../ui/components/ui/badge';
@@ -369,11 +370,10 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
 
     case 'confirmation':
       return (
-        <PlaceholderScreen
-          step="confirmation"
-          title="Postulación Enviada"
-          description="Tu postulación ha sido enviada exitosamente. Te contactaremos pronto"
-          icon={Send}
+        <ConfirmationStep
+          candidateId={candidateId || ''}
+          candidateEmail={candidateData?.email || ''}
+          candidateLinkedIn={candidateData?.linkedin}
         />
       );
     

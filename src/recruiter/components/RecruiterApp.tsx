@@ -257,7 +257,7 @@ export function RecruiterApp() {
                   <CardHeader>
                     <CardTitle>Análisis del Perfil</CardTitle>
                     <CardDescription>
-                      Describe el perfil que buscas y la IA extraerá automáticamente los requisitos
+                      Describe el perfil que buscas y extrae los requisitos necesarios
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">

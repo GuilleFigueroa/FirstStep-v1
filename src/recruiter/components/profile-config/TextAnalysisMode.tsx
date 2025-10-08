@@ -343,20 +343,20 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
               className="min-h-[200px]"
             />
             <p className="text-sm text-muted-foreground mt-2">
-              La IA analizará el texto y extraerá automáticamente los requisitos del candidato ideal.
+              El sistema analizará el texto y extraerá automáticamente los requisitos del candidato ideal.
             </p>
           </div>
           
-          <Button 
+          <Button
             onClick={analyzeJobDescription}
             disabled={!jobDescription.trim() || isAnalyzing}
-            className="w-full flex items-center gap-2"
+            className="flex items-center justify-center gap-2 mx-auto"
             size="lg"
           >
             {isAnalyzing ? (
               <>
                 <Sparkles className="w-4 h-4 animate-spin" />
-                Analizando perfil con IA...
+                Analizando perfil...
               </>
             ) : (
               <>
@@ -379,7 +379,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-green-700">
-                La IA ha extraído y categorizado automáticamente los requisitos del perfil. 
+                Se han extraído y categorizado automáticamente los requisitos del perfil.
                 Puedes editar, eliminar o agregar nuevos requisitos según sea necesario.
               </CardDescription>
             </CardContent>
@@ -557,7 +557,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                   <h5 className="font-medium text-gray-900 mb-1">Sinónimos y palabras similares</h5>
                                   <div className="flex items-center gap-1">
                                     <p className="text-sm text-gray-600">
-                                      La IA ya reconoce variaciones y sinónimos automáticamente
+                                      El sistema ya reconoce variaciones y sinónimos automáticamente
                                     </p>
                                     <TooltipProvider>
                                       <Tooltip>
@@ -565,7 +565,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                           <Info className="w-4 h-4 text-red-500" />
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                          <p>La IA ya reconoce variaciones y sinónimos automáticamente</p>
+                                          <p>El sistema ya reconoce variaciones y sinónimos automáticamente</p>
                                         </TooltipContent>
                                       </Tooltip>
                                     </TooltipProvider>

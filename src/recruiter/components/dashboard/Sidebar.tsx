@@ -24,8 +24,8 @@ export function Sidebar({ activeSection = 'applications', onSectionChange }: Sid
       {/* Logo/Brand */}
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center p-2" style={{ backgroundColor: '#353535' }}>
-            <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-full h-full object-contain" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#353535' }}>
+            <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-7 h-7 object-contain" />
           </div>
           <div>
             <h2 className="font-semibold text-white">FirstStep</h2>

@@ -1,10 +1,9 @@
-import { 
-  LayoutDashboard, 
-  Clock, 
-  FileText, 
-  Users, 
-  LogOut,
-  Zap
+import {
+  LayoutDashboard,
+  Clock,
+  FileText,
+  Users,
+  LogOut
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,8 +24,8 @@ export function Sidebar({ activeSection = 'applications', onSectionChange }: Sid
       {/* Logo/Brand */}
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <Zap className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#353535' }}>
+            <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-5 h-5" />
           </div>
           <div>
             <h2 className="font-semibold text-white">FirstStep</h2>

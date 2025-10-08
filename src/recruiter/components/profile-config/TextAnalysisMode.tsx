@@ -334,19 +334,14 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     <div className="space-y-6">
       {!showResults ? (
         <div className="space-y-4">
-          <div>
-            <Textarea
-              id="description"
-              placeholder="Pega aquí la descripción completa del puesto, requisitos del candidato ideal, o cualquier información relevante del perfil que buscas..."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              className="min-h-[200px]"
-            />
-            <p className="text-sm text-muted-foreground mt-2">
-              El sistema analizará el texto y extraerá automáticamente los requisitos del candidato ideal.
-            </p>
-          </div>
-          
+          <Textarea
+            id="description"
+            placeholder="Pega aquí la descripción completa del puesto, requisitos del candidato ideal, o cualquier información relevante del perfil que buscas..."
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            className="min-h-[200px]"
+          />
+
           <Button
             onClick={analyzeJobDescription}
             disabled={!jobDescription.trim() || isAnalyzing}

@@ -155,9 +155,9 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
                   <FileSearch className="w-6 h-6 text-[#7572FF]" />
                   ¿Cómo funciona el proceso?
                 </CardTitle>
-                {process?.company_name && (
+                {(process as any)?.recruiter_name && (
                   <CardDescription className="text-sm mt-2">
-                    Proceso conducido por <strong>{process.company_name}</strong>
+                    Proceso conducido por <strong>{(process as any).recruiter_name}</strong>
                   </CardDescription>
                 )}
               </CardHeader>

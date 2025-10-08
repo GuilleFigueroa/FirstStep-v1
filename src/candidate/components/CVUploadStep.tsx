@@ -149,7 +149,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
         <div className="grid md:grid-cols-2 gap-8">
           {/* Left Column: Process Explanation */}
           <div className="space-y-6">
-            <Card>
+            <Card style={{ backgroundColor: '#F6AEDA' }}>
               <CardHeader>
                 <CardTitle className="text-2xl flex items-center gap-2">
                   <FileSearch className="w-6 h-6 text-[#7572FF]" />

@@ -81,7 +81,7 @@ export async function createProcess(data: CreateProcessData): Promise<ProcessRes
   }
 }
 
-// Obtener procesos de un reclutador
+// Obtener procesos de un reclutador con conteo de candidatos
 export async function getProcessesByRecruiter(recruiterId: string): Promise<ProcessListResponse> {
   try {
     const { data: processes, error } = await supabase
@@ -93,6 +93,36 @@ export async function getProcessesByRecruiter(recruiterId: string): Promise<Proc
     if (error) {
       console.error('Error fetching processes:', error)
       return { success: false, error: error.message }
+    }
+
+    // Obtener conteo de candidatos por proceso (solo los que completaron todo el proceso)
+    if (processes && processes.length > 0) {
+      const processIds = processes.map(p => p.id)
+
+      const { data: candidateCounts, error: countError } = await supabase
+        .from('candidates')
+        .select('process_id')
+        .in('process_id', processIds)
+        .eq('status', 'completed') // Solo contar candidatos aprobados que completaron el proceso
+
+      if (countError) {
+        console.error('Error fetching candidate counts:', countError)
+        // No retornar error, solo usar conteo 0
+      }
+
+      // Crear mapa de conteos
+      const countsMap: Record<string, number> = {}
+      candidateCounts?.forEach(c => {
+        countsMap[c.process_id] = (countsMap[c.process_id] || 0) + 1
+      })
+
+      // Agregar conteo a cada proceso
+      const processesWithCounts = processes.map(p => ({
+        ...p,
+        candidate_count: countsMap[p.id] || 0
+      }))
+
+      return { success: true, processes: processesWithCounts }
     }
 
     return { success: true, processes: processes || [] }

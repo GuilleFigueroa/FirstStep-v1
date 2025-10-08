@@ -20,6 +20,7 @@ export interface ScoringResult {
   approved: boolean;
   reason?: string;
   score?: number;
+  limitReached?: boolean;
 }
 
 export class AIQuestionsService {

@@ -116,11 +116,18 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
       const scoringResult = await AIQuestionsService.calculateScoring(candidateId);
 
       if (!scoringResult.approved) {
-        // Candidato rechazado - mostrar mensaje y NO continuar
-        setRejectionMessage(
-          scoringResult.reason ||
-          'Lamentablemente, tu perfil no cumple con todos los requisitos excluyentes para esta posición.'
-        );
+        // Verificar si fue rechazado por límite alcanzado
+        if (scoringResult.limitReached) {
+          setRejectionMessage(
+            'Lo sentimos, el proceso alcanzó el límite máximo de candidatos mientras completabas tu postulación. Tu perfil fue evaluado correctamente, pero no pudimos incluirte en esta oportunidad.'
+          );
+        } else {
+          // Candidato rechazado por requisitos - mostrar mensaje y NO continuar
+          setRejectionMessage(
+            scoringResult.reason ||
+            'Lamentablemente, tu perfil no cumple con todos los requisitos excluyentes para esta posición.'
+          );
+        }
         return;
       }
 

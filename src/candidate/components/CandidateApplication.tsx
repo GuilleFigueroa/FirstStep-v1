@@ -26,7 +26,14 @@ export function CandidateApplication() {
         const response = await getProcessByUniqueId(processId);
 
         if (response.success && response.process) {
-          setProcess(response.process);
+          // Verificar si el proceso está cerrado
+          if (response.process.status === 'closed') {
+            setError('Este proceso de selección ha sido cerrado');
+          } else if (response.process.status === 'paused') {
+            setError('Este proceso de selección está pausado temporalmente');
+          } else {
+            setProcess(response.process);
+          }
         } else {
           setError(response.error || 'Proceso no encontrado');
         }

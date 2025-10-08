@@ -39,15 +39,18 @@ interface Postulation {
   uniqueLink: string;
 }
 
+// Tipo extendido para procesos con conteo de candidatos (retornado por getProcessesByRecruiter)
+type ProcessWithCount = Process & { candidate_count?: number };
+
 // Función para convertir Process a Postulation para compatibilidad con la UI existente
-function processToPostulation(process: Process): Postulation {
+function processToPostulation(process: ProcessWithCount): Postulation {
   return {
     id: process.id,
     jobTitle: process.title,
     company: process.company_name,
     department: 'General', // TODO: Agregar department al esquema en el futuro
     status: process.status,
-    applicants: 0, // TODO: Conectar con tabla de candidatos en el futuro
+    applicants: process.candidate_count || 0,
     dateCreated: new Date(process.created_at).toISOString().split('T')[0],
     maxApplicants: process.candidate_limit,
     uniqueLink: process.unique_link

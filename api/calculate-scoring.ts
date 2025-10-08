@@ -179,7 +179,52 @@ export default async function handler(
         score: scoringResult.score
       });
     } else {
-      // APROBADO: Guardar score y continuar
+      // APROBADO: Verificar límite de candidatos antes de marcar como completed
+
+      // 1. Verificar si el proceso tiene límite de candidatos configurado
+      if (process.candidate_limit) {
+        // 2. Contar cuántos candidatos ya completaron el proceso
+        const { count, error: countError } = await supabaseAdmin
+          .from('candidates')
+          .select('*', { count: 'exact', head: true })
+          .eq('process_id', candidate.process_id)
+          .eq('status', 'completed');
+
+        if (countError) {
+          console.error('Error counting completed candidates:', countError);
+          return res.status(500).json({
+            success: false,
+            error: 'Error al verificar límite de candidatos'
+          });
+        }
+
+        // 3. Si ya alcanzó el límite, rechazar al candidato
+        if (count !== null && count >= process.candidate_limit) {
+          // Marcar como rechazado con razón especial
+          const { error: updateError } = await supabaseAdmin
+            .from('candidates')
+            .update({
+              status: 'rejected',
+              rejection_reason: 'El proceso alcanzó el límite máximo de candidatos',
+              score: scoringResult.score,
+              scoring_details: scoringResult
+            })
+            .eq('id', candidateId);
+
+          if (updateError) {
+            console.error('Error updating candidate (limit reached):', updateError);
+          }
+
+          return res.status(200).json({
+            approved: false,
+            reason: 'Lo sentimos, el proceso alcanzó el límite máximo de candidatos',
+            limitReached: true,
+            score: scoringResult.score
+          });
+        }
+      }
+
+      // 4. Si no alcanzó el límite, marcar como completed normalmente
       const { error: updateError } = await supabaseAdmin
         .from('candidates')
         .update({
@@ -195,6 +240,33 @@ export default async function handler(
           success: false,
           error: 'Error al actualizar candidato aprobado'
         });
+      }
+
+      // 5. Si hay límite, verificar si este candidato lo completó exactamente
+      if (process.candidate_limit) {
+        const { count: newCount } = await supabaseAdmin
+          .from('candidates')
+          .select('*', { count: 'exact', head: true })
+          .eq('process_id', candidate.process_id)
+          .eq('status', 'completed');
+
+        // Si alcanzó el límite exacto, cerrar proceso automáticamente
+        if (newCount !== null && newCount >= process.candidate_limit) {
+          const { error: closeError } = await supabaseAdmin
+            .from('processes')
+            .update({
+              status: 'closed',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', candidate.process_id);
+
+          if (closeError) {
+            console.error('Error auto-closing process:', closeError);
+            // No retornar error, el candidato ya fue aprobado
+          } else {
+            console.log(`Process ${candidate.process_id} auto-closed: limit reached (${newCount}/${process.candidate_limit})`);
+          }
+        }
       }
 
       return res.status(200).json({

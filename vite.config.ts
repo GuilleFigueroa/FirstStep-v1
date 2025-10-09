@@ -8,6 +8,8 @@
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {
+        buffer: 'buffer',
+        events: 'events',
         'vaul@1.1.2': 'vaul',
         'sonner@2.0.3': 'sonner',
         'recharts@2.15.2': 'recharts',
@@ -52,6 +54,19 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      rollupOptions: {
+        external: ['buffer', 'events']
+      }
+    },
+    define: {
+      'global': 'globalThis',
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: 'globalThis'
+        }
+      }
     },
     server: {
       port: 3000,

@@ -26,14 +26,9 @@ export async function generateAIResponse(
 
   return await generateText({
     model,
-    messages: [
-      {
-        role: 'user',
-        content: finalPrompt
-      }
-    ],
+    prompt: finalPrompt,
     temperature: options?.temperature ?? 0.7,
-    maxCompletionTokens: options?.maxTokens ?? 1500,
+    maxTokens: options?.maxTokens ?? 1500,
   });
 }
 

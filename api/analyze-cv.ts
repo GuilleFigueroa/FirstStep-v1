@@ -91,7 +91,7 @@ export default async function handler(
     let aiResponse;
     try {
       aiResponse = await generateAIResponse(prompt, {
-        temperature: 0.7,
+        temperature: 0.4, // Más determinista para generar preguntas consistentes
         maxTokens: 1500,
         responseFormat: 'json'
       });
@@ -218,7 +218,7 @@ export default async function handler(
 }
 
 /**
- * Construye el prompt para OpenAI con lógica de priorización
+ * Construye el prompt para OpenAI con lógica de priorización y contextualización mejorada
  */
 function buildAnalysisPrompt(
   cvText: string,
@@ -226,10 +226,7 @@ function buildAnalysisPrompt(
   optionalRequirements: any[],
   customPrompt?: string
 ): string {
-  return `Eres un asistente de reclutamiento especializado en analizar CVs y generar preguntas específicas para verificar requisitos.
-
-**CONTEXTO:**
-Estás analizando el CV de un candidato para un puesto con requisitos específicos (indispensables y deseables).
+  return `Eres un asistente experto en análisis de CVs para procesos de reclutamiento. Tu tarea es generar preguntas precisas y contextualizadas para verificar requisitos.
 
 **CV DEL CANDIDATO:**
 ${cvText}
@@ -242,34 +239,95 @@ ${formatRequirements(optionalRequirements)}
 
 ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` : ''}
 
-**TU TAREA:**
-1. Analiza el CV y detecta qué requisitos INDISPENSABLES NO se pueden verificar completamente con la información del CV
-2. Genera preguntas dirigidas a verificar PRIMERO esos requisitos indispensables (marca con "is_mandatory": true)
-3. Si quedan preguntas disponibles (máximo 5 total), genera preguntas para requisitos deseables (marca con "is_mandatory": false)
-4. Cada pregunta debe ser específica, directa y fácil de responder
+---
 
-**REGLAS:**
-- Máximo 5 preguntas en total
-- Priorizar requisitos indispensables primero
-- Si un requisito está CLARAMENTE cubierto en el CV, NO preguntar
-- Si hay duda o información incompleta, SÍ preguntar
-- Preguntas deben permitir respuestas cortas (no ensayos)
+**TU PROCESO DE ANÁLISIS:**
+
+1. **PASO 1 - Analiza cada requisito INDISPENSABLE:**
+   Para cada uno, identifica:
+   - ¿Está mencionado en el CV? (sí/no/parcialmente)
+   - Si está mencionado, ¿tiene detalles específicos suficientes? (años de experiencia, nivel, certificaciones)
+   - ¿Necesita una pregunta de verificación?
+
+2. **PASO 2 - Prioriza las preguntas:**
+   - PRIORIDAD ALTA: Requisitos mandatory NO mencionados o sin detalles
+   - PRIORIDAD MEDIA: Requisitos mandatory con información ambigua
+   - PRIORIDAD BAJA: Requisitos optional sin verificar
+
+3. **PASO 3 - Genera preguntas (máximo 5):**
+   - Cada pregunta debe referenciar lo que YA está (o NO está) en el CV
+   - Ser específica sobre qué información falta
+   - Permitir respuestas concretas y cortas
+
+---
+
+**CUÁNDO GENERAR UNA PREGUNTA:**
+
+✅ **SÍ preguntar si:**
+- Requisito mandatory NO aparece en el CV
+- Requisito mencionado pero SIN años/nivel específico
+  * Ejemplo: CV dice "Experiencia con React" pero no dice cuántos años
+- Información ambigua o contradictoria
+
+❌ **NO preguntar si:**
+- Requisito tiene información clara y completa en CV
+- Requisito optional con evidencia suficiente
+- Ya tienes 5 preguntas (límite máximo)
+
+---
+
+**FORMATO DE PREGUNTAS:**
+
+✅ **BUENAS PREGUNTAS (con contexto del CV):**
+- "En tu CV mencionas experiencia con React. ¿Podrías especificar cuántos años exactos has trabajado con esta tecnología?"
+- "No encuentro mención de Node.js en tu CV, que es un requisito indispensable. ¿Tienes experiencia con Node.js? Si es así, ¿cuántos años?"
+- "Veo que trabajaste en proyectos backend. ¿Qué bases de datos SQL has utilizado y por cuánto tiempo?"
+
+❌ **MALAS PREGUNTAS (genéricas, sin contexto):**
+- "¿Tienes experiencia con React?"
+- "¿Sabes Node.js?"
+- "¿Qué tecnologías conoces?"
+
+---
 
 **FORMATO DE SALIDA (JSON válido):**
 {
   "questions": [
     {
-      "question": "¿Cuántos años de experiencia tienes con React?",
-      "reason": "Verificar nivel avanzado en React (requisito indispensable)",
+      "question": "Texto de la pregunta contextualizada",
+      "reason": "Explicación breve de por qué se hace esta pregunta",
+      "cv_evidence": "Qué encontraste (o NO encontraste) en el CV",
       "is_mandatory": true
-    },
-    {
-      "question": "¿Has trabajado con TypeScript en proyectos reales?",
-      "reason": "Confirmar experiencia con TypeScript (requisito deseable)",
-      "is_mandatory": false
     }
   ]
 }
+
+**EJEMPLO COMPLETO:**
+{
+  "questions": [
+    {
+      "question": "En tu CV mencionas que trabajaste con React en varios proyectos. ¿Podrías especificar cuántos años acumulados de experiencia tienes con React?",
+      "reason": "CV menciona React pero no especifica años de experiencia. Requisito: React avanzado (5+ años)",
+      "cv_evidence": "CV menciona: 'Desarrollo de aplicaciones frontend con React' pero sin duración específica",
+      "is_mandatory": true
+    },
+    {
+      "question": "No encuentro mención de Python en tu CV, que es un requisito indispensable para este puesto. ¿Tienes experiencia programando en Python? Si es así, ¿cuántos años?",
+      "reason": "Python no aparece mencionado en el CV. Requisito: Python avanzado (5+ años)",
+      "cv_evidence": "No se encontró mención de Python en ninguna sección del CV",
+      "is_mandatory": true
+    }
+  ]
+}
+
+---
+
+**REGLAS FINALES:**
+- Máximo 5 preguntas en total
+- Priorizar requisitos indispensables primero
+- Cada pregunta debe incluir contexto del CV
+- Ser específico sobre qué información se necesita
+- Permitir respuestas cortas y directas
 
 Genera las preguntas ahora:`;
 }

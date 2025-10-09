@@ -19,6 +19,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
   const [submitting, setSubmitting] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
+  const [rejectionDetails, setRejectionDetails] = useState<any>(null);
 
   // Cargar preguntas al montar el componente
   useEffect(() => {
@@ -218,56 +219,118 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
     );
   }
 
-  // Rejection screen
+  // Cargar detalles del scoring cuando hay rechazo
+  useEffect(() => {
+    if (rejectionMessage) {
+      const loadRejectionDetails = async () => {
+        try {
+          const { data } = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}`).then(r => r.json());
+          if (data?.scoringDetails) {
+            setRejectionDetails(data.scoringDetails);
+          }
+        } catch (err) {
+          console.error('Error loading rejection details:', err);
+        }
+      };
+      loadRejectionDetails();
+
+      // Bloquear navegación hacia atrás cuando hay rechazo
+      const preventBackNavigation = () => {
+        window.history.pushState(null, '', window.location.href);
+      };
+
+      // Agregar entrada al historial para prevenir el botón "atrás"
+      window.history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', preventBackNavigation);
+
+      return () => {
+        window.removeEventListener('popstate', preventBackNavigation);
+      };
+    }
+  }, [rejectionMessage, candidateId]);
+
   if (rejectionMessage) {
+    const mandatoryFailed = rejectionDetails?.mandatory_evaluation?.filter((r: any) => !r.meets) || [];
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-[#7572FF] rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
+                  <AlertCircle className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-[#7572FF] font-semibold">Evaluación Completada</span>
+                <span className="text-red-600 font-semibold">Postulación No Aprobada</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto px-6 py-12">
+        <div className="max-w-3xl mx-auto px-6 py-12">
           <Card>
             <CardHeader className="text-center">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-8 h-8 text-orange-600" />
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                  <AlertCircle className="w-12 h-12 text-red-600" />
                 </div>
               </div>
-              <CardTitle className="text-2xl">Postulación No Aprobada</CardTitle>
-              <CardDescription className="text-base mt-2">
-                Gracias por tu interés en esta posición
+              <CardTitle className="text-3xl text-red-700">
+                Postulación No Aprobada
+              </CardTitle>
+              <CardDescription className="text-base mt-3 text-gray-700">
+                Lamentablemente, tu perfil no cumple con todos los requisitos obligatorios para esta posición.
               </CardDescription>
             </CardHeader>
 
             <CardContent className="space-y-6">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm text-orange-900 leading-relaxed">
-                  {rejectionMessage}
+              {/* Requisitos obligatorios NO cumplidos */}
+              {mandatoryFailed.length > 0 ? (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                    {mandatoryFailed.length === 1
+                      ? 'Requisito Obligatorio No Cumplido'
+                      : 'Requisitos Obligatorios No Cumplidos'}
+                  </h3>
+                  <div className="space-y-3">
+                    {mandatoryFailed.map((req: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-lg"
+                      >
+                        <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-medium text-red-900">{req.requirement}</p>
+                          {req.evidence && (
+                            <p className="text-sm text-red-700 mt-1">{req.evidence}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                /* Mensaje genérico si no hay detalles específicos */
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-900 leading-relaxed">
+                    {rejectionMessage}
+                  </p>
+                </div>
+              )}
+
+              {/* Mensaje de ánimo */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <p className="text-sm text-blue-900">
+                  Te animamos a seguir explorando otras oportunidades que se ajusten mejor a tu perfil y experiencia actual.
                 </p>
               </div>
 
-              <div className="text-center text-sm text-gray-600">
-                <p>Te animamos a seguir explorando otras oportunidades que se ajusten mejor a tu perfil.</p>
-              </div>
-
-              <div className="pt-2">
-                <Button
-                  onClick={onBack}
-                  variant="outline"
-                  className="w-full border-gray-300"
-                >
-                  Volver al Inicio
-                </Button>
+              {/* Mensaje final */}
+              <div className="text-center pt-2">
+                <p className="text-sm text-gray-500">
+                  Gracias por tu tiempo. Puedes cerrar esta ventana.
+                </p>
               </div>
             </CardContent>
           </Card>

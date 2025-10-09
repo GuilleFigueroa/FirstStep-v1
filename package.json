@@ -2,6 +2,9 @@
       "name": "FirstStep app",
       "version": "0.1.0",
       "private": true,
+      "overrides": {
+            "rollup": "^4.52.2"
+      },
       "dependencies": {
             "@ai-sdk/openai": "^2.0.42",
             "@radix-ui/react-accordion": "^1.2.3",

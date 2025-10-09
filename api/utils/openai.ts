@@ -28,7 +28,7 @@ export async function generateAIResponse(
     model,
     prompt: finalPrompt,
     temperature: options?.temperature ?? 0.7,
-    maxTokens: options?.maxTokens ?? 1500,
+    maxOutputTokens: options?.maxTokens ?? 1500,
   });
 }
 

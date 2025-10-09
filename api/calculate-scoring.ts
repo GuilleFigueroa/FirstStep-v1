@@ -46,7 +46,7 @@ export default async function handler(
     // 3. Obtener requisitos del proceso
     const { data: process, error: processError } = await supabaseAdmin
       .from('processes')
-      .select('mandatory_requirements, optional_requirements, custom_prompt')
+      .select('mandatory_requirements, optional_requirements, custom_prompt, candidate_limit')
       .eq('id', candidate.process_id)
       .single();
 

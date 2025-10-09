@@ -268,6 +268,9 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 - Requisito mencionado pero SIN años/nivel específico
   * Ejemplo: CV dice "Experiencia con React" pero no dice cuántos años
 - Información ambigua o contradictoria
+- **IMPORTANTE**: Distinguir entre "mencionar una tecnología" vs "tener experiencia laboral con ella"
+  * Si el CV solo lista una tecnología sin contexto → PREGUNTAR años de experiencia
+  * Si el CV menciona uso en un proyecto específico → PREGUNTAR duración y profundidad
 
 ❌ **NO preguntar si:**
 - Requisito tiene información clara y completa en CV
@@ -279,14 +282,16 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 **FORMATO DE PREGUNTAS:**
 
 ✅ **BUENAS PREGUNTAS (con contexto del CV):**
-- "En tu CV mencionas experiencia con React. ¿Podrías especificar cuántos años exactos has trabajado con esta tecnología?"
+- "En tu CV mencionas 'React' en tu lista de habilidades. ¿Cuántos años de experiencia laboral tienes usando React en proyectos profesionales?"
 - "No encuentro mención de Node.js en tu CV, que es un requisito indispensable. ¿Tienes experiencia con Node.js? Si es así, ¿cuántos años?"
-- "Veo que trabajaste en proyectos backend. ¿Qué bases de datos SQL has utilizado y por cuánto tiempo?"
+- "Veo que trabajaste como Backend Developer en Empresa X. ¿Podrías especificar qué bases de datos SQL utilizaste y durante cuánto tiempo?"
+- "Tu CV menciona 'Python' pero no especifica el nivel. ¿Cuántos años has trabajado profesionalmente con Python y en qué tipo de proyectos?"
 
 ❌ **MALAS PREGUNTAS (genéricas, sin contexto):**
 - "¿Tienes experiencia con React?"
 - "¿Sabes Node.js?"
 - "¿Qué tecnologías conoces?"
+- "¿Cuánto tiempo usaste Python?" (sin contexto del CV)
 
 ---
 
@@ -306,15 +311,21 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 {
   "questions": [
     {
-      "question": "En tu CV mencionas que trabajaste con React en varios proyectos. ¿Podrías especificar cuántos años acumulados de experiencia tienes con React?",
-      "reason": "CV menciona React pero no especifica años de experiencia. Requisito: React avanzado (5+ años)",
-      "cv_evidence": "CV menciona: 'Desarrollo de aplicaciones frontend con React' pero sin duración específica",
+      "question": "En tu CV aparece 'React' listado en la sección de habilidades técnicas, pero no veo experiencia laboral específica con esta tecnología. ¿Cuántos años de experiencia profesional tienes desarrollando con React?",
+      "reason": "React aparece mencionado pero sin contexto laboral ni años. Requisito: React avanzado (5+ años)",
+      "cv_evidence": "CV lista 'React' en habilidades técnicas, pero las experiencias laborales descritas no especifican uso de React ni duración",
       "is_mandatory": true
     },
     {
-      "question": "No encuentro mención de Python en tu CV, que es un requisito indispensable para este puesto. ¿Tienes experiencia programando en Python? Si es así, ¿cuántos años?",
-      "reason": "Python no aparece mencionado en el CV. Requisito: Python avanzado (5+ años)",
-      "cv_evidence": "No se encontró mención de Python en ninguna sección del CV",
+      "question": "Veo que trabajaste como Backend Developer en Empresa X durante 2 años. ¿Utilizaste Node.js en ese puesto? Es un requisito indispensable y no aparece mencionado en tu CV.",
+      "reason": "Node.js no aparece mencionado. Requisito: Node.js (3+ años). Pregunto específicamente sobre su experiencia backend",
+      "cv_evidence": "CV menciona 'Backend Developer' pero no especifica tecnologías backend utilizadas. No hay mención de Node.js",
+      "is_mandatory": true
+    },
+    {
+      "question": "Tu CV indica experiencia en 'desarrollo de APIs REST'. ¿Qué frameworks o tecnologías específicas utilizaste para esto y durante cuánto tiempo?",
+      "reason": "Menciona APIs REST pero sin tecnologías específicas. Necesito verificar si usó las herramientas requeridas",
+      "cv_evidence": "CV menciona: 'Desarrollo de APIs REST' pero no especifica si usó Express, NestJS, u otros frameworks",
       "is_mandatory": true
     }
   ]
@@ -328,6 +339,18 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 - Cada pregunta debe incluir contexto del CV
 - Ser específico sobre qué información se necesita
 - Permitir respuestas cortas y directas
+
+**CLAVE: EXPERIENCIA vs MENCIÓN**
+Al analizar requisitos de tecnologías/herramientas:
+1. **Solo menciona la tecnología** (ej: "Python" en lista de skills) → PREGUNTAR años de experiencia profesional
+2. **Menciona uso en proyecto** (ej: "Usé Python en proyecto X") → PREGUNTAR duración específica del uso
+3. **Menciona años** (ej: "3 años con Python") → NO preguntar, ya está claro
+4. **Contexto ambiguo** (ej: "Familiarizado con Python") → PREGUNTAR experiencia laboral real vs conocimiento teórico
+
+La pregunta debe ayudar a distinguir entre:
+- Conocimiento teórico vs experiencia laboral real
+- Uso esporádico vs uso profesional continuo
+- Mención superficial vs dominio profundo
 
 Genera las preguntas ahora:`;
 }

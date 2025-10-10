@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,12 +21,8 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
   const [rejectionDetails, setRejectionDetails] = useState<any>(null);
 
-  // Cargar preguntas al montar el componente
-  useEffect(() => {
-    loadQuestions();
-  }, [candidateId]);
-
-  const loadQuestions = async () => {
+  // Usar useCallback para evitar loop infinito de re-renders
+  const loadQuestions = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -56,7 +52,12 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
     } finally {
       setLoading(false);
     }
-  };
+  }, [candidateId]); // Solo se recrea si candidateId cambia
+
+  // Cargar preguntas al montar el componente
+  useEffect(() => {
+    loadQuestions();
+  }, [loadQuestions]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';

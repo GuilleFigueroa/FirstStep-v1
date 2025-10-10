@@ -226,7 +226,7 @@ function buildAnalysisPrompt(
   optionalRequirements: any[],
   customPrompt?: string
 ): string {
-  return `Eres un asistente experto en análisis de CVs para procesos de reclutamiento. Tu tarea es generar preguntas precisas y contextualizadas para verificar requisitos.
+  return `Eres un asistente experto en análisis de CVs para procesos de reclutamiento. Genera preguntas precisas y contextualizadas para verificar requisitos.
 
 **CV DEL CANDIDATO:**
 ${cvText}
@@ -241,116 +241,45 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 
 ---
 
-**TU PROCESO DE ANÁLISIS:**
+**REGLAS DE ANÁLISIS:**
 
-1. **PASO 1 - Analiza cada requisito INDISPENSABLE:**
-   Para cada uno, identifica:
-   - ¿Está mencionado en el CV? (sí/no/parcialmente)
-   - Si está mencionado, ¿tiene detalles específicos suficientes? (años de experiencia, nivel, certificaciones)
-   - ¿Necesita una pregunta de verificación?
+1. **EQUIVALENCIAS DE ROLES** (reconoce variaciones ES/EN):
+   - Product Manager = Gerente de Producto = Desarrollador de Producto = PM = Product Owner = PO
+   - Backend/Frontend/Full Stack Developer = Desarrollador/Ingeniero Backend/Frontend/Full Stack
+   - Tech Lead = Líder Técnico = Technical Lead
+   - DevOps Engineer = Ingeniero DevOps = SRE
+   - Data Scientist = Científico de Datos
+   - UX Designer = Diseñador UX
+   - QA Engineer = Tester = Quality Assurance
 
-2. **PASO 2 - Prioriza las preguntas:**
-   - PRIORIDAD ALTA: Requisitos mandatory NO mencionados o sin detalles
-   - PRIORIDAD MEDIA: Requisitos mandatory con información ambigua
-   - PRIORIDAD BAJA: Requisitos optional sin verificar
+2. **EXPERIENCIA LABORAL vs MENCIÓN:**
+   ✅ **Cuenta como experiencia:** "Trabajé como [ROL] en [EMPRESA] (años)"
+   ❌ **NO cuenta:** "Conocimientos en...", "Familiarizado con...", "[Skill]" listado sin contexto
+   ⚠️ **Pregunta:** Menciones sin años o sin contexto laboral
 
-3. **PASO 3 - Genera preguntas (máximo 5):**
-   - Cada pregunta debe referenciar lo que YA está (o NO está) en el CV
-   - Ser específica sobre qué información falta
-   - Permitir respuestas concretas y cortas
+3. **PROCESO:**
+   - Busca requisitos en EXPERIENCIA LABORAL primero (no solo en skills)
+   - Si encuentras rol equivalente con años → NO preguntes
+   - Si solo está en skills sin contexto → SÍ pregunta años de experiencia profesional
+   - Máximo 5 preguntas, prioriza mandatory
 
----
-
-**CUÁNDO GENERAR UNA PREGUNTA:**
-
-✅ **SÍ preguntar si:**
-- Requisito mandatory NO aparece en el CV
-- Requisito mencionado pero SIN años/nivel específico
-  * Ejemplo: CV dice "Experiencia con React" pero no dice cuántos años
-- Información ambigua o contradictoria
-- **IMPORTANTE**: Distinguir entre "mencionar una tecnología" vs "tener experiencia laboral con ella"
-  * Si el CV solo lista una tecnología sin contexto → PREGUNTAR años de experiencia
-  * Si el CV menciona uso en un proyecto específico → PREGUNTAR duración y profundidad
-
-❌ **NO preguntar si:**
-- Requisito tiene información clara y completa en CV
-- Requisito optional con evidencia suficiente
-- Ya tienes 5 preguntas (límite máximo)
-
----
-
-**FORMATO DE PREGUNTAS:**
-
-✅ **BUENAS PREGUNTAS (con contexto del CV):**
-- "En tu CV mencionas 'React' en tu lista de habilidades. ¿Cuántos años de experiencia laboral tienes usando React en proyectos profesionales?"
-- "No encuentro mención de Node.js en tu CV, que es un requisito indispensable. ¿Tienes experiencia con Node.js? Si es así, ¿cuántos años?"
-- "Veo que trabajaste como Backend Developer en Empresa X. ¿Podrías especificar qué bases de datos SQL utilizaste y durante cuánto tiempo?"
-- "Tu CV menciona 'Python' pero no especifica el nivel. ¿Cuántos años has trabajado profesionalmente con Python y en qué tipo de proyectos?"
-
-❌ **MALAS PREGUNTAS (genéricas, sin contexto):**
-- "¿Tienes experiencia con React?"
-- "¿Sabes Node.js?"
-- "¿Qué tecnologías conoces?"
-- "¿Cuánto tiempo usaste Python?" (sin contexto del CV)
-
----
-
-**FORMATO DE SALIDA (JSON válido):**
+**FORMATO DE SALIDA (JSON):**
 {
   "questions": [
     {
-      "question": "Texto de la pregunta contextualizada",
-      "reason": "Explicación breve de por qué se hace esta pregunta",
-      "cv_evidence": "Qué encontraste (o NO encontraste) en el CV",
-      "is_mandatory": true
+      "question": "Texto contextualizado mencionando qué encontraste en el CV",
+      "reason": "Por qué preguntas esto",
+      "cv_evidence": "Qué encontraste o NO encontraste",
+      "is_mandatory": true/false
     }
   ]
 }
 
-**EJEMPLO COMPLETO:**
-{
-  "questions": [
-    {
-      "question": "En tu CV aparece 'React' listado en la sección de habilidades técnicas, pero no veo experiencia laboral específica con esta tecnología. ¿Cuántos años de experiencia profesional tienes desarrollando con React?",
-      "reason": "React aparece mencionado pero sin contexto laboral ni años. Requisito: React avanzado (5+ años)",
-      "cv_evidence": "CV lista 'React' en habilidades técnicas, pero las experiencias laborales descritas no especifican uso de React ni duración",
-      "is_mandatory": true
-    },
-    {
-      "question": "Veo que trabajaste como Backend Developer en Empresa X durante 2 años. ¿Utilizaste Node.js en ese puesto? Es un requisito indispensable y no aparece mencionado en tu CV.",
-      "reason": "Node.js no aparece mencionado. Requisito: Node.js (3+ años). Pregunto específicamente sobre su experiencia backend",
-      "cv_evidence": "CV menciona 'Backend Developer' pero no especifica tecnologías backend utilizadas. No hay mención de Node.js",
-      "is_mandatory": true
-    },
-    {
-      "question": "Tu CV indica experiencia en 'desarrollo de APIs REST'. ¿Qué frameworks o tecnologías específicas utilizaste para esto y durante cuánto tiempo?",
-      "reason": "Menciona APIs REST pero sin tecnologías específicas. Necesito verificar si usó las herramientas requeridas",
-      "cv_evidence": "CV menciona: 'Desarrollo de APIs REST' pero no especifica si usó Express, NestJS, u otros frameworks",
-      "is_mandatory": true
-    }
-  ]
-}
-
----
-
-**REGLAS FINALES:**
-- Máximo 5 preguntas en total
-- Priorizar requisitos indispensables primero
-- Cada pregunta debe incluir contexto del CV
-- Ser específico sobre qué información se necesita
-- Permitir respuestas cortas y directas
-
-**CLAVE: EXPERIENCIA vs MENCIÓN**
-Al analizar requisitos de tecnologías/herramientas:
-1. **Solo menciona la tecnología** (ej: "Python" en lista de skills) → PREGUNTAR años de experiencia profesional
-2. **Menciona uso en proyecto** (ej: "Usé Python en proyecto X") → PREGUNTAR duración específica del uso
-3. **Menciona años** (ej: "3 años con Python") → NO preguntar, ya está claro
-4. **Contexto ambiguo** (ej: "Familiarizado con Python") → PREGUNTAR experiencia laboral real vs conocimiento teórico
-
-La pregunta debe ayudar a distinguir entre:
-- Conocimiento teórico vs experiencia laboral real
-- Uso esporádico vs uso profesional continuo
-- Mención superficial vs dominio profundo
+**EJEMPLOS:**
+✅ BUENA: "Veo 'React' en skills pero no en experiencia laboral. ¿Cuántos años de experiencia profesional tienes con React?"
+✅ BUENA: "Trabajaste como 'Desarrollador de Producto' (equivalente a PM) en 2020-2024. ¿Incluía gestión de roadmap y stakeholders?"
+❌ MALA: "¿Tienes experiencia con React?" (sin contexto)
+❌ MALA: "¿Eres Product Manager?" (cuando CV dice rol equivalente)
 
 Genera las preguntas ahora:`;
 }

@@ -301,19 +301,50 @@ function buildModeratePrompt(
 
 **MODO DE EVALUACIÓN: MODERADO (TOLERANTE)**
 
+**PRINCIPIOS FUNDAMENTALES:**
+
+1. **ANÁLISIS SEMÁNTICO DE ROLES:**
+   Reconoce equivalencias de títulos y roles:
+   - Product Manager = Gerente de Producto = Desarrollador de Producto = PM = Product Owner = PO
+   - Backend Developer = Desarrollador Backend = Ingeniero Backend = Backend Engineer
+   - Frontend Developer = Desarrollador Frontend = Ingeniero Frontend = Frontend Engineer
+   - Full Stack Developer = Desarrollador Full Stack = Full Stack Engineer
+   - Tech Lead = Líder Técnico = Technical Lead = Team Lead Técnico
+   - Data Scientist = Científico de Datos = Analista de Datos Senior
+   - DevOps Engineer = Ingeniero DevOps = SRE = Site Reliability Engineer
+   - UX Designer = Diseñador UX = Diseñador de Experiencia de Usuario
+   - QA Engineer = Ingeniero de QA = Tester = Quality Assurance
+
+   **Regla:** Si el CV menciona un equivalente del requisito, cuenta como cumplido.
+
+2. **EXPERIENCIA LABORAL vs MENCIÓN:**
+   ✅ **CUENTA como experiencia cumplida:**
+   - "Trabajé como [ROL] en [EMPRESA] X años"
+   - CV muestra rol equivalente con período claro
+   - Respuestas confirman experiencia laboral profesional
+
+   ❌ **NO cuenta como experiencia:**
+   - Solo "conocimientos en..." sin contexto laboral
+   - "Familiarizado con..." sin años de práctica
+   - Cursos o certificaciones sin experiencia aplicada
+
 **REGLAS DE EVALUACIÓN:**
+
 1. **Requisitos INDISPENSABLES (mandatory):**
    - ✅ APROBAR si cumple el requisito o está MUY CERCA
    - ✅ Ejemplos de APROBAR:
+     * Requisito: "Product Manager 3+ años" → CV: "Desarrollador de Producto 4 años" → ✅ APROBAR (equivalente)
      * Requisito: "React 5+ años" → Candidato tiene 4 años → ✅ APROBAR (cercano)
-     * Requisito: "Node.js avanzado" → CV muestra proyectos complejos → ✅ APROBAR
+     * Requisito: "Backend Developer" → CV: "Ingeniero Backend" → ✅ APROBAR (equivalente)
    - ❌ RECHAZAR solo si CLARAMENTE no cumple
    - ❌ Ejemplos de RECHAZAR:
      * Requisito: "React 5+ años" → Candidato tiene 6 meses → ❌ RECHAZAR
+     * Requisito: "Product Manager" → Solo menciona "curso de gestión de producto" → ❌ RECHAZAR
      * Requisito: "Python" → No menciona Python en ningún lado → ❌ RECHAZAR
 
 2. **Requisitos DESEABLES (optional):**
    - Sumar puntos al score si cumple
+   - Aplicar análisis semántico también aquí
    - NO rechazar si no cumple (solo afecta el score)
 
 3. **Score (0-100):**
@@ -338,13 +369,18 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 
 **FORMATO DE SALIDA (JSON válido):**
 {
-  "score": 75,
+  "score": 85,
   "meetsAllMandatory": true,
   "mandatory_evaluation": [
     {
+      "requirement": "Product Manager (3+ años)",
+      "meets": true,
+      "evidence": "CV menciona 'Desarrollador de Producto en Empresa Y (2020-2024)' - rol equivalente a Product Manager con 4 años de experiencia. Cumple requisito."
+    },
+    {
       "requirement": "React avanzado (5+ años)",
       "meets": true,
-      "evidence": "CV menciona 6 años de experiencia con React. Confirmado en respuesta a pregunta 2."
+      "evidence": "CV menciona 6 años de experiencia con React. Confirmado en respuesta a pregunta sobre años de experiencia profesional."
     }
   ],
   "optional_evaluation": [
@@ -352,15 +388,22 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
       "requirement": "Node.js intermedio (2-4 años)",
       "meets": false,
       "evidence": "CV menciona solo 1 año de experiencia con Node.js"
+    },
+    {
+      "requirement": "Liderazgo de equipos",
+      "meets": true,
+      "evidence": "En respuesta confirma que como Desarrollador de Producto lideró equipo de 3 personas."
     }
   ],
-  "summary": "El candidato cumple con todos los requisitos indispensables. Tiene sólida experiencia en React y demuestra conocimientos técnicos adecuados. Score de 75 refleja cumplimiento de mandatory + algunos optional."
+  "summary": "El candidato cumple con todos los requisitos indispensables. Tiene 4 años como Desarrollador de Producto (equivalente a Product Manager) y sólida experiencia técnica en React. Score de 85 refleja cumplimiento completo de mandatory + mayoría de optional."
 }
 
 **IMPORTANTE:**
 - Si meetsAllMandatory = false, agrega campo "rejection_reason" explicando qué requisito mandatory no cumple
+- Reconoce equivalencias de roles ANTES de evaluar (Product Manager = Desarrollador de Producto, etc.)
 - Sé objetivo pero tolerante (modo MODERADO)
 - Usa evidencia del CV Y respuestas para evaluar
+- En el campo "evidence" menciona explícitamente cuando usas equivalencias
 
 Evalúa al candidato ahora:`;
 }

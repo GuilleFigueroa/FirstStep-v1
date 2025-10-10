@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CandidateRegistration } from './CandidateRegistration';
 import { VerificationStep } from './VerificationStep';
 import { CVUploadStep } from './CVUploadStep';
@@ -114,15 +114,15 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
     }
   };
 
-  const handleVerificationComplete = () => {
+  const handleVerificationComplete = useCallback(() => {
     setCurrentStep('profile');
-  };
+  }, []);
 
-  const handleCVUploadComplete = () => {
+  const handleCVUploadComplete = useCallback(() => {
     setCurrentStep('ai_questions');
-  };
+  }, []);
 
-  const handleAIQuestionsComplete = async () => {
+  const handleAIQuestionsComplete = useCallback(async () => {
     // Verificar si hay preguntas del formulario del reclutador en la tabla
     const hasQuestions = await RecruiterQuestionsService.hasRecruiterQuestions(process.id);
 
@@ -132,23 +132,23 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
       // Si no hay preguntas del reclutador, ir directo a confirmación
       setCurrentStep('confirmation');
     }
-  };
+  }, [process.id]);
 
-  const handleRecruiterQuestionsComplete = () => {
+  const handleRecruiterQuestionsComplete = useCallback(() => {
     setCurrentStep('confirmation');
-  };
+  }, []);
 
-  const handleBackToRegistration = () => {
+  const handleBackToRegistration = useCallback(() => {
     setCurrentStep('registration');
-  };
+  }, []);
 
-  const handleBackToVerification = () => {
+  const handleBackToVerification = useCallback(() => {
     setCurrentStep('verification');
-  };
+  }, []);
 
-  const handleBackToProfile = () => {
+  const handleBackToProfile = useCallback(() => {
     setCurrentStep('profile');
-  };
+  }, []);
 
   // Placeholder screens for next steps
   const PlaceholderScreen = ({ 

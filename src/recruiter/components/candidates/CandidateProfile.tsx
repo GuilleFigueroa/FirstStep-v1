@@ -65,10 +65,31 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
 
   // Cargar análisis del candidato
   useEffect(() => {
+    const loadCandidateAnalysis = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await CandidateService.getCandidateAnalysis(candidate.id);
+
+        if (!result.success || !result.data) {
+          setError(result.error || 'Error al cargar análisis del candidato');
+          return;
+        }
+
+        setAnalysisData(result.data);
+      } catch (err) {
+        console.error('Error loading candidate analysis:', err);
+        setError('Error al cargar análisis del candidato');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadCandidateAnalysis();
   }, [candidate.id]);
 
-  const loadCandidateAnalysis = async () => {
+  const handleRetry = async () => {
     setLoading(true);
     setError(null);
 
@@ -216,7 +237,7 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
                 <h3 className="text-lg font-semibold text-red-900 mb-2 text-center">Error al cargar análisis</h3>
                 <p className="text-red-700 text-center mb-4">{error}</p>
                 <Button
-                  onClick={loadCandidateAnalysis}
+                  onClick={handleRetry}
                   className="w-full bg-[#7572FF] hover:bg-[#6863E8]"
                 >
                   Reintentar

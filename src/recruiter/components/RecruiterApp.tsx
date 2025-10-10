@@ -25,7 +25,7 @@ import type {
   JobProfile,
   JobPosting,
   UserData
-} from "../../app/App_backup";
+} from "../../shared/types/recruitment";
 
 // Función para convertir Profile a UserData
 function profileToUserData(profile: Profile): UserData {

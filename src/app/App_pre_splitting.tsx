@@ -9,7 +9,7 @@ export type {
   JobProfile,
   JobPosting,
   UserData
-} from "./App_backup";
+} from "../shared/types/recruitment";
 
 export default function App() {
   return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -21,43 +21,42 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
   const [rejectionDetails, setRejectionDetails] = useState<any>(null);
 
-  // Usar useCallback para evitar loop infinito de re-renders
-  const loadQuestions = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const questionsData = await AIQuestionsService.getAIQuestions(candidateId);
-
-      if (questionsData.length === 0) {
-        setError('No se encontraron preguntas para este proceso. Contacta al reclutador.');
-        setLoading(false);
-        return;
-      }
-
-      setQuestions(questionsData);
-
-      // Pre-cargar respuestas existentes (si las hay)
-      const existingAnswers = new Map<string, string>();
-      questionsData.forEach(q => {
-        if (q.answer_text) {
-          existingAnswers.set(q.id, q.answer_text);
-        }
-      });
-      setAnswers(existingAnswers);
-
-    } catch (err) {
-      console.error('Error loading questions:', err);
-      setError('Error al cargar las preguntas. Intenta de nuevo.');
-    } finally {
-      setLoading(false);
-    }
-  }, [candidateId]); // Solo se recrea si candidateId cambia
-
   // Cargar preguntas al montar el componente
   useEffect(() => {
+    const loadQuestions = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const questionsData = await AIQuestionsService.getAIQuestions(candidateId);
+
+        if (questionsData.length === 0) {
+          setError('No se encontraron preguntas para este proceso. Contacta al reclutador.');
+          setLoading(false);
+          return;
+        }
+
+        setQuestions(questionsData);
+
+        // Pre-cargar respuestas existentes (si las hay)
+        const existingAnswers = new Map<string, string>();
+        questionsData.forEach(q => {
+          if (q.answer_text) {
+            existingAnswers.set(q.id, q.answer_text);
+          }
+        });
+        setAnswers(existingAnswers);
+
+      } catch (err) {
+        console.error('Error loading questions:', err);
+        setError('Error al cargar las preguntas. Intenta de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadQuestions();
-  }, [loadQuestions]);
+  }, [candidateId]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
@@ -89,6 +88,38 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const handleRetry = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const questionsData = await AIQuestionsService.getAIQuestions(candidateId);
+
+      if (questionsData.length === 0) {
+        setError('No se encontraron preguntas para este proceso. Contacta al reclutador.');
+        setLoading(false);
+        return;
+      }
+
+      setQuestions(questionsData);
+
+      // Pre-cargar respuestas existentes (si las hay)
+      const existingAnswers = new Map<string, string>();
+      questionsData.forEach(q => {
+        if (q.answer_text) {
+          existingAnswers.set(q.id, q.answer_text);
+        }
+      });
+      setAnswers(existingAnswers);
+
+    } catch (err) {
+      console.error('Error loading questions:', err);
+      setError('Error al cargar las preguntas. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -209,7 +240,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
                 </div>
               </div>
               <div className="mt-6 text-center">
-                <Button onClick={loadQuestions} className="bg-[#7572FF] hover:bg-[#6863E8]">
+                <Button onClick={handleRetry} className="bg-[#7572FF] hover:bg-[#6863E8]">
                   Reintentar
                 </Button>
               </div>

@@ -29,10 +29,34 @@ export function Dashboard({ userProfile }: DashboardProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await getProcessStats(userProfile.id);
+
+        if (result.success && result.stats) {
+          setStats({
+            activeProcesses: result.stats.active,
+            totalCandidates: 0, // TODO: Conectar con candidatos cuando esté implementado
+            completedProcesses: result.stats.closed,
+            thisMonth: result.stats.thisMonth
+          });
+        } else {
+          setError(result.error || 'Error al cargar estadísticas');
+        }
+      } catch (error) {
+        setError('Error inesperado al cargar estadísticas');
+        console.error('Error loading stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadStats();
   }, [userProfile.id]);
 
-  const loadStats = async () => {
+  const handleRetry = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -41,7 +65,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
       if (result.success && result.stats) {
         setStats({
           activeProcesses: result.stats.active,
-          totalCandidates: 0, // TODO: Conectar con candidatos cuando esté implementado
+          totalCandidates: 0,
           completedProcesses: result.stats.closed,
           thisMonth: result.stats.thisMonth
         });
@@ -156,7 +180,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
           <CardContent className="pt-6">
             <p className="text-red-700">{error}</p>
             <button
-              onClick={loadStats}
+              onClick={handleRetry}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               Reintentar

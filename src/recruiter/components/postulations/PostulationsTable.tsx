@@ -68,15 +68,36 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
 
   // Cargar procesos del reclutador
   useEffect(() => {
-    if (userProfile?.id) {
-      loadProcesses();
-    } else {
+    if (!userProfile?.id) {
       setError('Error: Usuario no válido');
       setLoading(false);
+      return;
     }
+
+    const loadProcesses = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await getProcessesByRecruiter(userProfile.id);
+
+        if (result.success && result.processes) {
+          const postulationsData = result.processes.map(processToPostulation);
+          setPostulations(postulationsData);
+        } else {
+          setError(result.error || 'Error al cargar procesos');
+        }
+      } catch (error) {
+        setError('Error inesperado al cargar procesos');
+        console.error('Error loading processes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProcesses();
   }, [userProfile?.id]);
 
-  const loadProcesses = async () => {
+  const handleRetry = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -102,7 +123,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
       const result = await updateProcessStatus(processId, newStatus);
       if (result.success) {
         // Recargar procesos para reflejar el cambio
-        loadProcesses();
+        handleRetry();
       } else {
         alert(result.error || 'Error al actualizar estado');
       }
@@ -122,7 +143,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
       const result = await deleteProcess(processId);
       if (result.success) {
         // Recargar procesos para reflejar el cambio
-        loadProcesses();
+        handleRetry();
       } else {
         alert(result.error || 'Error al eliminar proceso');
       }
@@ -256,7 +277,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-red-700">{error}</p>
-            <Button onClick={loadProcesses} className="mt-4">
+            <Button onClick={handleRetry} className="mt-4">
               Reintentar
             </Button>
           </CardContent>

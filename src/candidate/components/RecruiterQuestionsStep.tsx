@@ -21,31 +21,30 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para cargar preguntas desde recruiter_questions
-  const loadQuestions = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data, error } = await supabase
-        .from('recruiter_questions')
-        .select('*')
-        .eq('process_id', process.id)
-        .order('question_order', { ascending: true });
-
-      if (error) throw error;
-
-      setQuestions(data || []);
-    } catch (err) {
-      console.error('Error loading recruiter questions:', err);
-      setError('Error al cargar las preguntas');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Cargar preguntas al montar el componente
   useEffect(() => {
+    const loadQuestions = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from('recruiter_questions')
+          .select('*')
+          .eq('process_id', process.id)
+          .order('question_order', { ascending: true });
+
+        if (error) throw error;
+
+        setQuestions(data || []);
+      } catch (err) {
+        console.error('Error loading recruiter questions:', err);
+        setError('Error al cargar las preguntas');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadQuestions();
   }, [process.id]);
 
@@ -83,6 +82,28 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
+  };
+
+  const handleRetry = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { data, error } = await supabase
+        .from('recruiter_questions')
+        .select('*')
+        .eq('process_id', process.id)
+        .order('question_order', { ascending: true });
+
+      if (error) throw error;
+
+      setQuestions(data || []);
+    } catch (err) {
+      console.error('Error loading recruiter questions:', err);
+      setError('Error al cargar las preguntas');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -161,7 +182,7 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
                 </div>
               </div>
               <div className="mt-6 text-center">
-                <Button onClick={loadQuestions} className="bg-[#7572FF] hover:bg-[#6863E8]">
+                <Button onClick={handleRetry} className="bg-[#7572FF] hover:bg-[#6863E8]">
                   Reintentar
                 </Button>
               </div>

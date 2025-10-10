@@ -64,12 +64,40 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
       return;
     }
 
+    const loadCandidates = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const result = await CandidateService.getCandidatesByRecruiter(recruiterId);
+
+        if (!result.success || !result.candidates) {
+          setError(result.error || 'Error al cargar candidatos');
+          setCandidates([]);
+          return;
+        }
+
+        // Agregar estado UI local a cada candidato
+        const candidatesWithUIState = result.candidates.map(c => ({
+          ...c,
+          actionStatus: 'none' as const,
+          isFavorite: false
+        }));
+
+        setCandidates(candidatesWithUIState);
+      } catch (err) {
+        console.error('Error loading candidates:', err);
+        setError('Error al cargar candidatos');
+        setCandidates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadCandidates();
   }, [recruiterId]);
 
-  const loadCandidates = async () => {
-    if (!recruiterId) return;
-
+  const handleRetry = async () => {
     setLoading(true);
     setError(null);
 
@@ -82,7 +110,6 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
         return;
       }
 
-      // Agregar estado UI local a cada candidato
       const candidatesWithUIState = result.candidates.map(c => ({
         ...c,
         actionStatus: 'none' as const,
@@ -287,7 +314,7 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
                 <p className="text-red-800">{error}</p>
                 <Button
-                  onClick={loadCandidates}
+                  onClick={handleRetry}
                   className="mt-4 bg-[#7572FF] hover:bg-[#6863E8]"
                 >
                   Reintentar

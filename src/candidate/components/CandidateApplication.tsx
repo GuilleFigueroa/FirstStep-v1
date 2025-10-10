@@ -14,6 +14,7 @@ export function CandidateApplication() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Cargar proceso al montar el componente
   useEffect(() => {
     const fetchProcess = async () => {
       if (!processId) {
@@ -26,7 +27,7 @@ export function CandidateApplication() {
         const response = await getProcessByUniqueId(processId);
 
         if (response.success && response.process) {
-          // Verificar si el proceso está cerrado
+          // Verificar estado del proceso
           if (response.process.status === 'closed') {
             setError('Este proceso de selección ha sido cerrado');
           } else if (response.process.status === 'paused') {
@@ -39,6 +40,7 @@ export function CandidateApplication() {
         }
       } catch (err) {
         setError('Error al cargar el proceso');
+        console.error('Error fetching process:', err);
       } finally {
         setLoading(false);
       }

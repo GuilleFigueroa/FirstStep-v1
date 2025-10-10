@@ -58,6 +58,36 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
     loadQuestions();
   }, [candidateId]);
 
+  // Cargar detalles del scoring cuando hay rechazo
+  useEffect(() => {
+    if (rejectionMessage) {
+      const loadRejectionDetails = async () => {
+        try {
+          const { data } = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}`).then(r => r.json());
+          if (data?.scoringDetails) {
+            setRejectionDetails(data.scoringDetails);
+          }
+        } catch (err) {
+          console.error('Error loading rejection details:', err);
+        }
+      };
+      loadRejectionDetails();
+
+      // Bloquear navegación hacia atrás cuando hay rechazo
+      const preventBackNavigation = () => {
+        window.history.pushState(null, '', window.location.href);
+      };
+
+      // Agregar entrada al historial para prevenir el botón "atrás"
+      window.history.pushState(null, '', window.location.href);
+      window.addEventListener('popstate', preventBackNavigation);
+
+      return () => {
+        window.removeEventListener('popstate', preventBackNavigation);
+      };
+    }
+  }, [rejectionMessage, candidateId]);
+
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -250,36 +280,6 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
       </div>
     );
   }
-
-  // Cargar detalles del scoring cuando hay rechazo
-  useEffect(() => {
-    if (rejectionMessage) {
-      const loadRejectionDetails = async () => {
-        try {
-          const { data } = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}`).then(r => r.json());
-          if (data?.scoringDetails) {
-            setRejectionDetails(data.scoringDetails);
-          }
-        } catch (err) {
-          console.error('Error loading rejection details:', err);
-        }
-      };
-      loadRejectionDetails();
-
-      // Bloquear navegación hacia atrás cuando hay rechazo
-      const preventBackNavigation = () => {
-        window.history.pushState(null, '', window.location.href);
-      };
-
-      // Agregar entrada al historial para prevenir el botón "atrás"
-      window.history.pushState(null, '', window.location.href);
-      window.addEventListener('popstate', preventBackNavigation);
-
-      return () => {
-        window.removeEventListener('popstate', preventBackNavigation);
-      };
-    }
-  }, [rejectionMessage, candidateId]);
 
   if (rejectionMessage) {
     const mandatoryFailed = rejectionDetails?.mandatory_evaluation?.filter((r: any) => !r.meets) || [];

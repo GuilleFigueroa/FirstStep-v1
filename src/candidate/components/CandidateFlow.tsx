@@ -356,6 +356,7 @@ export function CandidateFlow({ jobInfo, process, onBack }: CandidateFlowProps) 
           onContinue={handleAIQuestionsComplete}
           onBack={handleBackToProfile}
           candidateId={candidateId || ''}
+          process={process}
         />
       );
 

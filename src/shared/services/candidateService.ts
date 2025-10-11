@@ -139,14 +139,14 @@ export class CandidateService {
   }
 
   // Analizar CV con IA (generar preguntas)
-  static async analyzeCVWithAI(candidateId: string): Promise<{ success: boolean; error?: string }> {
+  static async analyzeCVWithAI(candidateId: string, recruiterId: string): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await fetch('/api/analyze-cv', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ candidateId })
+        body: JSON.stringify({ candidateId, recruiterId })
       });
 
       const data = await response.json();
@@ -264,13 +264,13 @@ export class CandidateService {
   }
 
   // Obtener análisis completo de un candidato
-  static async getCandidateAnalysis(candidateId: string): Promise<{
+  static async getCandidateAnalysis(candidateId: string, recruiterId: string): Promise<{
     success: boolean;
     data?: any;
     error?: string;
   }> {
     try {
-      const response = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}`, {
+      const response = await fetch(`/api/get-candidate-analysis?candidateId=${candidateId}&recruiterId=${recruiterId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

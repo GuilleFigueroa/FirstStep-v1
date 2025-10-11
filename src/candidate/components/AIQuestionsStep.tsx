@@ -3,14 +3,16 @@ import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AIQuestionsService, type AIQuestion, type AIAnswer } from '../../shared/services/aiQuestionsService';
+import type { Process } from '../../shared/services/supabase';
 
 interface AIQuestionsStepProps {
   onContinue: () => void;
   onBack: () => void;
   candidateId: string;
+  process?: Process;
 }
 
-export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestionsStepProps) {
+export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AIQuestionsStepProps) {
   const [questions, setQuestions] = useState<AIQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<string, string>>(new Map());
@@ -165,18 +167,25 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
         answerText: answers.get(q.id) || ''
       }));
 
-      // 2. Guardar respuestas
+      // 2. Verificar que tenemos recruiterId del proceso
+      if (!process?.recruiter_id) {
+        setError('Error: no se pudo obtener información del proceso');
+        return;
+      }
+
+      // 3. Guardar respuestas
       setLoadingMessage('Guardando tus respuestas...');
-      const saveResult = await AIQuestionsService.saveAIAnswers(candidateId, answersArray);
+      const saveResult = await AIQuestionsService.saveAIAnswers(candidateId, process.recruiter_id, answersArray);
 
       if (!saveResult.success) {
         setError(saveResult.error || 'Error al guardar respuestas. Intenta de nuevo.');
         return;
       }
 
-      // 3. Calcular scoring con filtro eliminatorio
+      // 4. Calcular scoring con filtro eliminatorio
       setLoadingMessage('Evaluando si se cumplen requisitos excluyentes...');
-      const scoringResult = await AIQuestionsService.calculateScoring(candidateId);
+
+      const scoringResult = await AIQuestionsService.calculateScoring(candidateId, process.recruiter_id);
 
       if (!scoringResult.approved) {
         // Verificar si fue rechazado por límite alcanzado
@@ -194,7 +203,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId }: AIQuestions
         return;
       }
 
-      // 4. Candidato aprobado - continuar al siguiente paso
+      // 5. Candidato aprobado - continuar al siguiente paso
       onContinue();
 
     } catch (err) {

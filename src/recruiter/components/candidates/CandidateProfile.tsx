@@ -48,12 +48,13 @@ interface CandidateProfileProps {
     actionStatus?: 'reviewed' | 'contacted' | 'sent' | 'none';
     isFavorite?: boolean;
   };
+  recruiterId: string;
   onClose: () => void;
   onAction: (action: string) => void;
 }
 
 
-export function CandidateProfile({ candidate, onClose, onAction }: CandidateProfileProps) {
+export function CandidateProfile({ candidate, recruiterId, onClose, onAction }: CandidateProfileProps) {
   const [isFavorite, setIsFavorite] = useState(candidate.isFavorite || false);
   const [answersExpanded, setAnswersExpanded] = useState(false);
   const [compatibilityExpanded, setCompatibilityExpanded] = useState(true);
@@ -70,7 +71,7 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
       setError(null);
 
       try {
-        const result = await CandidateService.getCandidateAnalysis(candidate.id);
+        const result = await CandidateService.getCandidateAnalysis(candidate.id, recruiterId);
 
         if (!result.success || !result.data) {
           setError(result.error || 'Error al cargar análisis del candidato');
@@ -87,14 +88,14 @@ export function CandidateProfile({ candidate, onClose, onAction }: CandidateProf
     };
 
     loadCandidateAnalysis();
-  }, [candidate.id]);
+  }, [candidate.id, recruiterId]);
 
   const handleRetry = async () => {
     setLoading(true);
     setError(null);
 
     try {
-      const result = await CandidateService.getCandidateAnalysis(candidate.id);
+      const result = await CandidateService.getCandidateAnalysis(candidate.id, recruiterId);
 
       if (!result.success || !result.data) {
         setError(result.error || 'Error al cargar análisis del candidato');

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { supabaseAdmin } from './utils/supabase';
+import { verifyCandidateOwnership } from './utils/auth';
 
 export default async function handler(
   req: VercelRequest,
@@ -12,7 +13,7 @@ export default async function handler(
 
   try {
     // 1. Validar input
-    const { candidateId } = req.query;
+    const { candidateId, recruiterId } = req.query;
 
     if (!candidateId || typeof candidateId !== 'string') {
       return res.status(400).json({
@@ -21,14 +22,26 @@ export default async function handler(
       });
     }
 
-    // 2. Obtener candidato con validación de status
-    const { data: candidate, error: candidateError } = await supabaseAdmin
-      .from('candidates')
-      .select('*')
-      .eq('id', candidateId)
-      .single();
+    if (!recruiterId || typeof recruiterId !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'recruiterId es requerido'
+      });
+    }
 
-    if (candidateError || !candidate) {
+    // 2. Verificar que el candidato pertenece al reclutador (Seguridad IDOR)
+    const verification = await verifyCandidateOwnership(candidateId, recruiterId);
+
+    if (!verification.isValid) {
+      return res.status(403).json({
+        success: false,
+        error: verification.error || 'No tienes permiso para acceder a este candidato'
+      });
+    }
+
+    const candidate = verification.candidate;
+
+    if (!candidate) {
       return res.status(404).json({
         success: false,
         error: 'Candidato no encontrado'

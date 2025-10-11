@@ -47,14 +47,14 @@ export class AIQuestionsService {
   }
 
   // Guardar respuestas del candidato
-  static async saveAIAnswers(candidateId: string, answers: AIAnswer[]): Promise<{ success: boolean; error?: string }> {
+  static async saveAIAnswers(candidateId: string, recruiterId: string, answers: AIAnswer[]): Promise<{ success: boolean; error?: string }> {
     try {
       const response = await fetch('/api/save-ai-answers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ candidateId, answers })
+        body: JSON.stringify({ candidateId, recruiterId, answers })
       });
 
       const data = await response.json();
@@ -77,14 +77,14 @@ export class AIQuestionsService {
   }
 
   // Calcular scoring y filtrar candidatos rechazados
-  static async calculateScoring(candidateId: string): Promise<ScoringResult> {
+  static async calculateScoring(candidateId: string, recruiterId: string): Promise<ScoringResult> {
     try {
       const response = await fetch('/api/calculate-scoring', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ candidateId })
+        body: JSON.stringify({ candidateId, recruiterId })
       });
 
       const data = await response.json();

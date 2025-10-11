@@ -464,6 +464,7 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
       {profileViewCandidate && (
         <CandidateProfile
           candidate={profileViewCandidate}
+          recruiterId={recruiterId}
           onClose={handleCloseProfile}
           onAction={handleProfileAction}
         />

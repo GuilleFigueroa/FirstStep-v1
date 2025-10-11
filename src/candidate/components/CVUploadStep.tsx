@@ -100,7 +100,14 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
 
       // 2. Analizar CV con IA
       setLoadingMessage('Analizando tu CV...');
-      const analysisResult = await CandidateService.analyzeCVWithAI(candidateId);
+
+      // Obtener recruiterId del proceso
+      if (!process?.recruiter_id) {
+        setError('Error: no se pudo obtener información del proceso');
+        return;
+      }
+
+      const analysisResult = await CandidateService.analyzeCVWithAI(candidateId, process.recruiter_id);
 
       if (!analysisResult.success) {
         setError(analysisResult.error || 'Error al analizar CV. Intenta de nuevo.');

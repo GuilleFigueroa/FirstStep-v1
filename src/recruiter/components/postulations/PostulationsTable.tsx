@@ -13,6 +13,7 @@ import {
   MoreHorizontal,
   Eye,
   X,
+  Check,
   Settings,
   FileText,
   Users,
@@ -162,35 +163,36 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
     return matchesCompany && matchesJobTitle && matchesStatus;
   });
 
-  const handleAction = (postulationId: string, action: string) => {
+  const handleAction = async (postulationId: string, action: string) => {
     const postulation = postulations.find(p => p.id === postulationId);
-    
-    if (action === 'view-postulation' && postulation) {
+
+    if (!postulation) return;
+
+    if (action === 'view-postulation') {
       setViewingPostulation(postulation);
       return;
     }
-    
-    setPostulations(prev => prev.map(postulation => {
-      if (postulation.id === postulationId) {
-        switch (action) {
-          case 'close-postulation':
-            return { ...postulation, status: 'cerrada' as const };
-          case 'modify-limit':
-            // Aquí se abriría un modal para modificar el límite
-            console.log('Modificar límite para:', postulation);
-            return postulation;
-          case 'delete':
-            return postulation; // Lo eliminaremos del array después
-          default:
-            return postulation;
-        }
-      }
-      return postulation;
-    }));
 
-    // Eliminar postulación si la acción es delete
-    if (action === 'delete') {
-      setPostulations(prev => prev.filter(postulation => postulation.id !== postulationId));
+    // Manejar acciones que requieren persistencia en BD
+    switch (action) {
+      case 'close-postulation':
+        await handleStatusChange(postulationId, 'closed');
+        break;
+      case 'activate-postulation':
+        await handleStatusChange(postulationId, 'active');
+        break;
+      case 'pause-postulation':
+        await handleStatusChange(postulationId, 'paused');
+        break;
+      case 'modify-limit':
+        // TODO: Abrir modal para modificar el límite
+        console.log('Modificar límite para:', postulation);
+        break;
+      case 'delete':
+        await handleDeleteProcess(postulationId);
+        break;
+      default:
+        break;
     }
   };
 
@@ -444,15 +446,47 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem 
-                                  onClick={() => handleAction(postulation.id, 'close-postulation')}
-                                  className="text-red-600"
-                                  disabled={postulation.status === 'cerrada'}
-                                >
-                                  <X className="w-4 h-4 mr-2" />
-                                  Cerrar Postulación
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                {/* Mostrar "Activar" o "Cerrar" según el estado */}
+                                {postulation.status === 'closed' ? (
+                                  <DropdownMenuItem
+                                    onClick={() => handleAction(postulation.id, 'activate-postulation')}
+                                    className="text-green-600"
+                                  >
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Activar Postulación
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    onClick={() => handleAction(postulation.id, 'close-postulation')}
+                                    className="text-red-600"
+                                  >
+                                    <X className="w-4 h-4 mr-2" />
+                                    Cerrar Postulación
+                                  </DropdownMenuItem>
+                                )}
+
+                                {/* Pausar/Reactivar postulación */}
+                                {postulation.status === 'paused' ? (
+                                  <DropdownMenuItem
+                                    onClick={() => handleAction(postulation.id, 'activate-postulation')}
+                                    className="text-green-600"
+                                  >
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Reactivar Postulación
+                                  </DropdownMenuItem>
+                                ) : postulation.status === 'active' && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleAction(postulation.id, 'pause-postulation')}
+                                    className="text-yellow-600"
+                                  >
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Pausar Postulación
+                                  </DropdownMenuItem>
+                                )}
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
                                   onClick={() => handleAction(postulation.id, 'modify-limit')}
                                   className="text-blue-600"
                                 >

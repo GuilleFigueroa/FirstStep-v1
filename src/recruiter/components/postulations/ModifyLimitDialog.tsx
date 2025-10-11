@@ -100,46 +100,31 @@ export function ModifyLimitDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[380px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Modificar límite de candidatos
-          </DialogTitle>
-          <DialogDescription>
-            Proceso: <span className="font-medium">{processTitle}</span>
-          </DialogDescription>
+          <DialogTitle className="text-lg">Modificar límite</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            {/* Estado actual */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Candidatos actuales:</span> {currentApplicants}
-              </p>
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Límite actual:</span>{' '}
-                {currentLimit ? currentLimit : 'Sin límite'}
-              </p>
-            </div>
-
+          <div className="space-y-3 py-2">
             {/* Input de nuevo límite */}
             <div className="space-y-2">
-              <Label htmlFor="limit">Nuevo límite de candidatos</Label>
+              <Label htmlFor="limit" className="text-sm">
+                Límite de candidatos (mínimo: {currentApplicants})
+              </Label>
               <Input
                 id="limit"
                 type="number"
                 min={currentApplicants}
-                placeholder={`Mínimo: ${currentApplicants}`}
+                placeholder={`Ej: ${currentApplicants + 5}`}
                 value={newLimit}
                 onChange={(e) => setNewLimit(e.target.value)}
                 disabled={noLimit || isSubmitting}
                 className={error ? 'border-red-500' : ''}
               />
               {error && (
-                <div className="flex items-center gap-1 text-sm text-red-600">
-                  <AlertCircle className="w-4 h-4" />
+                <div className="flex items-center gap-1 text-xs text-red-600">
+                  <AlertCircle className="w-3 h-3" />
                   {error}
                 </div>
               )}
@@ -156,27 +141,16 @@ export function ModifyLimitDialog({
                 className="w-4 h-4 text-[#7572FF] border-gray-300 rounded focus:ring-[#7572FF]"
               />
               <Label htmlFor="no-limit" className="text-sm font-normal cursor-pointer">
-                Sin límite (aceptar candidatos ilimitados)
+                Sin límite
               </Label>
-            </div>
-
-            {/* Advertencia */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-800">
-                <strong>Nota:</strong> El límite debe ser igual o mayor al número de candidatos actuales ({currentApplicants}).
-                {currentLimit && currentLimit <= currentApplicants && (
-                  <span className="block mt-1">
-                    El proceso ya alcanzó su límite actual.
-                  </span>
-                )}
-              </p>
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button
               type="button"
               variant="outline"
+              size="sm"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
@@ -184,17 +158,11 @@ export function ModifyLimitDialog({
             </Button>
             <Button
               type="submit"
+              size="sm"
               className="bg-[#7572FF] hover:bg-[#6863E8] text-white"
               disabled={isSubmitting}
             >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                  Actualizando...
-                </>
-              ) : (
-                'Guardar cambios'
-              )}
+              {isSubmitting ? 'Guardando...' : 'Guardar'}
             </Button>
           </DialogFooter>
         </form>

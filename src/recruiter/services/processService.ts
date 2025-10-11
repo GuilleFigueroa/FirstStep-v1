@@ -275,6 +275,45 @@ export async function getProcessById(processId: string): Promise<ProcessResponse
   }
 }
 
+// Obtener proceso por ID con conteo de candidatos (para vista de detalle)
+export async function getProcessWithDetails(processId: string): Promise<ProcessResponse> {
+  try {
+    const { data: process, error } = await supabase
+      .from('processes')
+      .select('*')
+      .eq('id', processId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching process:', error)
+      return { success: false, error: error.message }
+    }
+
+    // Obtener conteo de candidatos completados para este proceso
+    const { count: candidateCount, error: countError } = await supabase
+      .from('candidates')
+      .select('*', { count: 'exact', head: true })
+      .eq('process_id', processId)
+      .eq('status', 'completed')
+
+    if (countError) {
+      console.error('Error fetching candidate count:', countError)
+      // No retornar error, solo usar conteo 0
+    }
+
+    // Agregar conteo al proceso
+    const processWithCount = {
+      ...process,
+      candidate_count: candidateCount || 0
+    }
+
+    return { success: true, process: processWithCount }
+  } catch (error) {
+    console.error('Unexpected error fetching process:', error)
+    return { success: false, error: 'Error inesperado al obtener proceso' }
+  }
+}
+
 // Obtener estadísticas de procesos para dashboard
 export async function getProcessStats(recruiterId: string) {
   try {

@@ -41,6 +41,7 @@ export function RecruiterApp() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [activeSection, setActiveSection] = useState<string>('dashboard');
+  const [selectedProcessFilter, setSelectedProcessFilter] = useState<string | undefined>(undefined);
   const [profileData, setProfileData] = useState<JobProfile>({
     title: '',
     requirements: [],
@@ -109,6 +110,16 @@ export function RecruiterApp() {
     if (section === "applications") {
       setCurrentStep("config");
     }
+    // Limpiar filtro de proceso al cambiar de sección
+    if (section !== "candidates") {
+      setSelectedProcessFilter(undefined);
+    }
+  };
+
+  // Función para navegar a candidatos con filtro de proceso
+  const handleNavigateToCandidatesWithFilter = (processId: string) => {
+    setSelectedProcessFilter(processId);
+    setActiveSection("candidates");
   };
 
   // Handlers para el flujo de configuración
@@ -244,7 +255,10 @@ export function RecruiterApp() {
 
       {/* Candidates Section */}
       {activeSection === "candidates" && userProfile && (
-        <CandidatesTable recruiterId={userProfile.id} />
+        <CandidatesTable
+          recruiterId={userProfile.id}
+          initialProcessFilter={selectedProcessFilter}
+        />
       )}
 
       {/* Applications Section - Flujo de configuración por pasos */}
@@ -307,7 +321,12 @@ export function RecruiterApp() {
       )}
 
       {/* Postulations Section */}
-      {activeSection === "postulation-processes" && userProfile && <PostulationsTable userProfile={userProfile} />}
+      {activeSection === "postulation-processes" && userProfile && (
+        <PostulationsTable
+          userProfile={userProfile}
+          onNavigateToCandidates={handleNavigateToCandidatesWithFilter}
+        />
+      )}
     </Layout>
   );
 }

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../ui/components/ui/dropdown-menu';
-import { PostulationDetails } from './PostulationDetails';
+import { PostulationDetailView } from './PostulationDetailView';
 import { ModifyLimitDialog } from './ModifyLimitDialog';
 import {
   Search,
@@ -26,6 +26,7 @@ import { getProcessesByRecruiter, updateProcessStatus, updateProcessLimit, delet
 
 interface PostulationsTableProps {
   userProfile: Profile;
+  onNavigateToCandidates: (processId: string) => void;
 }
 
 interface Postulation {
@@ -59,7 +60,7 @@ function processToPostulation(process: ProcessWithCount): Postulation {
   };
 }
 
-export function PostulationsTable({ userProfile }: PostulationsTableProps) {
+export function PostulationsTable({ userProfile, onNavigateToCandidates }: PostulationsTableProps) {
   const [postulations, setPostulations] = useState<Postulation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -311,9 +312,10 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
   return (
     <div className="space-y-6 relative">
       {viewingPostulation ? (
-        <PostulationDetails
-          postulation={viewingPostulation}
+        <PostulationDetailView
+          processId={viewingPostulation.id}
           onBack={handleBackToList}
+          onNavigateToCandidates={onNavigateToCandidates}
         />
       ) : (
         <>

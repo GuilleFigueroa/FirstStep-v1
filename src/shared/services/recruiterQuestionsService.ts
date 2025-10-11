@@ -5,7 +5,42 @@ export interface RecruiterAnswer {
   answerText: string;
 }
 
+export interface RecruiterQuestion {
+  id: string;
+  process_id: string;
+  question_text: string;
+  question_type: 'text' | 'multiple_choice' | 'single_choice';
+  question_options: string[] | null;
+  question_order: number;
+  created_at: string;
+}
+
 export class RecruiterQuestionsService {
+
+  // Obtener preguntas del reclutador para un proceso
+  static async getRecruiterQuestionsByProcess(processId: string): Promise<{
+    success: boolean;
+    questions?: RecruiterQuestion[];
+    error?: string;
+  }> {
+    try {
+      const { data: questions, error } = await supabase
+        .from('recruiter_questions')
+        .select('*')
+        .eq('process_id', processId)
+        .order('question_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching recruiter questions:', error);
+        return { success: false, error: error.message };
+      }
+
+      return { success: true, questions: questions || [] };
+    } catch (error) {
+      console.error('Get recruiter questions error:', error);
+      return { success: false, error: 'Error inesperado al obtener preguntas' };
+    }
+  }
 
   // Verificar si existen preguntas del reclutador para un proceso
   static async hasRecruiterQuestions(processId: string): Promise<boolean> {

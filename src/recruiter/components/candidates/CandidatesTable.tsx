@@ -32,6 +32,7 @@ interface Candidate {
   score: number;
   status: string; // 'completed' | 'rejected'
   created_at: string;
+  process_id: string;
   process_title: string;
   process_company: string;
   process_status: string; // 'active' | 'closed' | 'paused'
@@ -45,9 +46,10 @@ const mockCandidates: Candidate[] = [];
 
 interface CandidatesTableProps {
   recruiterId: string; // ID del reclutador actual
+  initialProcessFilter?: string; // Filtro opcional por ID de proceso
 }
 
-export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
+export function CandidatesTable({ recruiterId, initialProcessFilter }: CandidatesTableProps) {
   const [candidates, setCandidates] = useState<Candidate[]>(mockCandidates);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,7 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
   const [positionFilter, setPositionFilter] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [processFilter, setProcessFilter] = useState<string>(initialProcessFilter || '');
   const [profileViewCandidate, setProfileViewCandidate] = useState<Candidate | null>(null);
 
   // Cargar candidatos cuando cambia el recruiterId
@@ -133,8 +136,9 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
     const matchesPosition = candidate.process_title.toLowerCase().includes(positionFilter.toLowerCase());
     const matchesCompany = candidate.process_company.toLowerCase().includes(companyFilter.toLowerCase());
     const matchesStatus = statusFilter === 'all' || candidate.process_status === statusFilter;
+    const matchesProcess = !processFilter || candidate.process_id === processFilter;
 
-    return matchesName && matchesPosition && matchesCompany && matchesStatus;
+    return matchesName && matchesPosition && matchesCompany && matchesStatus && matchesProcess;
   });
 
   const handleAction = async (candidateId: string, action: string) => {

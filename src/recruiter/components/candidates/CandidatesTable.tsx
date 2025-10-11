@@ -216,11 +216,11 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
   };
 
   const getRowStyle = (candidate: Candidate) => {
-    // Si es favorito, priorizar el color amarillo anaranjado
+    // Si es favorito, priorizar el color amarillo más fuerte
     if (candidate.isFavorite) {
-      return { backgroundColor: '#FEF3C7' }; // Amarillo anaranjado claro para favoritos
+      return { backgroundColor: '#FDE68A' }; // Amarillo más intenso y cálido para favoritos
     }
-    
+
     switch (candidate.actionStatus) {
       case 'reviewed':
         return { backgroundColor: '#DDD6FE' }; // Violeta más intenso para revisado

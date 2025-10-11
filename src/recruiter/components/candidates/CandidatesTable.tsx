@@ -77,14 +77,14 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
           return;
         }
 
-        // Agregar estado UI local a cada candidato
-        const candidatesWithUIState = result.candidates.map(c => ({
+        // Los candidatos ya vienen con action_status e is_favorite desde la BD
+        const candidatesWithDefaults = result.candidates.map(c => ({
           ...c,
-          actionStatus: 'none' as const,
-          isFavorite: false
+          actionStatus: c.action_status || 'none',
+          isFavorite: c.is_favorite || false
         }));
 
-        setCandidates(candidatesWithUIState);
+        setCandidates(candidatesWithDefaults);
       } catch (err) {
         console.error('Error loading candidates:', err);
         setError('Error al cargar candidatos');
@@ -110,13 +110,13 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
         return;
       }
 
-      const candidatesWithUIState = result.candidates.map(c => ({
+      const candidatesWithDefaults = result.candidates.map(c => ({
         ...c,
-        actionStatus: 'none' as const,
-        isFavorite: false
+        actionStatus: c.action_status || 'none',
+        isFavorite: c.is_favorite || false
       }));
 
-      setCandidates(candidatesWithUIState);
+      setCandidates(candidatesWithDefaults);
     } catch (err) {
       console.error('Error loading candidates:', err);
       setError('Error al cargar candidatos');
@@ -137,33 +137,60 @@ export function CandidatesTable({ recruiterId }: CandidatesTableProps) {
     return matchesName && matchesPosition && matchesCompany && matchesStatus;
   });
 
-  const handleAction = (candidateId: string, action: string) => {
+  const handleAction = async (candidateId: string, action: string) => {
     const candidate = candidates.find(c => c.id === candidateId);
-    
-    setCandidates(prev => prev.map(candidate => {
-      if (candidate.id === candidateId) {
+
+    if (!candidate) return;
+
+    // Actualizar estado local inmediatamente (optimistic update)
+    setCandidates(prev => prev.map(c => {
+      if (c.id === candidateId) {
         switch (action) {
           case 'view-profile':
             setProfileViewCandidate(candidate);
-            return candidate;
+            return c;
           case 'mark-reviewed':
-            return { ...candidate, actionStatus: 'reviewed' };
+            return { ...c, actionStatus: 'reviewed' as const };
           case 'mark-contacted':
-            return { ...candidate, actionStatus: 'contacted' };
+            return { ...c, actionStatus: 'contacted' as const };
           case 'mark-favorite':
-            return { ...candidate, isFavorite: !candidate.isFavorite };
+            return { ...c, isFavorite: !c.isFavorite };
           case 'delete':
-            return candidate; // Lo eliminaremos del array después
+            return c; // Lo eliminaremos del array después
           default:
-            return candidate;
+            return c;
         }
       }
-      return candidate;
+      return c;
     }));
 
-    // Eliminar candidato si la acción es delete
-    if (action === 'delete') {
-      setCandidates(prev => prev.filter(candidate => candidate.id !== candidateId));
+    // Persistir cambios en BD
+    try {
+      switch (action) {
+        case 'mark-reviewed':
+          await CandidateService.updateActionStatus(candidateId, 'reviewed');
+          break;
+        case 'mark-contacted':
+          await CandidateService.updateActionStatus(candidateId, 'contacted');
+          break;
+        case 'mark-favorite':
+          await CandidateService.updateFavoriteStatus(candidateId, !candidate.isFavorite);
+          break;
+        case 'delete':
+          // Eliminar del array local
+          setCandidates(prev => prev.filter(c => c.id !== candidateId));
+          // TODO: Implementar soft delete en BD si es necesario
+          break;
+      }
+    } catch (error) {
+      console.error('Error persisting action:', error);
+      // Revertir cambio local si falla la BD
+      setCandidates(prev => prev.map(c => {
+        if (c.id === candidateId) {
+          return candidate; // Restaurar estado original
+        }
+        return c;
+      }));
     }
   };
 

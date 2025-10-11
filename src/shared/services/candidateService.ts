@@ -180,6 +180,8 @@ export class CandidateService {
       cv_url?: string;
       score?: number;
       status: string;
+      action_status?: 'none' | 'reviewed' | 'contacted' | 'sent';
+      is_favorite?: boolean;
       created_at: string;
       process_title: string;
       process_company: string;
@@ -243,6 +245,8 @@ export class CandidateService {
           cv_url: candidate.cv_url,
           score: candidate.score || 0,
           status: candidate.status,
+          action_status: candidate.action_status || 'none',
+          is_favorite: candidate.is_favorite || false,
           created_at: candidate.created_at,
           process_title: process?.title || 'Proceso desconocido',
           process_company: process?.company_name || 'Empresa desconocida',
@@ -296,6 +300,46 @@ export class CandidateService {
         success: false,
         error: 'Error de conexión al obtener análisis'
       };
+    }
+  }
+
+  // Actualizar action_status de un candidato
+  static async updateActionStatus(candidateId: string, actionStatus: 'none' | 'reviewed' | 'contacted' | 'sent'): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('candidates')
+        .update({ action_status: actionStatus })
+        .eq('id', candidateId);
+
+      if (error) {
+        console.error('Error updating action status:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Update action status error:', error);
+      return false;
+    }
+  }
+
+  // Actualizar is_favorite de un candidato
+  static async updateFavoriteStatus(candidateId: string, isFavorite: boolean): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('candidates')
+        .update({ is_favorite: isFavorite })
+        .eq('id', candidateId);
+
+      if (error) {
+        console.error('Error updating favorite status:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Update favorite status error:', error);
+      return false;
     }
   }
 }

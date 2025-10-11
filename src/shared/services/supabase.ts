@@ -53,6 +53,8 @@ export interface Candidate {
   parsing_error?: string
   ai_analysis_failed?: boolean
   rejection_reason?: string
+  action_status?: 'none' | 'reviewed' | 'contacted' | 'sent'
+  is_favorite?: boolean
   created_at: string
   updated_at: string
 }

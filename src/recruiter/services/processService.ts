@@ -206,6 +206,34 @@ export async function updateProcessStatus(
   }
 }
 
+// Actualizar límite de candidatos de un proceso
+export async function updateProcessLimit(
+  processId: string,
+  candidateLimit: number | null
+): Promise<ProcessResponse> {
+  try {
+    const { data: process, error } = await supabase
+      .from('processes')
+      .update({
+        candidate_limit: candidateLimit,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', processId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating process limit:', error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true, process }
+  } catch (error) {
+    console.error('Unexpected error updating process limit:', error)
+    return { success: false, error: 'Error inesperado al actualizar límite' }
+  }
+}
+
 // Eliminar proceso
 export async function deleteProcess(processId: string): Promise<{ success: boolean; error?: string }> {
   try {

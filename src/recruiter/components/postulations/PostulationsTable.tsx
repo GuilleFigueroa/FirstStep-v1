@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../ui/components/ui/dropdown-menu';
 import { PostulationDetails } from './PostulationDetails';
+import { ModifyLimitDialog } from './ModifyLimitDialog';
 import {
   Search,
   Filter,
@@ -21,7 +22,7 @@ import {
   Copy
 } from 'lucide-react';
 import type { Profile, Process } from '../../../shared/services/supabase';
-import { getProcessesByRecruiter, updateProcessStatus, deleteProcess } from '../../services/processService';
+import { getProcessesByRecruiter, updateProcessStatus, updateProcessLimit, deleteProcess } from '../../services/processService';
 
 interface PostulationsTableProps {
   userProfile: Profile;
@@ -66,6 +67,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewingPostulation, setViewingPostulation] = useState<Postulation | null>(null);
+  const [modifyingLimitPostulation, setModifyingLimitPostulation] = useState<Postulation | null>(null);
 
   // Cargar procesos del reclutador
   useEffect(() => {
@@ -154,6 +156,25 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
     }
   };
 
+  // Modificar límite de candidatos
+  const handleConfirmLimitChange = async (newLimit: number | null) => {
+    if (!modifyingLimitPostulation) return;
+
+    try {
+      const result = await updateProcessLimit(modifyingLimitPostulation.id, newLimit);
+      if (result.success) {
+        // Recargar procesos para reflejar el cambio
+        await handleRetry();
+        setModifyingLimitPostulation(null);
+      } else {
+        throw new Error(result.error || 'Error al actualizar límite');
+      }
+    } catch (error) {
+      console.error('Error updating limit:', error);
+      throw error; // Re-throw para que el modal maneje el error
+    }
+  };
+
   // Filtrar postulaciones
   const filteredPostulations = postulations.filter(postulation => {
     const matchesCompany = postulation.company.toLowerCase().includes(companyFilter.toLowerCase());
@@ -185,8 +206,7 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
         await handleStatusChange(postulationId, 'paused');
         break;
       case 'modify-limit':
-        // TODO: Abrir modal para modificar el límite
-        console.log('Modificar límite para:', postulation);
+        setModifyingLimitPostulation(postulation);
         break;
       case 'delete':
         await handleDeleteProcess(postulationId);
@@ -517,6 +537,18 @@ export function PostulationsTable({ userProfile }: PostulationsTableProps) {
             </CardContent>
           </Card>
         </>
+      )}
+
+      {/* Modal para modificar límite */}
+      {modifyingLimitPostulation && (
+        <ModifyLimitDialog
+          open={!!modifyingLimitPostulation}
+          onOpenChange={(open) => !open && setModifyingLimitPostulation(null)}
+          currentLimit={modifyingLimitPostulation.maxApplicants}
+          currentApplicants={modifyingLimitPostulation.applicants}
+          processTitle={modifyingLimitPostulation.jobTitle}
+          onConfirm={handleConfirmLimitChange}
+        />
       )}
     </div>
   );

@@ -254,6 +254,36 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 
 ---
 
+**⚠️ REGLA FUNDAMENTAL:**
+SOLO genera preguntas sobre requisitos que aparecen en las listas "REQUISITOS INDISPENSABLES" o "REQUISITOS DESEABLES" arriba, o en los "CRITERIOS ADICIONALES DEL RECLUTADOR".
+
+IGNORA completamente cualquier otra habilidad, experiencia o tecnología mencionada en el CV que NO esté en estas listas.
+
+Ejemplo:
+- Si el CV menciona "JavaScript" pero JavaScript NO está en los requisitos → NO preguntes sobre JavaScript
+- Si el CV menciona "Control de stock" pero NO está en los requisitos → NO preguntes sobre control de stock
+- Si los requisitos incluyen "Figma" y el CV NO lo menciona → SÍ pregunta sobre Figma
+
+---
+
+**TU PROCESO DE ANÁLISIS (PASO A PASO):**
+
+**PASO 1 - Analiza cada requisito INDISPENSABLE:**
+Para cada requisito mandatory, identifica:
+- ¿Está mencionado en el CV? (sí/no/parcialmente)
+- Si está mencionado, ¿tiene detalles específicos? (años de experiencia, nivel, contexto laboral)
+- ¿Necesita una pregunta de verificación?
+
+**PASO 2 - Analiza requisitos DESEABLES (si quedan slots):**
+Solo si no tienes suficientes preguntas mandatory, revisa optional con el mismo criterio.
+
+**PASO 3 - Prioriza las preguntas (máximo 5):**
+- PRIORIDAD ALTA: Requisitos mandatory NO mencionados o sin detalles
+- PRIORIDAD MEDIA: Requisitos mandatory con información ambigua
+- PRIORIDAD BAJA: Requisitos optional sin verificar
+
+---
+
 **REGLAS DE ANÁLISIS:**
 
 1. **EQUIVALENCIAS DE ROLES** (reconoce variaciones ES/EN):
@@ -270,18 +300,24 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
    ❌ **NO cuenta:** "Conocimientos en...", "Familiarizado con...", "[Skill]" listado sin contexto
    ⚠️ **Pregunta:** Menciones sin años o sin contexto laboral
 
-3. **PROCESO:**
-   - Busca requisitos en EXPERIENCIA LABORAL primero (no solo en skills)
-   - Si encuentras rol equivalente con años → NO preguntes
-   - Si solo está en skills sin contexto → SÍ pregunta años de experiencia profesional
-   - Máximo 5 preguntas, prioriza mandatory
+3. **CUÁNDO GENERAR UNA PREGUNTA:**
+
+   ✅ **SÍ preguntar si:**
+   - Requisito (mandatory u optional) NO aparece en el CV
+   - Requisito mencionado pero SIN años/nivel específico
+   - Información ambigua o contradictoria sobre un requisito
+
+   ❌ **NO preguntar si:**
+   - Requisito tiene información clara y completa en CV
+   - Ya tienes 5 preguntas (límite máximo)
+   - La habilidad/experiencia NO está en la lista de requisitos
 
 **FORMATO DE SALIDA (JSON):**
 {
   "questions": [
     {
       "question": "Texto contextualizado mencionando qué encontraste en el CV",
-      "reason": "Por qué preguntas esto",
+      "reason": "Por qué preguntas esto (menciona el requisito específico)",
       "cv_evidence": "Qué encontraste o NO encontraste",
       "is_mandatory": true/false
     }
@@ -289,10 +325,11 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 }
 
 **EJEMPLOS:**
-✅ BUENA: "Veo 'React' en skills pero no en experiencia laboral. ¿Cuántos años de experiencia profesional tienes con React?"
+✅ BUENA: "No encuentro mención de Figma en tu CV, que es un requisito indispensable. ¿Tienes experiencia con Figma? Si es así, ¿cuántos años?"
 ✅ BUENA: "Trabajaste como 'Desarrollador de Producto' (equivalente a PM) en 2020-2024. ¿Incluía gestión de roadmap y stakeholders?"
-❌ MALA: "¿Tienes experiencia con React?" (sin contexto)
-❌ MALA: "¿Eres Product Manager?" (cuando CV dice rol equivalente)
+✅ BUENA: "Veo 'React' listado en skills. El requisito pide React avanzado (5+ años). ¿Cuántos años de experiencia profesional tienes con React?"
+❌ MALA: "¿Tienes experiencia con JavaScript?" (JavaScript no está en los requisitos del proceso)
+❌ MALA: "Veo que manejaste control de stock. ¿Por cuánto tiempo?" (Control de stock no está en requisitos)
 
 Genera las preguntas ahora:`;
 }

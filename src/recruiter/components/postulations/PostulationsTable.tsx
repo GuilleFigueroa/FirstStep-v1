@@ -68,7 +68,6 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewingPostulation, setViewingPostulation] = useState<Postulation | null>(null);
-  const [modifyingLimitPostulation, setModifyingLimitPostulation] = useState<Postulation | null>(null);
 
   // Cargar procesos del reclutador
   useEffect(() => {
@@ -158,21 +157,13 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
   };
 
   // Modificar límite de candidatos
-  const handleConfirmLimitChange = async (newLimit: number | null) => {
-    if (!modifyingLimitPostulation) return;
-
-    try {
-      const result = await updateProcessLimit(modifyingLimitPostulation.id, newLimit);
-      if (result.success) {
-        // Recargar procesos para reflejar el cambio
-        await handleRetry();
-        setModifyingLimitPostulation(null);
-      } else {
-        throw new Error(result.error || 'Error al actualizar límite');
-      }
-    } catch (error) {
-      console.error('Error updating limit:', error);
-      throw error; // Re-throw para que el modal maneje el error
+  const handleConfirmLimitChange = async (processId: string, newLimit: number | null) => {
+    const result = await updateProcessLimit(processId, newLimit);
+    if (result.success) {
+      // Recargar procesos para reflejar el cambio
+      await handleRetry();
+    } else {
+      throw new Error(result.error || 'Error al actualizar límite');
     }
   };
 
@@ -205,9 +196,6 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
         break;
       case 'pause-postulation':
         await handleStatusChange(postulationId, 'paused');
-        break;
-      case 'modify-limit':
-        setModifyingLimitPostulation(postulation);
         break;
       case 'delete':
         await handleDeleteProcess(postulationId);
@@ -460,7 +448,7 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
                               <Eye className="w-4 h-4" />
                               Ver Postulación
                             </Button>
-                            
+
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="flex items-center gap-1">
@@ -508,13 +496,16 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
 
                                 <DropdownMenuSeparator />
 
-                                <DropdownMenuItem
-                                  onClick={() => handleAction(postulation.id, 'modify-limit')}
-                                  className="text-blue-600"
+                                <ModifyLimitDialog
+                                  currentLimit={postulation.maxApplicants}
+                                  currentApplicants={postulation.applicants}
+                                  onConfirm={(newLimit) => handleConfirmLimitChange(postulation.id, newLimit)}
                                 >
-                                  <Settings className="w-4 h-4 mr-2" />
-                                  Modificar Límite
-                                </DropdownMenuItem>
+                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 text-blue-600">
+                                    <Settings className="w-4 h-4 mr-2" />
+                                    Modificar Límite
+                                  </div>
+                                </ModifyLimitDialog>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -539,18 +530,6 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
             </CardContent>
           </Card>
         </>
-      )}
-
-      {/* Modal para modificar límite */}
-      {modifyingLimitPostulation && (
-        <ModifyLimitDialog
-          open={!!modifyingLimitPostulation}
-          onOpenChange={(open) => !open && setModifyingLimitPostulation(null)}
-          currentLimit={modifyingLimitPostulation.maxApplicants}
-          currentApplicants={modifyingLimitPostulation.applicants}
-          processTitle={modifyingLimitPostulation.jobTitle}
-          onConfirm={handleConfirmLimitChange}
-        />
       )}
     </div>
   );

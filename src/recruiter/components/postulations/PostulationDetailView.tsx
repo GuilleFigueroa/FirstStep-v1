@@ -33,7 +33,6 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
   const [questions, setQuestions] = useState<RecruiterQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showModifyLimitDialog, setShowModifyLimitDialog] = useState(false);
   const [changingStatus, setChangingStatus] = useState(false);
 
   useEffect(() => {
@@ -91,17 +90,11 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
   const handleConfirmLimitChange = async (newLimit: number | null) => {
     if (!process) return;
 
-    try {
-      const result = await updateProcessLimit(processId, newLimit);
-      if (result.success) {
-        await loadProcessDetails();
-        setShowModifyLimitDialog(false);
-      } else {
-        throw new Error(result.error || 'Error al actualizar límite');
-      }
-    } catch (error) {
-      console.error('Error updating limit:', error);
-      throw error;
+    const result = await updateProcessLimit(processId, newLimit);
+    if (result.success) {
+      await loadProcessDetails();
+    } else {
+      throw new Error(result.error || 'Error al actualizar límite');
     }
   };
 
@@ -153,9 +146,9 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
     );
   }
 
-  // Parsear requisitos si son string JSON
-  let mandatoryReqs: string[] = [];
-  let optionalReqs: string[] = [];
+  // Parsear requisitos (son arrays de objetos ProfileRequirement)
+  let mandatoryReqs: any[] = [];
+  let optionalReqs: any[] = [];
 
   try {
     mandatoryReqs = typeof process.mandatory_requirements === 'string'
@@ -194,16 +187,22 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
       {/* Información Principal */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <CardTitle className="text-2xl flex items-center gap-3">
-                <Briefcase className="w-6 h-6 text-[#7572FF]" />
-                {process.title}
-              </CardTitle>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Building2 className="w-4 h-4" />
-                <span className="font-medium">{process.company_name}</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="space-y-1">
+                <CardTitle className="text-2xl">{process.title}</CardTitle>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building2 className="w-4 h-4" />
+                  <span className="font-medium text-sm">{process.company_name}</span>
+                </div>
               </div>
+              <Button
+                onClick={() => onNavigateToCandidates(processId)}
+                className="bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center gap-2"
+              >
+                <Users className="w-4 h-4" />
+                Ver Candidatos ({process.candidate_count || 0})
+              </Button>
             </div>
             {getStatusBadge(process.status)}
           </div>
@@ -243,28 +242,22 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
                 <div className="flex-1 px-3 py-2 bg-white border rounded-md text-sm">
                   {process.candidate_limit ? `${process.candidate_count || 0} / ${process.candidate_limit}` : 'Sin límite'}
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowModifyLimitDialog(true)}
-                  className="flex items-center gap-1"
+                <ModifyLimitDialog
+                  currentLimit={process.candidate_limit}
+                  currentApplicants={process.candidate_count || 0}
+                  onConfirm={handleConfirmLimitChange}
                 >
-                  <Settings className="w-4 h-4" />
-                  Modificar
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Modificar
+                  </Button>
+                </ModifyLimitDialog>
               </div>
             </div>
-          </div>
-
-          {/* Botón Ver Candidatos */}
-          <div className="pt-2">
-            <Button
-              onClick={() => onNavigateToCandidates(processId)}
-              className="w-full bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center justify-center gap-2"
-            >
-              <Users className="w-4 h-4" />
-              Ver Candidatos de este Proceso ({process.candidate_count || 0})
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -287,9 +280,12 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
               </h3>
               <ul className="space-y-2">
                 {mandatoryReqs.map((req, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                  <li key={req.id || index} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-green-600 mt-0.5">•</span>
-                    <span>{req}</span>
+                    <span>
+                      {req?.title || 'Requisito sin título'}
+                      {req?.level && <span className="text-gray-500"> ({req.level})</span>}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -305,9 +301,12 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
               </h3>
               <ul className="space-y-2">
                 {optionalReqs.map((req, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
+                  <li key={req.id || index} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-blue-600 mt-0.5">•</span>
-                    <span>{req}</span>
+                    <span>
+                      {req?.title || 'Requisito sin título'}
+                      {req?.level && <span className="text-gray-500"> ({req.level})</span>}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -384,17 +383,6 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
         </Card>
       )}
 
-      {/* Modal para modificar límite */}
-      {showModifyLimitDialog && (
-        <ModifyLimitDialog
-          open={showModifyLimitDialog}
-          onOpenChange={setShowModifyLimitDialog}
-          currentLimit={process.candidate_limit}
-          currentApplicants={process.candidate_count || 0}
-          processTitle={process.title}
-          onConfirm={handleConfirmLimitChange}
-        />
-      )}
     </div>
   );
 }

@@ -60,6 +60,11 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
   const [processFilter, setProcessFilter] = useState<string>(initialProcessFilter || '');
   const [profileViewCandidate, setProfileViewCandidate] = useState<Candidate | null>(null);
 
+  // Actualizar filtro cuando initialProcessFilter cambia
+  useEffect(() => {
+    setProcessFilter(initialProcessFilter || '');
+  }, [initialProcessFilter]);
+
   // Cargar candidatos cuando cambia el recruiterId
   useEffect(() => {
     if (!recruiterId) {
@@ -83,6 +88,7 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
         // Los candidatos ya vienen con action_status e is_favorite desde la BD
         const candidatesWithDefaults = result.candidates.map(c => ({
           ...c,
+          process_id: c.process_id || '',
           actionStatus: c.action_status || 'none',
           isFavorite: c.is_favorite || false
         }));

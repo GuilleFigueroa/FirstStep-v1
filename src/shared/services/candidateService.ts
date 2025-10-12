@@ -183,6 +183,7 @@ export class CandidateService {
       action_status?: 'none' | 'reviewed' | 'contacted' | 'sent';
       is_favorite?: boolean;
       created_at: string;
+      process_id: string;
       process_title: string;
       process_company: string;
       process_status: string;
@@ -248,6 +249,7 @@ export class CandidateService {
           action_status: candidate.action_status || 'none',
           is_favorite: candidate.is_favorite || false,
           created_at: candidate.created_at,
+          process_id: candidate.process_id,
           process_title: process?.title || 'Proceso desconocido',
           process_company: process?.company_name || 'Empresa desconocida',
           process_status: process?.status || 'unknown'

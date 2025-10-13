@@ -16,17 +16,27 @@
 
 ## 📊 Estado General
 
-**Progreso:** 6/6 pasos completados (100%)
-**Última actualización:** 07-10-2025
+**Progreso:** 6/6 pasos completados (100%) ✅
+**Última actualización:** 13-10-2025
+**Estado del sistema:** COMPLETAMENTE FUNCIONAL Y EN PRODUCCIÓN
 
-| Paso | Estado | Descripción |
-|------|--------|-------------|
-| 1 | ✅ | Backend Vercel configurado |
-| 2 | ✅ | Base de datos modificada |
-| 3 | ✅ | Parser PDF/DOCX funcional |
-| 4 | ✅ | Análisis CV con IA + generación preguntas |
-| 5 | ✅ | UI preguntas + scoring + filtro eliminatorio |
-| 6 | ✅ | Dashboard reclutador con análisis completo |
+| Paso | Estado | Descripción | Verificación |
+|------|--------|-------------|--------------|
+| 1 | ✅ | Backend Vercel configurado | Producción estable |
+| 2 | ✅ | Base de datos modificada | Esquema completo |
+| 3 | ✅ | Parser PDF/DOCX funcional | Probado con CVs reales |
+| 4 | ✅ | Análisis CV con IA + generación preguntas | GPT-4o-mini integrado |
+| 5 | ✅ | UI preguntas + scoring + filtro eliminatorio | Flujo completo operativo |
+| 6 | ✅ | Dashboard reclutador con análisis completo | 100% datos reales |
+
+**Mejoras adicionales implementadas (post-documentación inicial):**
+- ✅ Protección IDOR en APIs de candidatos (commit a58574b)
+- ✅ Optimización de prompts IA con análisis semántico (commit c6487a3)
+- ✅ Persistencia de estados de seguimiento (reviewed, contacted, favorite) (commit 1b17940)
+- ✅ Vista detallada de postulaciones (PostulationDetailView.tsx) (commit 1685a25)
+- ✅ Modificación dinámica de límite de candidatos (commit 65a1666)
+- ✅ Gestión de estados: cerrar/pausar/activar procesos (commit 002818e)
+- ✅ Filtrado correcto de candidatos por proceso (commit 12e128d)
 
 ---
 
@@ -64,7 +74,7 @@ BD: Supabase (PostgreSQL + Storage)
    ↓ Si error → Mostrar error, bloquear avance
    ↓ Si éxito → onContinue()
 
-4. ai_questions → AIQuestionsStep.tsx (PENDIENTE - PASO 5)
+4. ai_questions → AIQuestionsStep.tsx ✅
    ↓ AIQuestionsService.getAIQuestions()
    ↓ Candidato responde preguntas (una a la vez)
    ↓ AIQuestionsService.saveAIAnswers()
@@ -72,8 +82,8 @@ BD: Supabase (PostgreSQL + Storage)
    ↓ Si REJECTED → Mensaje rechazo + no continúa
    ↓ Si APPROVED → onContinue()
 
-5. recruiter_questions → RecruiterQuestionsStep.tsx (PENDIENTE - PASO 5)
-   ↓ Fetch form_questions desde process
+5. recruiter_questions → RecruiterQuestionsStep.tsx ✅
+   ↓ Carga desde recruiter_questions (tabla BD)
    ↓ Candidato responde formulario
    ↓ POST /api/save-recruiter-answers
    ↓ onContinue()
@@ -116,7 +126,7 @@ BD: Supabase (PostgreSQL + Storage)
    1. Guardar en recruiter_answers
    Output: { success: true }
 
-✅ GET /api/get-candidate-analysis (PASO 6)
+✅ GET /api/get-candidate-analysis
    Input: candidateId (query param)
    1. Obtener candidato (solo status='completed' o 'rejected')
    2. Obtener ai_questions con respuestas
@@ -124,6 +134,11 @@ BD: Supabase (PostgreSQL + Storage)
    4. Extraer mandatory_evaluation y optional_evaluation de scoring_details
    5. Combinar en array plano con is_met y evidence
    Output: { candidate, aiQuestions, recruiterQuestions, requirements[], process }
+
+✅ /api/utils/auth.ts (Protección IDOR)
+   - verifyCandidateOwnership(candidateId, recruiterId)
+   - Valida que candidato pertenece al reclutador
+   - Previene acceso no autorizado a datos de candidatos
 ```
 
 ---
@@ -150,6 +165,8 @@ BD: Supabase (PostgreSQL + Storage)
 - `parsing_failed` (BOOL) - Flag error parsing
 - `parsing_error` (TEXT) - Mensaje error parsing
 - `ai_analysis_failed` (BOOL) - Flag error IA
+- `action_status` (TEXT) - Estado seguimiento: none, reviewed, contacted, sent
+- `is_favorite` (BOOL) - Marcado como favorito por reclutador
 
 ### Estructura de requisitos:
 
@@ -527,5 +544,14 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ---
 
-**Última actualización:** 07-10-2025
-**Estado:** Sistema completo funcional con 6 pasos implementados
+**Última actualización:** 13-10-2025
+**Estado:** ✅ SISTEMA COMPLETAMENTE FUNCIONAL EN PRODUCCIÓN
+
+**Funcionalidades adicionales implementadas:**
+- Gestión completa de procesos (crear, editar límite, pausar, cerrar, activar)
+- Dashboard de candidatos con filtros avanzados y estados de seguimiento
+- Sistema de favoritos y seguimiento de candidatos (reviewed, contacted)
+- Vista detallada de postulaciones con métricas en tiempo real
+- Protección IDOR contra accesos no autorizados
+- Optimización de prompts IA para mayor precisión en preguntas
+- Code splitting para optimizar carga (427KB reclutador / 352KB candidato)

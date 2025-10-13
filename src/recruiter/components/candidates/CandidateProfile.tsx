@@ -323,32 +323,6 @@ export function CandidateProfile({ candidate, recruiterId, onClose, onAction }: 
                           <Progress value={candidate.score} className="h-2" />
                         </div>
 
-                        {analysisData?.candidate?.scoring_details && (() => {
-                          const scoringDetails = analysisData.candidate.scoring_details;
-                          const totalMandatory = scoringDetails.mandatory_met + scoringDetails.mandatory_missing;
-                          const totalDesirable = scoringDetails.desirable_met + scoringDetails.desirable_missing;
-
-                          const mandatoryPercentage = totalMandatory > 0
-                            ? Math.round((scoringDetails.mandatory_met / totalMandatory) * 100)
-                            : 0;
-                          const desirablePercentage = totalDesirable > 0
-                            ? Math.round((scoringDetails.desirable_met / totalDesirable) * 100)
-                            : 0;
-
-                          return (
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                              <div className="p-3 bg-green-50 rounded-lg">
-                                <div className="text-xl font-bold text-green-600">{mandatoryPercentage}%</div>
-                                <div className="text-sm text-gray-600">Req. Obligatorios</div>
-                              </div>
-                              <div className="p-3 bg-blue-50 rounded-lg">
-                                <div className="text-xl font-bold text-blue-600">{desirablePercentage}%</div>
-                                <div className="text-sm text-gray-600">Req. Deseables</div>
-                              </div>
-                            </div>
-                          );
-                        })()}
-
                         {analysisData?.requirements && (
                           <div className="space-y-3">
                             <div>

@@ -62,20 +62,31 @@ src/
 
 ### Estado Actual de Desarrollo
 
-#### ✅ Completamente Funcional (Reclutador)
-- **Flujo completo del reclutador**
-- **Configuración de perfiles** con IA
-- **Dashboard con métricas** (datos mock)
-- **Gestión de postulaciones** (datos mock)
-- **Sistema de autenticación** (mock)
-- **Simulación de candidatos** para testing
+**Última actualización:** 13-10-2025
+**Estado general:** ✅ SISTEMA COMPLETAMENTE FUNCIONAL EN PRODUCCIÓN
 
-#### 🚧 En Desarrollo (Candidato)
-- **Flujo de candidato**: Registro + Verificación Captcha + Subida de CV (UI completa)
-- **Subida de CV**: UI funcional con drag & drop, validación, pero sin persistencia
-- **Proceso de preguntas**: Placeholders únicamente
-- **Integración con backend**: Parcial (falta Supabase Storage y persistencia)
-- **Datos reales**: Captcha y CV upload locales, resto mock
+#### ✅ Completamente Funcional (Reclutador) - 100%
+- **Flujo completo del reclutador** con datos reales
+- **Configuración de perfiles** con IA (separación mandatory/optional)
+- **Dashboard con métricas** (datos reales desde Supabase)
+- **Gestión de postulaciones** (crear, editar límite, pausar, cerrar, activar)
+- **Sistema de autenticación** (Supabase Auth completo)
+- **Dashboard de candidatos** con filtros avanzados y estados de seguimiento
+- **Vista detallada de candidatos** (CandidateProfile.tsx con datos reales)
+- **Sistema de favoritos** y seguimiento (reviewed, contacted)
+
+#### ✅ Completamente Funcional (Candidato) - 100%
+- **Flujo de candidato**: 6 steps completos
+  1. registration → CandidateRegistration.tsx ✅
+  2. verification → VerificationStep.tsx ✅ (captcha visual)
+  3. profile → CVUploadStep.tsx ✅ (Supabase Storage + análisis IA)
+  4. ai_questions → AIQuestionsStep.tsx ✅ (preguntas IA + scoring)
+  5. recruiter_questions → RecruiterQuestionsStep.tsx ✅ (formulario)
+  6. confirmation → ConfirmationStep.tsx ✅
+- **Backend serverless** (Vercel Functions completamente funcional)
+- **Análisis IA con GPT-4o-mini** (prompts optimizados)
+- **Filtro eliminatorio** (soft delete si no cumple requisitos mandatory)
+- **Protección IDOR** implementada en todas las APIs
 
 ## 📊 Decisiones Arquitectónicas Tomadas
 
@@ -173,38 +184,27 @@ src/
 
 ## 🎯 Próximos Pasos por Implementar
 
-### Prioridad Alta - EN PROGRESO (Sesión 01-10-2025)
-1. **🚧 EN PROGRESO: Implementación completa de análisis IA con Vercel AI SDK**
-   - ✅ **PASO 1 COMPLETADO**: Backend serverless configurado en Vercel
-     - Endpoint `/api/health` funcional en producción
-     - Deploy automático desde GitHub configurado
-   - ✅ **PASO 2 COMPLETADO**: Base de datos modificada en Supabase
-     - Tabla `processes`: Columnas `mandatory_requirements` y `optional_requirements` agregadas
-     - Tabla `candidates`: Columnas `cv_analysis`, `scoring_details`, `parsing_failed`, `parsing_error`, `ai_analysis_failed` agregadas
-     - Tabla `ai_questions` creada para preguntas generadas por IA
-     - Tabla `recruiter_questions` creada para preguntas formulario
-     - Tabla `recruiter_answers` creada para respuestas a formulario
-     - Tipos TypeScript actualizados en `supabase.ts`
-   - ✅ **PASO 3 COMPLETADO**: Parser de PDF/DOCX implementado
-     - `/api/utils/supabase.ts`: Cliente backend con SERVICE_ROLE_KEY
-     - `/api/utils/pdfParser.ts`: Extracción de texto PDF y DOCX
-     - `/api/test-parser.ts`: Endpoint de prueba funcional en producción
-     - Soporte para bucket `candidate-cvs`
-     - Validación de texto extraído (mínimo 50 caracteres)
-     - Probado exitosamente con CV real
-   - ✅ **PASO 4 COMPLETADO**: `/api/analyze-cv` + Integración CVUploadStep
-     - ✅ Vercel AI SDK instalado (`ai` + `@ai-sdk/openai`)
-     - ✅ `/api/utils/openai.ts` creado con helper `generateAIResponse()`
-     - ✅ `/api/analyze-cv.ts` funcional con OpenAI
-     - ✅ Integración en `CVUploadStep.tsx` con loading states
-     - ✅ Probado en producción (3-5 preguntas por candidato)
-     - ✅ Costo optimizado: ~$0.002 USD por análisis
-   - ⏳ **PASO 5**: UI AIQuestionsStep + RecruiterQuestionsStep
-     - Sub-paso 5.1: AIQuestionsStep + `/api/save-ai-answers`
-     - Sub-paso 5.2: RecruiterQuestionsStep + `/api/save-recruiter-answers`
-     - Sub-paso 5.3: Integrar ambos en CandidateFlow (6 steps)
-   - ⏳ **PASO 6**: `/api/calculate-scoring` + Filtro eliminatorio
-   - ⏳ **PASO 7**: Dashboard reclutador con análisis completo
+### ✅ Implementación IA Completada (100%)
+1. **✅ COMPLETADO: Implementación completa de análisis IA con Vercel AI SDK**
+   - ✅ **PASO 1**: Backend serverless configurado en Vercel
+   - ✅ **PASO 2**: Base de datos modificada en Supabase (todas las tablas)
+   - ✅ **PASO 3**: Parser PDF/DOCX implementado y funcional
+   - ✅ **PASO 4**: `/api/analyze-cv` + Integración CVUploadStep
+   - ✅ **PASO 5**: UI AIQuestionsStep + RecruiterQuestionsStep
+     - AIQuestionsStep.tsx (371 líneas) ✅
+     - RecruiterQuestionsStep.tsx (267 líneas) ✅
+     - `/api/save-ai-answers.ts` ✅
+     - `/api/save-recruiter-answers.ts` ✅
+     - CandidateFlow con 6 steps completo ✅
+   - ✅ **PASO 6**: `/api/calculate-scoring` + Filtro eliminatorio
+     - Scoring moderado con tolerance
+     - Soft delete de rechazados con rejection_reason
+     - Evaluación mandatory/optional requirements
+   - ✅ **PASO 7**: Dashboard reclutador con análisis completo
+     - `/api/get-candidate-analysis.ts` funcional
+     - CandidatesTable.tsx con datos reales
+     - CandidateProfile.tsx completamente refactorizado
+     - Filtros avanzados + estados de seguimiento
 
 ### Decisiones Arquitectónicas Clave (Sesión 01-10-2025)
 
@@ -269,69 +269,71 @@ src/
 - Tabla `recruiter_questions` usada por flujo candidato
 - Al crear proceso: guardar en ambos lados (sincronización)
 
-### Prioridad Alta - SIGUIENTE SESIÓN
+### ✅ Funcionalidades Principales Completadas
+
 1. **✅ COMPLETADO: Persistencia de Procesos de Reclutamiento**
-   - ✅ `processService.ts` creado con CRUD completo
-   - ✅ Guardado automático integrado en `JobPostingConfig.tsx`
-   - ✅ Procesos reales mostrados en `PostulationsTable.tsx`
-   - ✅ Edición/eliminación de procesos implementada
-   - ✅ Dashboard conectado con datos reales de Supabase
+   - ✅ `processService.ts` con CRUD completo
+   - ✅ Gestión de estados (active, closed, paused)
+   - ✅ Modificación dinámica de límite de candidatos
+   - ✅ Vista detallada de postulaciones (PostulationDetailView.tsx)
+   - ✅ Dashboard con métricas reales
 
-2. **🚧 PARCIALMENTE COMPLETADO: Desarrollo del flujo candidato** (`/src/candidate/components/`)
-   - ✅ Acceso por link único a procesos implementado
-   - ✅ Verificación captcha implementada y funcional
-   - ✅ UI de subida de CV completa (drag & drop, validación)
-   - ✅ Integración Supabase Storage funcional (`CandidateService.updateCandidateCV()`)
-   - ✅ `candidateService.ts` creado con CRUD básico
-   - ⏳ **EN PROGRESO**: Sistema de preguntas personalizadas generadas por IA (PASO 4)
-   - ⏳ **EN PROGRESO**: Lógica de scoring y evaluación (arquitectura definida, PASO 6)
-   - ❌ **PENDIENTE**: AIQuestionsStep + RecruiterQuestionsStep (PASO 5)
-   - ❌ **PENDIENTE**: Resultado final para candidato con feedback
+2. **✅ COMPLETADO: Flujo Candidato Completo** (`/src/candidate/components/`)
+   - ✅ Acceso por link único a procesos
+   - ✅ Verificación captcha funcional
+   - ✅ Subida de CV con Supabase Storage
+   - ✅ Sistema de preguntas personalizadas generadas por IA
+   - ✅ Lógica de scoring y filtro eliminatorio
+   - ✅ AIQuestionsStep + RecruiterQuestionsStep
+   - ✅ Resultado final con feedback completo
 
-3. **Gestión de candidatos** (`/src/recruiter/components/candidates/`)
-   - Conectar `CandidatesTable.tsx` con datos reales
-   - Mostrar candidatos por proceso específico
-   - Implementar `CandidateProfile.tsx` con layout split screen (PDF + Análisis)
-   - Sistema de scoring y ranking de candidatos
+3. **✅ COMPLETADO: Gestión de Candidatos** (`/src/recruiter/components/candidates/`)
+   - ✅ CandidatesTable.tsx con datos reales
+   - ✅ Filtrado por nombre, puesto, empresa, estado
+   - ✅ CandidateProfile.tsx con layout split screen (PDF + Análisis)
+   - ✅ Sistema de scoring y estados de seguimiento
+   - ✅ Protección IDOR en todas las APIs
 
-### Prioridad Media
-4. **Funcionalidades IA** (Una vez que flujos básicos estén completos)
-   - Integración con LLM para análisis de CV
-   - Generación dinámica de preguntas
-   - Sistema de scoring inteligente
+### Funcionalidades Adicionales (Opcional/Futuro)
 
-5. **✅ COMPLETADO: Sistema de links únicos**
-   - ✅ Generación de URLs específicas por proceso
-   - ⏳ Gestión de accesos candidatos (pendiente flujo candidato)
+4. **Mejoras IA Adicionales** (Post-MVP)
+   - Selector modo scoring (strict vs moderate)
+   - Optimización adicional de prompts
+   - Soporte para más modelos LLM
 
-6. **Gestión de sinónimos**
-   - Interface para configurar términos de búsqueda
-   - Algoritmo de matching avanzado
+5. **Gestión de sinónimos** (Opcional - Mock implementado)
+   - ✅ Panel UI existe pero no se usa en análisis
+   - ✅ GPT-4o-mini reconoce variaciones nativamente
+   - Implementación real solo si usuarios lo solicitan
 
-7. **Comparación entre candidatos**
-   - Ranking automático (funcionalidad futura)
-   - Herramientas de comparación
+6. **Comparación entre candidatos** (Funcionalidad futura)
+   - Ranking automático entre candidatos
+   - Herramientas de comparación lado a lado
 
-### Prioridad Baja
-8. **Optimizaciones UX/UI**
-   - Feedback en tiempo real
-   - Mejoras de accesibilidad
-   - Modo oscuro
+### Optimizaciones (Prioridad Baja)
+7. **UX/UI**
+   - Mejoras de accesibilidad adicionales
+   - Modo oscuro (Next Themes ya instalado)
+   - Animaciones y transiciones
 
-9. **Analytics y Reportes**
-   - Métricas de efectividad
-   - Exportación de datos
+8. **Analytics y Reportes**
+   - Dashboard de métricas de efectividad
+   - Exportación de datos (CSV, PDF)
+   - Reportes por período
 
 ## 🚨 Consideraciones Importantes
 
-### Limitaciones Actuales
+### Limitaciones Resueltas ✅
 - **✅ RESUELTO: Procesos persisten**: Guardado real en base de datos funcional
 - **✅ RESUELTO: Dashboard con datos reales**: Métricas reales implementadas
 - **✅ RESUELTO: Acceso por link único**: URLs funcionales para candidatos
 - **✅ RESUELTO: Errores autenticación y flujo**: Estados y props corregidos
-- **Flujo candidato incompleto**: Solo registro implementado, faltan pasos CV, preguntas, scoring
-- **IA no implementada**: Funcionalidades simuladas, pendiente integración con LLM
-- **Gestión de candidatos**: Componentes existen pero sin conexión a datos reales
+- **✅ RESUELTO: Flujo candidato**: 6 steps completamente funcionales
+- **✅ RESUELTO: IA implementada**: GPT-4o-mini integrado y funcional
+- **✅ RESUELTO: Gestión de candidatos**: Dashboard completo con datos reales
+
+### Estado Actual (13-10-2025)
+**No hay limitaciones técnicas críticas.** El sistema está completamente funcional y en producción.
 
 ### Principios de Desarrollo
 - **Simplicidad**: Mantener código claro para no-programadores
@@ -438,9 +440,11 @@ npm run build
 
 ---
 
-**Última actualización**: 03-10-2025
+**Última actualización**: 13-10-2025
 
-**Estado**: Variables de entorno implementadas + rejection_reason configurado - PASO 4 listo para continuar
+**Estado**: ✅ SISTEMA COMPLETAMENTE FUNCIONAL EN PRODUCCIÓN
+
+## 🎉 Funcionalidades Recientes (Octubre 2025)
 
 **Completado en Sesión 02/10/2025 (Parte 1):**
 - ✅ **REFACTOR ARQUITECTÓNICO COMPLETO**: Separación de requisitos (5 commits)
@@ -485,7 +489,7 @@ npm run build
 - **UX**: Panel de sinónimos conservado como mock (confianza del usuario)
 - **Ahorro**: ~$0.00002 por candidato al no procesar sinónimos
 
-**Completado en Sesión 03/10/2025:**
+**Completado en Sesión 03/10/2025 (Parte 3):**
 - ✅ **VARIABLES DE ENTORNO IMPLEMENTADAS**: Migración de hardcoded a .env
   - Archivo `.env` creado con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`
   - `src/shared/services/supabase.ts` actualizado para usar `import.meta.env.VITE_*`
@@ -505,7 +509,15 @@ npm run build
   - Validación de duplicados confirmada: bloquea re-intentos de rechazados
   - Preparado para `/api/calculate-scoring` (PASO 6)
 
-**Próximo**: PASO 5 - UI AIQuestionsStep + RecruiterQuestionsStep
+**Completado Post-Sesión 03/10/2025:**
+- ✅ **PASO 5 COMPLETADO**: AIQuestionsStep + RecruiterQuestionsStep implementados
+- ✅ **PASO 6 COMPLETADO**: `/api/calculate-scoring` con filtro eliminatorio
+- ✅ **PASO 7 COMPLETADO**: Dashboard reclutador con análisis completo
+- ✅ **PROTECCIÓN IDOR**: APIs de candidatos protegidas (commit a58574b)
+- ✅ **OPTIMIZACIÓN PROMPTS**: Análisis semántico compacto (commit c6487a3)
+- ✅ **GESTIÓN POSTULACIONES**: Vista detallada + modificación límites
+- ✅ **ESTADOS SEGUIMIENTO**: Favoritos, revisado, contactado con persistencia
+- ✅ **FILTRADO CANDIDATOS**: Corrección por proceso (commit 12e128d)
 
 **Notas técnicas:**
 - Cache de Vercel: Forzar re-deploy si variables de entorno no se aplican

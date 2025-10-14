@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
 import { Progress } from '../../../ui/components/ui/progress';
 import { CandidateProfile } from './CandidateProfile';
+import { PaginationControls } from '../../../ui/components/ui/pagination-controls';
 import { 
   Search, 
   Filter, 
@@ -29,7 +30,7 @@ interface Candidate {
   email: string;
   linkedin_url?: string;
   cv_url?: string;
-  score: number;
+  score?: number;  // Opcional - coincide con servicio
   status: string; // 'completed' | 'rejected'
   created_at: string;
   process_id: string;
@@ -60,10 +61,23 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
   const [processFilter, setProcessFilter] = useState<string>(initialProcessFilter || '');
   const [profileViewCandidate, setProfileViewCandidate] = useState<Candidate | null>(null);
 
+  // Estado de paginación
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pagination, setPagination] = useState({
+    totalCount: 0,
+    totalPages: 0,
+    hasMore: false
+  });
+
   // Actualizar filtro cuando initialProcessFilter cambia
   useEffect(() => {
     setProcessFilter(initialProcessFilter || '');
   }, [initialProcessFilter]);
+
+  // Reset página cuando cambia filtro de proceso
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [processFilter]);
 
   // Cargar candidatos cuando cambia el recruiterId
   useEffect(() => {
@@ -77,7 +91,10 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
       setError(null);
 
       try {
-        const result = await CandidateService.getCandidatesByRecruiter(recruiterId);
+        const result = await CandidateService.getCandidatesByRecruiter(
+          recruiterId,
+          { page: currentPage, limit: 50 }
+        );
 
         if (!result.success || !result.candidates) {
           setError(result.error || 'Error al cargar candidatos');
@@ -94,6 +111,11 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
         }));
 
         setCandidates(candidatesWithDefaults);
+
+        // Guardar metadatos de paginación
+        if (result.pagination) {
+          setPagination(result.pagination);
+        }
       } catch (err) {
         console.error('Error loading candidates:', err);
         setError('Error al cargar candidatos');
@@ -104,7 +126,7 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     };
 
     loadCandidates();
-  }, [recruiterId]);
+  }, [recruiterId, currentPage]);
 
   const handleRetry = async () => {
     setLoading(true);
@@ -133,6 +155,13 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handler para cambio de página
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    // Scroll suave al inicio de la tabla
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Filtrar candidatos
@@ -403,11 +432,11 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
-                            className={`h-full rounded-full transition-all ${getFitColor(candidate.score)}`}
-                            style={{ width: `${candidate.score}%` }}
+                            className={`h-full rounded-full transition-all ${getFitColor(candidate.score || 0)}`}
+                            style={{ width: `${candidate.score || 0}%` }}
                           />
                         </div>
-                        <span className="font-medium text-sm">{candidate.score}%</span>
+                        <span className="font-medium text-sm">{candidate.score || 0}%</span>
                       </div>
                     </TableCell>
                     <TableCell style={getRowStyle(candidate)}>
@@ -467,6 +496,18 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
               </TableBody>
             </Table>
           </div>
+          )}
+
+          {/* Paginación */}
+          {!loading && !error && candidates.length > 0 && (
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              totalCount={pagination.totalCount}
+              pageSize={50}
+              onPageChange={handlePageChange}
+              loading={loading}
+            />
           )}
 
           {/* Mensaje cuando hay candidatos pero los filtros no coinciden */}

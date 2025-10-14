@@ -169,7 +169,10 @@ export class CandidateService {
   }
 
   // Obtener todos los candidatos del reclutador con info de sus procesos
-  static async getCandidatesByRecruiter(recruiterId: string): Promise<{
+  static async getCandidatesByRecruiter(
+    recruiterId: string,
+    options?: { page?: number; limit?: number }
+  ): Promise<{
     success: boolean;
     candidates?: Array<{
       id: string;
@@ -188,9 +191,21 @@ export class CandidateService {
       process_company: string;
       process_status: string;
     }>;
+    pagination?: {
+      page: number;
+      limit: number;
+      totalCount: number;
+      totalPages: number;
+      hasMore: boolean;
+    };
     error?: string;
   }> {
     try {
+      // Inicializar opciones de paginación
+      const { page = 0, limit = 50 } = options || {};
+      const from = page * limit;
+      const to = from + limit - 1;
+
       // 1. Obtener todos los procesos del reclutador
       const { data: processes, error: processesError } = await supabase
         .from('processes')
@@ -209,19 +224,44 @@ export class CandidateService {
         // El reclutador no tiene procesos aún
         return {
           success: true,
-          candidates: []
+          candidates: [],
+          pagination: {
+            page: 0,
+            limit,
+            totalCount: 0,
+            totalPages: 0,
+            hasMore: false
+          }
         };
       }
 
       // 2. Obtener candidatos de todos los procesos
       const processIds = processes.map(p => p.id);
 
+      // 3. Obtener conteo total (para calcular páginas)
+      const { count: totalCount, error: countError } = await supabase
+        .from('candidates')
+        .select('*', { count: 'exact', head: true })
+        .in('process_id', processIds)
+        .in('status', ['completed', 'rejected']);
+
+      if (countError) {
+        console.error('Error fetching candidate count:', countError);
+        return {
+          success: false,
+          error: 'Error al contar candidatos',
+          pagination: { page: 0, limit, totalCount: 0, totalPages: 0, hasMore: false }
+        };
+      }
+
+      // 4. Obtener candidatos paginados
       const { data: candidates, error: candidatesError } = await supabase
         .from('candidates')
         .select('*')
         .in('process_id', processIds)
         .in('status', ['completed', 'rejected']) // Solo candidatos que completaron el proceso
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (candidatesError) {
         console.error('Error fetching candidates:', candidatesError);
@@ -256,9 +296,19 @@ export class CandidateService {
         };
       });
 
+      // 5. Calcular metadata de paginación
+      const totalPages = (totalCount && totalCount > 0) ? Math.ceil(totalCount / limit) : 0;
+
       return {
         success: true,
-        candidates: candidatesWithProcess
+        candidates: candidatesWithProcess,
+        pagination: {
+          page,
+          limit,
+          totalCount: totalCount || 0,
+          totalPages,
+          hasMore: page < totalPages - 1
+        }
       };
     } catch (error) {
       console.error('Get candidates by recruiter error:', error);

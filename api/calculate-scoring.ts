@@ -341,19 +341,38 @@ function buildModeratePrompt(
    - "Familiarizado con..." sin años de práctica
    - Cursos o certificaciones sin experiencia aplicada
 
+3. **VALIDACIÓN DE RESPUESTAS A PREGUNTAS IA:**
+
+   ✅ **Respuesta VÁLIDA (mandatory) debe incluir:**
+   - Años específicos (número claro)
+   - Contexto profesional (empresa/proyecto/freelance)
+   - Herramientas mencionadas (acorde a lo preguntado)
+
+   ✅ **Tipos de experiencia que CUENTAN:**
+   - Empleo formal, freelance, open-source con impacto
+   - Experiencias fragmentadas se SUMAN (ej: 1 año + 2 años = 3 años)
+
+   ❌ **NO cuenta:**
+   - Solo cursos/certificaciones sin aplicación práctica
+   - "Conocimientos en..." sin años o contexto
+
+   ⚠️ **Info adicional en respuestas:**
+   - Si respuesta aporta experiencia NO en CV → ACEPTAR
+   - Las preguntas existen para complementar el CV
+
 **REGLAS DE EVALUACIÓN:**
 
 1. **Requisitos INDISPENSABLES (mandatory):**
-   - ✅ APROBAR si cumple el requisito o está MUY CERCA
+   - ✅ APROBAR si tiene ≥80% de los años requeridos
    - ✅ Ejemplos de APROBAR:
-     * Requisito: "Product Manager 3+ años" → CV: "Desarrollador de Producto 4 años" → ✅ APROBAR (equivalente)
-     * Requisito: "React 5+ años" → Candidato tiene 4 años → ✅ APROBAR (cercano)
+     * Requisito: "Product Manager 3+ años" → Tiene 3+ años (100%) → ✅ APROBAR
+     * Requisito: "React 5+ años" → Tiene 4 años (80%) → ✅ APROBAR
      * Requisito: "Backend Developer" → CV: "Ingeniero Backend" → ✅ APROBAR (equivalente)
-   - ❌ RECHAZAR solo si CLARAMENTE no cumple
+   - ❌ RECHAZAR si tiene <80% de lo requerido
    - ❌ Ejemplos de RECHAZAR:
-     * Requisito: "React 5+ años" → Candidato tiene 6 meses → ❌ RECHAZAR
-     * Requisito: "Product Manager" → Solo menciona "curso de gestión de producto" → ❌ RECHAZAR
-     * Requisito: "Python" → No menciona Python en ningún lado → ❌ RECHAZAR
+     * Requisito: "React 5+ años" → Tiene 2 años (40%) → ❌ RECHAZAR
+     * Requisito: "Product Manager" → Solo "curso de gestión" → ❌ RECHAZAR
+     * Requisito: "Python" → No menciona Python en CV ni respuestas → ❌ RECHAZAR
 
 2. **Requisitos DESEABLES (optional):**
    - Sumar puntos al score si cumple
@@ -412,11 +431,12 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 }
 
 **IMPORTANTE:**
-- Si meetsAllMandatory = false, agrega campo "rejection_reason" explicando qué requisito mandatory no cumple
+- Si meetsAllMandatory = false, en "rejection_reason" usa formato específico:
+  "[REQUISITO]: Tiene X años, se requiere Y+ años (cumple Z% del mínimo 80%)"
+  Ejemplo: "Frontend Developer 5+ años: Tiene 2 años de experiencia, se requiere 5+ años (cumple 40% del mínimo 80%)"
 - Reconoce equivalencias de roles ANTES de evaluar (Product Manager = Desarrollador de Producto, etc.)
-- Sé objetivo pero tolerante (modo MODERADO)
 - Usa evidencia del CV Y respuestas para evaluar
-- En el campo "evidence" menciona explícitamente cuando usas equivalencias
+- En "evidence" menciona explícitamente cuando usas equivalencias o sumas experiencias fragmentadas
 
 Evalúa al candidato ahora:`;
 }

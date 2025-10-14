@@ -300,24 +300,25 @@ Solo si no tienes suficientes preguntas mandatory, revisa optional con el mismo 
    ❌ **NO cuenta:** "Conocimientos en...", "Familiarizado con...", "[Skill]" listado sin contexto
    ⚠️ **Pregunta:** Menciones sin años o sin contexto laboral
 
-3. **CUÁNDO GENERAR UNA PREGUNTA:**
+3. **FORMATO DE PREGUNTA (según situación):**
 
-   ✅ **SÍ preguntar si:**
-   - Requisito (mandatory u optional) NO aparece en el CV
-   - Requisito mencionado pero SIN años/nivel específico
-   - Información ambigua o contradictoria sobre un requisito
+   🔴 **Si requisito MANDATORY NO está en CV:**
+   Pedir: empresas/proyectos + años + herramientas específicas
 
-   ❌ **NO preguntar si:**
-   - Requisito tiene información clara y completa en CV
-   - Ya tienes 5 preguntas (límite máximo)
-   - La habilidad/experiencia NO está en la lista de requisitos
+   Template: "No encuentro [REQUISITO] en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste como [ROL]? ¿Cuántos años? ¿Qué herramientas/tecnologías usaste?"
+
+   🟡 **Si requisito está mencionado SIN detalles:**
+   Preguntar solo lo que falta (años, contexto, nivel)
+
+   🟢 **Si requisito es ambiguo:**
+   Aclarar solo la ambigüedad específica
 
 **FORMATO DE SALIDA (JSON):**
 {
   "questions": [
     {
-      "question": "Texto contextualizado mencionando qué encontraste en el CV",
-      "reason": "Por qué preguntas esto (menciona el requisito específico)",
+      "question": "Pregunta estructurada según template arriba",
+      "reason": "Por qué preguntas esto",
       "cv_evidence": "Qué encontraste o NO encontraste",
       "is_mandatory": true/false
     }
@@ -325,11 +326,14 @@ Solo si no tienes suficientes preguntas mandatory, revisa optional con el mismo 
 }
 
 **EJEMPLOS:**
-✅ BUENA: "No encuentro mención de Figma en tu CV, que es un requisito indispensable. ¿Tienes experiencia con Figma? Si es así, ¿cuántos años?"
-✅ BUENA: "Trabajaste como 'Desarrollador de Producto' (equivalente a PM) en 2020-2024. ¿Incluía gestión de roadmap y stakeholders?"
-✅ BUENA: "Veo 'React' listado en skills. El requisito pide React avanzado (5+ años). ¿Cuántos años de experiencia profesional tienes con React?"
-❌ MALA: "¿Tienes experiencia con JavaScript?" (JavaScript no está en los requisitos del proceso)
-❌ MALA: "Veo que manejaste control de stock. ¿Por cuánto tiempo?" (Control de stock no está en requisitos)
+✅ CORRECTO (mandatory NO en CV): "No encuentro experiencia como Frontend Developer en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste como Frontend Developer? ¿Cuántos años? ¿Qué tecnologías usaste (React, Vue, etc.)?"
+
+✅ CORRECTO (mencionado sin años): "Veo 'React' en skills. El requisito pide React avanzado (5+ años). ¿Cuántos años de experiencia profesional tienes con React y en qué proyectos?"
+
+✅ CORRECTO (aclaración): "Trabajaste como 'Desarrollador de Producto' (equivalente a PM) en 2020-2024. ¿Incluía gestión de roadmap y stakeholders?"
+
+❌ INCORRECTO (muy vaga): "¿Tienes experiencia con Figma? ¿Cuántos años?"
+❌ INCORRECTO (fuera de requisitos): "¿Experiencia con JavaScript?" (no está en requisitos)
 
 Genera las preguntas ahora:`;
 }

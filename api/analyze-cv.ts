@@ -300,7 +300,20 @@ Solo si no tienes suficientes preguntas mandatory, revisa optional con el mismo 
    ❌ **NO cuenta:** "Conocimientos en...", "Familiarizado con...", "[Skill]" listado sin contexto
    ⚠️ **Pregunta:** Menciones sin años o sin contexto laboral
 
-3. **FORMATO DE PREGUNTA (según situación):**
+3. **CERTIFICACIONES (binarias - tiene o no tiene):**
+   ✅ **Cuenta como certificación cumplida:**
+   - Certificación exacta mencionada en CV
+   - Cursos del mismo tema/área (análisis moderado)
+   - Ejemplo: Requisito "Certificación PMP" → CV: "Curso de Project Management" → ✅ CUENTA
+
+   ❌ **NO cuenta:**
+   - Cursos de temas no relacionados
+   - Solo "interesado en..." sin certificación o curso completado
+
+   ⚠️ **Pregunta si NO está en CV:**
+   - "¿Tienes certificación en [NOMBRE]? Si no, ¿completaste algún curso o capacitación relacionada con [TEMA]?"
+
+4. **FORMATO DE PREGUNTA (según situación):**
 
    🔴 **Si requisito MANDATORY NO está en CV:**
    Pedir: empresas/proyectos + años + herramientas específicas

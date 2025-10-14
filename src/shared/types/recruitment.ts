@@ -11,6 +11,7 @@ export interface ProfileRequirement {
     | "experience"
     | "tools"
     | "technical"
+    | "certifications"
     | "other-skills";
   title: string;
   level?: "básico" | "intermedio" | "avanzado";

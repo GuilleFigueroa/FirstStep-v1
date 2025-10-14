@@ -360,19 +360,35 @@ function buildModeratePrompt(
    - Si respuesta aporta experiencia NO en CV → ACEPTAR
    - Las preguntas existen para complementar el CV
 
+4. **VALIDACIÓN DE CERTIFICACIONES (binarias):**
+
+   ✅ **Certificación CUMPLIDA si:**
+   - Menciona la certificación exacta
+   - Menciona curso del mismo tema (análisis moderado)
+   - Ejemplo: Requisito "PMP" → Respuesta "Completé curso de Project Management" → ✅ CUMPLE
+
+   ❌ **NO cumple:**
+   - Cursos no relacionados
+   - Solo "interesado en..." sin certificación o curso
+
 **REGLAS DE EVALUACIÓN:**
 
 1. **Requisitos INDISPENSABLES (mandatory):**
-   - ✅ APROBAR si tiene ≥80% de los años requeridos
+   - ✅ APROBAR si tiene ≥80% de los años requeridos (para experiencia/herramientas/técnicos)
+   - ✅ APROBAR si tiene la certificación o curso del mismo tema (para certificaciones)
    - ✅ Ejemplos de APROBAR:
      * Requisito: "Product Manager 3+ años" → Tiene 3+ años (100%) → ✅ APROBAR
      * Requisito: "React 5+ años" → Tiene 4 años (80%) → ✅ APROBAR
      * Requisito: "Backend Developer" → CV: "Ingeniero Backend" → ✅ APROBAR (equivalente)
-   - ❌ RECHAZAR si tiene <80% de lo requerido
+     * Requisito: "Certificación AWS" (certifications) → Respuesta: "Tengo certificación AWS Cloud Practitioner" → ✅ APROBAR
+     * Requisito: "Certificación Scrum Master" (certifications) → Respuesta: "Completé curso de Scrum" → ✅ APROBAR (análisis moderado)
+   - ❌ RECHAZAR si tiene <80% de lo requerido (experiencia) o NO tiene la certificación/curso
    - ❌ Ejemplos de RECHAZAR:
      * Requisito: "React 5+ años" → Tiene 2 años (40%) → ❌ RECHAZAR
      * Requisito: "Product Manager" → Solo "curso de gestión" → ❌ RECHAZAR
      * Requisito: "Python" → No menciona Python en CV ni respuestas → ❌ RECHAZAR
+     * Requisito: "Certificación PMP" (certifications) → Respuesta: "No tengo certificación" → ❌ RECHAZAR
+     * Requisito: "Certificación AWS" (certifications) → Respuesta: "Hice curso de Azure" → ❌ RECHAZAR (tema no relacionado)
 
 2. **Requisitos DESEABLES (optional):**
    - Sumar puntos al score si cumple

@@ -8,7 +8,7 @@ import { Switch } from '../../../ui/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { Input } from '../../../ui/components/ui/input';
 import { Separator } from '../../../ui/components/ui/separator';
-import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X, Info } from 'lucide-react';
+import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X, Info, Award } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../ui/components/ui/tooltip';
 import { CustomPromptBox } from './CustomPromptBox';
 import type { JobProfile, ProfileRequirement } from '../../../app/App';
@@ -276,7 +276,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       id: `custom-${Date.now()}`,
       category,
       title: 'Nuevo requisito',
-      level: category === 'experience' ? undefined : 'intermedio',
+      level: category === 'experience' || category === 'certifications' ? undefined : 'intermedio',
       years: category === 'experience' ? 1 : undefined,
       required: false
     };
@@ -288,6 +288,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       experience: 'Experiencia',
       tools: 'Herramientas',
       technical: 'Conocimientos Técnicos',
+      certifications: 'Certificaciones',
       'other-skills': 'Otras Habilidades'
     };
     return labels[category as keyof typeof labels] || category;
@@ -298,6 +299,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       experience: 'bg-blue-100 text-blue-800',
       tools: 'bg-green-100 text-green-800',
       technical: 'bg-purple-100 text-purple-800',
+      certifications: 'bg-yellow-100 text-yellow-800',
       'other-skills': 'bg-orange-100 text-orange-800'
     };
     return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
@@ -328,7 +330,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     return acc;
   }, {} as Record<string, ProfileRequirement[]>);
 
-  const categories: ProfileRequirement['category'][] = ['experience', 'tools', 'technical', 'other-skills'];
+  const categories: ProfileRequirement['category'][] = ['experience', 'tools', 'technical', 'certifications', 'other-skills'];
 
   return (
     <div className="space-y-6">
@@ -402,27 +404,36 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
               </div>
               
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => addRequirement('tools')}
                   className="flex items-center gap-1"
                 >
                   <Wrench className="w-3 h-3" />
                   Agregar Herramienta
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => addRequirement('technical')}
                   className="flex items-center gap-1"
                 >
                   <Brain className="w-3 h-3" />
                   Agregar Conocimiento
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addRequirement('certifications')}
+                  className="flex items-center gap-1"
+                >
+                  <Award className="w-3 h-3" />
+                  Agregar Certificación
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => addRequirement('other-skills')}
                   className="flex items-center gap-1"
                 >

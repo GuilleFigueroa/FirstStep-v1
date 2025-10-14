@@ -284,7 +284,7 @@ export class CandidateService {
           email: candidate.email,
           linkedin_url: candidate.linkedin_url,
           cv_url: candidate.cv_url,
-          score: candidate.score || 0,
+          score: candidate.score,
           status: candidate.status,
           action_status: candidate.action_status || 'none',
           is_favorite: candidate.is_favorite || false,

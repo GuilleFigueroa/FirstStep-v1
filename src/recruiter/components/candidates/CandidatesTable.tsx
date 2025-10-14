@@ -133,7 +133,10 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     setError(null);
 
     try {
-      const result = await CandidateService.getCandidatesByRecruiter(recruiterId);
+      const result = await CandidateService.getCandidatesByRecruiter(
+        recruiterId,
+        { page: currentPage, limit: 50 }
+      );
 
       if (!result.success || !result.candidates) {
         setError(result.error || 'Error al cargar candidatos');
@@ -143,11 +146,17 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
 
       const candidatesWithDefaults = result.candidates.map(c => ({
         ...c,
+        process_id: c.process_id || '',
         actionStatus: c.action_status || 'none',
         isFavorite: c.is_favorite || false
       }));
 
       setCandidates(candidatesWithDefaults);
+
+      // Guardar metadatos de paginación
+      if (result.pagination) {
+        setPagination(result.pagination);
+      }
     } catch (err) {
       console.error('Error loading candidates:', err);
       setError('Error al cargar candidatos');

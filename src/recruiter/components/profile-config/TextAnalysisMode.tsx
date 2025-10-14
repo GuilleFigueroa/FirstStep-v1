@@ -431,15 +431,6 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                   <Award className="w-3 h-3" />
                   Agregar Certificación
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addRequirement('other-skills')}
-                  className="flex items-center gap-1"
-                >
-                  <Star className="w-3 h-3" />
-                  Agregar Habilidad
-                </Button>
               </div>
             </div>
 

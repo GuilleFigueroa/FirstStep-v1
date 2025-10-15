@@ -239,7 +239,7 @@ function buildAnalysisPrompt(
   optionalRequirements: any[],
   customPrompt?: string
 ): string {
-  return `Eres un asistente experto en análisis de CVs para procesos de reclutamiento. Genera preguntas precisas y contextualizadas para verificar requisitos.
+  return `Eres un experto en análisis de CVs para procesos de reclutamiento. Genera preguntas precisas para verificar requisitos del puesto.
 
 **CV DEL CANDIDATO:**
 ${cvText}
@@ -259,94 +259,43 @@ SOLO genera preguntas sobre requisitos que aparecen en las listas "REQUISITOS IN
 
 IGNORA completamente cualquier otra habilidad, experiencia o tecnología mencionada en el CV que NO esté en estas listas.
 
-Ejemplo:
-- Si el CV menciona "JavaScript" pero JavaScript NO está en los requisitos → NO preguntes sobre JavaScript
-- Si el CV menciona "Control de stock" pero NO está en los requisitos → NO preguntes sobre control de stock
-- Si los requisitos incluyen "Figma" y el CV NO lo menciona → SÍ pregunta sobre Figma
-
 ---
 
-**TU PROCESO DE ANÁLISIS (PASO A PASO):**
+**INSTRUCCIONES DE ANÁLISIS:**
 
-**PASO 1 - Analiza cada requisito INDISPENSABLE:**
-Para cada requisito mandatory, identifica:
-- ¿Está mencionado en el CV? (sí/no/parcialmente)
-- Si está mencionado, ¿tiene detalles específicos? (años de experiencia, nivel, contexto laboral)
-- ¿Necesita una pregunta de verificación?
+**1. BÚSQUEDA SEMÁNTICA FLEXIBLE:**
+- Reconoce sinónimos y variaciones de términos sin importar mayúsculas, tildes o guiones
+- Reconoce roles/skills equivalentes en diferentes idiomas o con nombres similares
+- Si un término está mencionado de CUALQUIER forma relacionada al requisito, considéralo encontrado
+- Ejemplo: "Administrativo Contable" = "Admin. contable" = "Administrativo contable" = "Asistente administrativo contable"
 
-**PASO 2 - Analiza requisitos DESEABLES (si quedan slots):**
-Solo si no tienes suficientes preguntas mandatory, revisa optional con el mismo criterio.
+**2. CRITERIO DE EVIDENCIA:**
+- ✅ **EVIDENCIA CLARA:** Rol/skill mencionado con contexto laboral (empresa, años, proyectos específicos)
+- ⚠️ **EVIDENCIA PARCIAL:** Mencionado pero sin detalles suficientes (sin años, nivel o contexto)
+- ❌ **SIN EVIDENCIA:** No mencionado, o solo listado como "conocimiento" sin experiencia laboral demostrable
 
-**PASO 3 - Prioriza las preguntas (máximo 5):**
-- PRIORIDAD ALTA: Requisitos mandatory NO mencionados o sin detalles
-- PRIORIDAD MEDIA: Requisitos mandatory con información ambigua
-- PRIORIDAD BAJA: Requisitos optional sin verificar
+**3. CUÁNDO HACER PREGUNTAS:**
+- Requisito INDISPENSABLE sin evidencia → Pregunta obligatoria
+- Requisito INDISPENSABLE con evidencia parcial → Pregunta de aclaración
+- Requisito DESEABLE no mencionado → Pregunta opcional (solo si quedan slots disponibles)
+- Máximo 5 preguntas totales, priorizando siempre los indispensables
 
----
-
-**REGLAS DE ANÁLISIS:**
-
-1. **EQUIVALENCIAS DE ROLES** (reconoce variaciones ES/EN):
-   - Product Manager = Gerente de Producto = Desarrollador de Producto = PM = Product Owner = PO
-   - Backend/Frontend/Full Stack Developer = Desarrollador/Ingeniero Backend/Frontend/Full Stack
-   - Tech Lead = Líder Técnico = Technical Lead
-   - DevOps Engineer = Ingeniero DevOps = SRE
-   - Data Scientist = Científico de Datos
-   - UX Designer = Diseñador UX
-   - QA Engineer = Tester = Quality Assurance
-
-2. **EXPERIENCIA LABORAL vs MENCIÓN:**
-   ✅ **Cuenta como experiencia:** "Trabajé como [ROL] en [EMPRESA] (años)"
-   ❌ **NO cuenta:** "Conocimientos en...", "Familiarizado con...", "[Skill]" listado sin contexto
-   ⚠️ **Pregunta:** Menciones sin años o sin contexto laboral
-
-3. **CERTIFICACIONES (binarias - tiene o no tiene):**
-   ✅ **Cuenta como certificación cumplida:**
-   - Certificación exacta mencionada en CV
-   - Cursos del mismo tema/área (análisis moderado)
-   - Ejemplo: Requisito "Certificación PMP" → CV: "Curso de Project Management" → ✅ CUENTA
-
-   ❌ **NO cuenta:**
-   - Cursos de temas no relacionados
-   - Solo "interesado en..." sin certificación o curso completado
-
-   ⚠️ **Pregunta si NO está en CV:**
-   - "¿Tienes certificación en [NOMBRE]? Si no, ¿completaste algún curso o capacitación relacionada con [TEMA]?"
-
-4. **FORMATO DE PREGUNTA (según situación):**
-
-   🔴 **Si requisito MANDATORY NO está en CV:**
-   Pedir: empresas/proyectos + años + herramientas específicas
-
-   Template: "No encuentro [REQUISITO] en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste como [ROL]? ¿Cuántos años? ¿Qué herramientas/tecnologías usaste?"
-
-   🟡 **Si requisito está mencionado SIN detalles:**
-   Preguntar solo lo que falta (años, contexto, nivel)
-
-   🟢 **Si requisito es ambiguo:**
-   Aclarar solo la ambigüedad específica
+**4. FORMATO DE PREGUNTAS SEGÚN CONTEXTO:**
+- **Sin evidencia:** "No encuentro [REQUISITO] en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste en este rol? ¿Cuántos años de experiencia tienes? ¿Qué herramientas/tecnologías específicas usaste?"
+- **Evidencia parcial:** "Veo que mencionas [REQUISITO], pero falta información. ¿Cuántos años de experiencia tienes específicamente con esto? ¿En qué proyectos o empresas lo aplicaste?"
+- **Ambigua o necesita detalle:** "Trabajaste como [ROL]. ¿Podrías detallar [aspecto específico que falta según el requisito]?"
 
 **FORMATO DE SALIDA (JSON):**
 {
   "questions": [
     {
-      "question": "Pregunta estructurada según template arriba",
-      "reason": "Por qué preguntas esto",
-      "cv_evidence": "Qué encontraste o NO encontraste",
+      "question": "Pregunta específica y contextualizada",
+      "reason": "Por qué haces esta pregunta",
+      "cv_evidence": "Qué encontraste o no encontraste en el CV",
       "is_mandatory": true/false
     }
   ]
 }
-
-**EJEMPLOS:**
-✅ CORRECTO (mandatory NO en CV): "No encuentro experiencia como Frontend Developer en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste como Frontend Developer? ¿Cuántos años? ¿Qué tecnologías usaste (React, Vue, etc.)?"
-
-✅ CORRECTO (mencionado sin años): "Veo 'React' en skills. El requisito pide React avanzado (5+ años). ¿Cuántos años de experiencia profesional tienes con React y en qué proyectos?"
-
-✅ CORRECTO (aclaración): "Trabajaste como 'Desarrollador de Producto' (equivalente a PM) en 2020-2024. ¿Incluía gestión de roadmap y stakeholders?"
-
-❌ INCORRECTO (muy vaga): "¿Tienes experiencia con Figma? ¿Cuántos años?"
-❌ INCORRECTO (fuera de requisitos): "¿Experiencia con JavaScript?" (no está en requisitos)
 
 Genera las preguntas ahora:`;
 }

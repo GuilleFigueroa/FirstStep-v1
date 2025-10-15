@@ -316,19 +316,16 @@ function buildModeratePrompt(
 
 **PRINCIPIOS FUNDAMENTALES:**
 
-1. **ANÁLISIS SEMÁNTICO DE ROLES:**
-   Reconoce equivalencias de títulos y roles:
-   - Product Manager = Gerente de Producto = Desarrollador de Producto = PM = Product Owner = PO
-   - Backend Developer = Desarrollador Backend = Ingeniero Backend = Backend Engineer
-   - Frontend Developer = Desarrollador Frontend = Ingeniero Frontend = Frontend Engineer
-   - Full Stack Developer = Desarrollador Full Stack = Full Stack Engineer
-   - Tech Lead = Líder Técnico = Technical Lead = Team Lead Técnico
-   - Data Scientist = Científico de Datos = Analista de Datos Senior
-   - DevOps Engineer = Ingeniero DevOps = SRE = Site Reliability Engineer
-   - UX Designer = Diseñador UX = Diseñador de Experiencia de Usuario
-   - QA Engineer = Ingeniero de QA = Tester = Quality Assurance
-
-   **Regla:** Si el CV menciona un equivalente del requisito, cuenta como cumplido.
+1. **BÚSQUEDA SEMÁNTICA FLEXIBLE:**
+   - Reconoce sinónimos y variaciones de términos sin importar mayúsculas, tildes o guiones
+   - Reconoce roles/skills equivalentes en diferentes idiomas o con nombres similares
+   - Si un término está mencionado de CUALQUIER forma relacionada al requisito, considéralo cumplido
+   - Ejemplos de equivalencias:
+     * "Product Manager" = "Gerente de Producto" = "Desarrollador de Producto" = "PM" = "Product Owner" = "Coordinador de Producto"
+     * "Backend Developer" = "Desarrollador Backend" = "Ingeniero Backend" = "Backend Engineer" = "Dev Backend"
+     * "Administrativo Contable" = "Admin. contable" = "Administrativo contable" = "Asistente administrativo contable"
+     * "React" = "React.js" = "ReactJS"
+   - Usa tu conocimiento semántico natural para reconocer equivalencias más allá de estos ejemplos
 
 2. **EXPERIENCIA LABORAL vs MENCIÓN:**
    ✅ **CUENTA como experiencia cumplida:**
@@ -392,7 +389,7 @@ function buildModeratePrompt(
 
 2. **Requisitos DESEABLES (optional):**
    - Sumar puntos al score si cumple
-   - Aplicar análisis semántico también aquí
+   - Aplicar búsqueda semántica flexible también aquí
    - NO rechazar si no cumple (solo afecta el score)
 
 3. **Score (0-100):**
@@ -450,9 +447,9 @@ ${customPrompt ? `**CRITERIOS ADICIONALES DEL RECLUTADOR:**\n${customPrompt}\n` 
 - Si meetsAllMandatory = false, en "rejection_reason" usa formato específico:
   "[REQUISITO]: Tiene X años, se requiere Y+ años (cumple Z% del mínimo 80%)"
   Ejemplo: "Frontend Developer 5+ años: Tiene 2 años de experiencia, se requiere 5+ años (cumple 40% del mínimo 80%)"
-- Reconoce equivalencias de roles ANTES de evaluar (Product Manager = Desarrollador de Producto, etc.)
+- Aplica búsqueda semántica flexible ANTES de evaluar (normaliza mayúsculas, tildes, guiones y reconoce equivalencias)
 - Usa evidencia del CV Y respuestas para evaluar
-- En "evidence" menciona explícitamente cuando usas equivalencias o sumas experiencias fragmentadas
+- En "evidence" menciona explícitamente cuando usas equivalencias semánticas o sumas experiencias fragmentadas
 
 Evalúa al candidato ahora:`;
 }

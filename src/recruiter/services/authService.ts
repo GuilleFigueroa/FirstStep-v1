@@ -133,6 +133,28 @@ export async function signIn(data: SignInData): Promise<AuthResponse> {
       return { success: false, error: 'Profile not found' }
     }
 
+    // ⭐ VALIDAR ESTADO DE APROBACIÓN
+    const accountStatus = profile.account_status || 'pending'
+
+    if (accountStatus === 'rejected') {
+      // Hacer logout automático
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error: profile.rejection_reason || 'Tu cuenta fue rechazada. Contacta al administrador para más información.'
+      }
+    }
+
+    if (accountStatus === 'pending') {
+      // Hacer logout automático
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error: 'Tu cuenta está pendiente de aprobación. Recibirás un email cuando sea aprobada.'
+      }
+    }
+
+    // Solo si account_status === 'approved' llega hasta acá
     return { success: true, user: profile }
   } catch (error) {
     return { success: false, error: 'Unexpected error during sign in' }

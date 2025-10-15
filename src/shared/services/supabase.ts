@@ -16,6 +16,10 @@ export interface Profile {
   first_name: string
   last_name: string
   company_name?: string
+  account_status?: 'pending' | 'approved' | 'rejected'
+  approved_at?: string
+  approved_by?: string
+  rejection_reason?: string
   created_at: string
   updated_at: string
 }

@@ -28,18 +28,21 @@ export class AIQuestionsService {
   // Obtener preguntas IA generadas para un candidato
   static async getAIQuestions(candidateId: string): Promise<AIQuestion[]> {
     try {
-      const { data, error } = await supabase
-        .from('ai_questions')
-        .select('*')
-        .eq('candidate_id', candidateId)
-        .order('created_at', { ascending: true });
+      const response = await fetch(`/api/get-ai-questions?candidateId=${candidateId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
 
-      if (error) {
-        console.error('Error fetching AI questions:', error);
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        console.error('Error fetching AI questions:', data.error);
         return [];
       }
 
-      return data || [];
+      return data.questions || [];
     } catch (error) {
       console.error('Get AI questions error:', error);
       return [];

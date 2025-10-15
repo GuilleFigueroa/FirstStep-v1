@@ -3,7 +3,6 @@ import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
 import { ArrowLeft, MessageSquare, AlertCircle, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Process, RecruiterQuestion } from '../../shared/services/supabase';
-import { supabase } from '../../shared/services/supabase';
 import { RecruiterQuestionsService } from '../../shared/services/recruiterQuestionsService';
 
 interface RecruiterQuestionsStepProps {
@@ -28,15 +27,13 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
       setError(null);
 
       try {
-        const { data, error } = await supabase
-          .from('recruiter_questions')
-          .select('*')
-          .eq('process_id', process.id)
-          .order('question_order', { ascending: true });
+        const result = await RecruiterQuestionsService.getRecruiterQuestionsByProcess(process.id);
 
-        if (error) throw error;
+        if (!result.success) {
+          throw new Error(result.error || 'Error al cargar preguntas');
+        }
 
-        setQuestions(data || []);
+        setQuestions(result.questions || []);
       } catch (err) {
         console.error('Error loading recruiter questions:', err);
         setError('Error al cargar las preguntas');
@@ -90,15 +87,13 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
     setError(null);
 
     try {
-      const { data, error } = await supabase
-        .from('recruiter_questions')
-        .select('*')
-        .eq('process_id', process.id)
-        .order('question_order', { ascending: true });
+      const result = await RecruiterQuestionsService.getRecruiterQuestionsByProcess(process.id);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || 'Error al cargar preguntas');
+      }
 
-      setQuestions(data || []);
+      setQuestions(result.questions || []);
     } catch (err) {
       console.error('Error loading recruiter questions:', err);
       setError('Error al cargar las preguntas');

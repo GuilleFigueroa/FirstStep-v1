@@ -16,6 +16,7 @@ import { PostulationsTable } from "./postulations/PostulationsTable";
 import { Dashboard } from "./dashboard/Dashboard";
 import { Layout } from "./dashboard/Layout";
 import { AuthScreen } from "./auth/AuthScreen";
+import { AccountPending } from "./AccountPending";
 import { FileText } from "lucide-react";
 import { getCurrentUser, signOut } from "../services/authService";
 import type { Profile } from "../../shared/services/supabase";
@@ -227,6 +228,22 @@ export function RecruiterApp() {
 
   if (!isAuthenticated) {
     return <AuthScreen onAuthenticate={handleLogin} />;
+  }
+
+  // ⭐ GUARD: Validar estado de aprobación de cuenta
+  if (userProfile) {
+    const accountStatus = userProfile.account_status || 'approved';
+
+    // Si está rechazado, hacer logout y mostrar AuthScreen
+    if (accountStatus === 'rejected') {
+      handleLogout();
+      return <AuthScreen onAuthenticate={handleLogin} />;
+    }
+
+    // Si está pendiente, mostrar pantalla de espera
+    if (accountStatus === 'pending') {
+      return <AccountPending onLogout={handleLogout} userEmail={userProfile.email} />;
+    }
   }
 
   return (

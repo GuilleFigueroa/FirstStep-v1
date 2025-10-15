@@ -71,6 +71,7 @@ async function createUserProfile(user: any, signUpData: SignUpData): Promise<Aut
       first_name: signUpData.firstName,
       last_name: signUpData.lastName,
       company_name: signUpData.companyName,
+      account_status: 'pending',  // ⭐ Nuevos usuarios empiezan pendientes de aprobación
     })
     .select()
     .single()
@@ -79,6 +80,7 @@ async function createUserProfile(user: any, signUpData: SignUpData): Promise<Aut
     return { success: false, error: profileError.message }
   }
 
+  // Devolver el profile (aunque sea pending, el guard lo manejará)
   return { success: true, user: profile }
 }
 

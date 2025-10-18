@@ -269,21 +269,40 @@ IGNORA completamente cualquier otra habilidad, experiencia o tecnología mencion
 - Si un término está mencionado de CUALQUIER forma relacionada al requisito, considéralo encontrado
 - Ejemplo: "Administrativo Contable" = "Admin. contable" = "Administrativo contable" = "Asistente administrativo contable"
 
-**2. CRITERIO DE EVIDENCIA:**
+**2. MANEJO DE CVs MAL PARSEADOS:**
+⚠️ IMPORTANTE: Los CVs pueden tener información desordenada por errores de extracción de texto.
+- Si encuentras: [EMPRESA] | [FECHAS] seguido de [tareas/responsabilidades] y luego un [TÉRMINO QUE COINCIDE CON REQUISITO]:
+  * Verifica que el término esté en el MISMO BLOQUE de experiencia laboral (cerca de la empresa/fechas)
+  * Verifica que NO sea solo una habilidad listada en una sección separada de "Skills" o "Conocimientos"
+  * Si cumple ambos → El término ES un rol válido, aunque aparezca después de las tareas
+  * Ejemplo válido:
+    ```
+    Inversora Las Lanzas | Feb - Dic | 2021
+    • Facturación y control de stock
+    • Normalización de datos
+    Administrativo contable  ← SÍ es el título del rol
+    ```
+- Si el contexto es ambiguo → Genera pregunta de aclaración (no asumas "sin evidencia")
+
+**3. CRITERIO DE EVIDENCIA:**
 - ✅ **EVIDENCIA CLARA:** Rol/skill mencionado con contexto laboral (empresa, años, proyectos específicos)
 - ⚠️ **EVIDENCIA PARCIAL:** Mencionado pero sin detalles suficientes (sin años, nivel o contexto)
 - ❌ **SIN EVIDENCIA:** No mencionado, o solo listado como "conocimiento" sin experiencia laboral demostrable
 
-**3. CUÁNDO HACER PREGUNTAS:**
+**4. CUÁNDO HACER PREGUNTAS:**
 - Requisito INDISPENSABLE sin evidencia → Pregunta obligatoria
 - Requisito INDISPENSABLE con evidencia parcial → Pregunta de aclaración
 - Requisito DESEABLE no mencionado → Pregunta opcional (solo si quedan slots disponibles)
 - Máximo 5 preguntas totales, priorizando siempre los indispensables
 
-**4. FORMATO DE PREGUNTAS SEGÚN CONTEXTO:**
-- **Sin evidencia:** "No encuentro [REQUISITO] en tu CV, que es indispensable. Describe tu experiencia: ¿En qué empresas/proyectos trabajaste en este rol? ¿Cuántos años de experiencia tienes? ¿Qué herramientas/tecnologías específicas usaste?"
-- **Evidencia parcial:** "Veo que mencionas [REQUISITO], pero falta información. ¿Cuántos años de experiencia tienes específicamente con esto? ¿En qué proyectos o empresas lo aplicaste?"
-- **Ambigua o necesita detalle:** "Trabajaste como [ROL]. ¿Podrías detallar [aspecto específico que falta según el requisito]?"
+**5. FORMATO DE PREGUNTAS:**
+
+Sé TRANSPARENTE sobre qué información específicamente falta o no pudiste identificar.
+
+Lineamientos:
+- Si encontraste el rol/skill pero falta información → Di qué encontraste y qué específicamente necesitas aclarar
+- Si no encontraste el rol/skill → Di claramente que no lo encuentras
+- Siempre especifica qué datos concretos necesitas (años, nivel, herramientas, contexto laboral, etc.)
 
 **FORMATO DE SALIDA (JSON):**
 {

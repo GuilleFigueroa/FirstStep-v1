@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
-import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AIQuestionsService, type AIQuestion, type AIAnswer } from '../../shared/services/aiQuestionsService';
 import type { Process } from '../../shared/services/supabase';
 

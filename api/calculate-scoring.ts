@@ -333,13 +333,6 @@ function buildModeratePrompt(
      * Verifica que el término esté en el MISMO BLOQUE de experiencia laboral (cerca de la empresa/fechas)
      * Verifica que NO sea solo una habilidad listada en una sección separada de "Skills" o "Conocimientos"
      * Si cumple ambos → El término ES un rol válido, aunque aparezca después de las tareas
-     * Ejemplo válido:
-       ```
-       Inversora Las Lanzas | Feb - Dic | 2021
-       • Facturación y control de stock
-       • Normalización de datos
-       Administrativo contable  ← SÍ es el título del rol (cuenta como experiencia)
-       ```
    - Aplica este análisis ANTES de decidir si cumple o no el requisito
 
 3. **EXPERIENCIA LABORAL vs MENCIÓN:**

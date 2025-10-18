@@ -293,8 +293,9 @@ IGNORA completamente cualquier otra habilidad, experiencia o tecnología mencion
 Sé TRANSPARENTE sobre qué información específicamente falta o no pudiste identificar.
 
 Lineamientos:
-- Si encontraste el rol/skill pero falta información → Di qué encontraste y qué específicamente necesitas aclarar
-- Si no encontraste el rol/skill → Di claramente que no lo encuentras
+- Usa lenguaje de "no se pudo identificar" en lugar de "no se proporciona" (asume posible error del sistema, no culpa al candidato)
+- Si encontraste el rol/skill pero falta información → Di qué encontraste y qué específicamente no se pudo identificar
+- Si no encontraste el rol/skill → Di claramente que no se pudo identificar en el CV
 - Siempre especifica qué datos concretos necesitas (años, nivel, herramientas, contexto laboral, etc.)
 
 **FORMATO DE SALIDA (JSON):**

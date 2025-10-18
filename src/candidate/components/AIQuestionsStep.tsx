@@ -425,11 +425,19 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
                 <span>Pregunta {currentQuestionIndex + 1} de {questions.length}</span>
                 <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% completado</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="relative w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
                   className="bg-[#7572FF] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
                 />
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                  style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 14px)` }}
+                >
+                  <div className="w-7 h-7 bg-[#7572FF] rounded-full flex items-center justify-center shadow-lg">
+                    <MessageSquare className="w-4 h-4 text-white" />
+                  </div>
+                </div>
               </div>
             </div>
           </CardHeader>

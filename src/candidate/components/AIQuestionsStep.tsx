@@ -427,16 +427,17 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
               </div>
               <div className="relative w-full bg-gray-200 rounded-full h-2 mt-3">
                 <div
-                  className="bg-[#7572FF] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                    background: 'linear-gradient(to right, #7572FF 0%, #7572FF 85%, rgba(117, 114, 255, 0.3) 100%)'
+                  }}
                 />
                 <div
-                  className="absolute -top-3 transition-all duration-300"
-                  style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 14px)` }}
+                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                  style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 16px)` }}
                 >
-                  <div className="w-7 h-7 bg-[#7572FF] rounded-full flex items-center justify-center shadow-lg p-1">
-                    <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-full h-full object-contain" />
-                  </div>
+                  <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-8 h-8 object-contain" />
                 </div>
               </div>
             </div>

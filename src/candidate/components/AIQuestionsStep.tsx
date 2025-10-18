@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
-import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { AIQuestionsService, type AIQuestion, type AIAnswer } from '../../shared/services/aiQuestionsService';
 import type { Process } from '../../shared/services/supabase';
 
@@ -421,21 +421,21 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
 
             {/* Progress indicator */}
             <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
                 <span>Pregunta {currentQuestionIndex + 1} de {questions.length}</span>
                 <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% completado</span>
               </div>
-              <div className="relative w-full bg-gray-200 rounded-full h-2 mt-2">
+              <div className="relative w-full bg-gray-200 rounded-full h-2 mt-3">
                 <div
                   className="bg-[#7572FF] h-2 rounded-full transition-all duration-300"
                   style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
                 />
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                  className="absolute -top-3 transition-all duration-300"
                   style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 14px)` }}
                 >
-                  <div className="w-7 h-7 bg-[#7572FF] rounded-full flex items-center justify-center shadow-lg">
-                    <MessageSquare className="w-4 h-4 text-white" />
+                  <div className="w-7 h-7 bg-[#7572FF] rounded-full flex items-center justify-center shadow-lg p-1">
+                    <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-full h-full object-contain" />
                   </div>
                 </div>
               </div>

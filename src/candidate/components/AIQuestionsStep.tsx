@@ -430,14 +430,14 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
                   className="h-2 rounded-full transition-all duration-300"
                   style={{
                     width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
-                    background: 'linear-gradient(to right, #7572FF 0%, #7572FF 85%, rgba(117, 114, 255, 0.3) 100%)'
+                    background: 'linear-gradient(to right, #7572FF 0%, #7572FF 85%, rgba(117, 114, 255, 0) 100%)'
                   }}
                 />
                 <div
                   className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
-                  style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 16px)` }}
+                  style={{ left: `calc(${((currentQuestionIndex + 1) / questions.length) * 100}% - 20px)` }}
                 >
-                  <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-8 h-8 object-contain" />
+                  <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-10 h-10 object-contain" />
                 </div>
               </div>
             </div>

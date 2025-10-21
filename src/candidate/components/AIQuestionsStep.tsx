@@ -93,11 +93,12 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
       };
     }
   }, [rejectionMessage, candidateId]);
-n  const handleSubmitFeedback = async () => {
+
+  const handleSubmitFeedback = async () => {
     if (!feedback.trim()) return;
-    
+
     const success = await CandidateService.saveFeedback(candidateId, feedback.trim());
-    
+
     if (success) {
       setFeedbackSubmitted(true);
     }

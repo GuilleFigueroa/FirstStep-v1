@@ -100,27 +100,6 @@ export function Layout({
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-6xl mx-auto">
-            {/* Page Title */}
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl mb-2">{title}</h1>
-                <p className="text-muted-foreground">
-                  {subtitle}
-                </p>
-              </div>
-              
-              {/* Quick Action Button - Only show on dashboard */}
-              {activeSection === 'dashboard' && (
-                <Button 
-                  onClick={handleCreateApplication}
-                  className="bg-[#7572FF] hover:bg-[#6863E8] text-white flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Crear Postulación
-                </Button>
-              )}
-            </div>
-            
             {/* Content */}
             {children}
           </div>

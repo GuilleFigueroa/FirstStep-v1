@@ -394,4 +394,24 @@ export class CandidateService {
       return false;
     }
   }
+
+  // Guardar feedback del candidato
+  static async saveFeedback(candidateId: string, feedback: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('candidates')
+        .update({ candidate_feedback: feedback })
+        .eq('id', candidateId);
+
+      if (error) {
+        console.error('Error saving candidate feedback:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Save feedback error:', error);
+      return false;
+    }
+  }
 }

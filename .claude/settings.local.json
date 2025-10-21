@@ -4,7 +4,8 @@
       "Bash(rm:*)",
       "Bash(rmdir:*)",
       "Bash(git add:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Read(//c/Users/Administrador/Downloads/**)"
     ],
     "deny": [],
     "ask": []

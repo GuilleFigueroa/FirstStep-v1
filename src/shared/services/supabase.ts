@@ -59,6 +59,7 @@ export interface Candidate {
   rejection_reason?: string
   action_status?: 'none' | 'reviewed' | 'contacted' | 'sent'
   is_favorite?: boolean
+  candidate_feedback?: string
   created_at: string
   updated_at: string
 }

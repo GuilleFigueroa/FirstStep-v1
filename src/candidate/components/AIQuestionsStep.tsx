@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
+import { Textarea } from '../../ui/components/ui/textarea';
 import { ArrowLeft, MessageSquare, AlertCircle, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AIQuestionsService, type AIQuestion, type AIAnswer } from '../../shared/services/aiQuestionsService';
+import { CandidateService } from '../../shared/services/candidateService';
 import type { Process } from '../../shared/services/supabase';
 
 interface AIQuestionsStepProps {
@@ -22,6 +24,8 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [rejectionMessage, setRejectionMessage] = useState<string | null>(null);
   const [rejectionDetails, setRejectionDetails] = useState<any>(null);
+  const [feedback, setFeedback] = useState<string>('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   // Cargar preguntas al montar el componente
   useEffect(() => {
@@ -89,6 +93,15 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
       };
     }
   }, [rejectionMessage, candidateId]);
+n  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) return;
+    
+    const success = await CandidateService.saveFeedback(candidateId, feedback.trim());
+    
+    if (success) {
+      setFeedbackSubmitted(true);
+    }
+  };
 
   const currentQuestion = questions[currentQuestionIndex];
   const currentAnswer = currentQuestion ? answers.get(currentQuestion.id) || '' : '';
@@ -365,6 +378,44 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
                 <p className="text-sm text-blue-900">
                   Te animamos a seguir explorando otras oportunidades que se ajusten mejor a tu perfil y experiencia actual.
                 </p>
+              </div>
+
+              {/* Sección de Feedback */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="font-semibold text-gray-900 mb-3">
+                  ¿Qué te pareció este proceso de aplicación?
+                </h3>
+                
+                {!feedbackSubmitted ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      placeholder="Comparte tu experiencia (opcional)"
+                      maxLength={500}
+                      className="resize-none h-24 max-w-2xl"
+                    />
+                    <div className="flex items-center justify-between max-w-2xl">
+                      <span className="text-sm text-gray-500">
+                        {feedback.length}/500 caracteres
+                      </span>
+                      <Button
+                        onClick={handleSubmitFeedback}
+                        disabled={!feedback.trim()}
+                        className="bg-[#7572FF] hover:bg-[#6863E8]"
+                        size="sm"
+                      >
+                        Enviar feedback
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 max-w-2xl">
+                    <p className="text-sm text-green-800">
+                      ✓ Gracias por tu feedback
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Mensaje final */}

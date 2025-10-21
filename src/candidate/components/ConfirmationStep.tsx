@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/components/ui/card';
+import { Textarea } from '../../ui/components/ui/textarea';
 import { Badge } from '../../ui/components/ui/badge';
 import { CheckCircle, AlertCircle, Mail, Linkedin, Loader2 } from 'lucide-react';
 import { supabase } from '../../shared/services/supabase';
+import { CandidateService } from '../../shared/services/candidateService';
 
 interface ConfirmationStepProps {
   candidateId: string;
@@ -27,6 +29,8 @@ interface ScoringDetails {
 export function ConfirmationStep({ candidateId, candidateEmail, candidateLinkedIn }: ConfirmationStepProps) {
   const [loading, setLoading] = useState(true);
   const [scoringDetails, setScoringDetails] = useState<ScoringDetails | null>(null);
+  const [feedback, setFeedback] = useState<string>('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,6 +55,15 @@ export function ConfirmationStep({ candidateId, candidateEmail, candidateLinkedI
 
     loadScoringDetails();
   }, [candidateId]);
+  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) return;
+    
+    const success = await CandidateService.saveFeedback(candidateId, feedback.trim());
+    
+    if (success) {
+      setFeedbackSubmitted(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -224,6 +237,44 @@ export function ConfirmationStep({ candidateId, candidateEmail, candidateLinkedI
             </div>
 
             <div className="pt-4 text-center">
+
+            {/* Sección de Feedback */}
+            <div className="border-t pt-6 mt-6">
+              <h3 className="font-semibold text-gray-900 mb-3">
+                ¿Qué te pareció este proceso de aplicación?
+              </h3>
+              
+              {!feedbackSubmitted ? (
+                <div className="space-y-3">
+                  <Textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder="Comparte tu experiencia (opcional)"
+                    maxLength={500}
+                    className="resize-none h-24 max-w-2xl"
+                  />
+                  <div className="flex items-center justify-between max-w-2xl">
+                    <span className="text-sm text-gray-500">
+                      {feedback.length}/500 caracteres
+                    </span>
+                    <Button
+                      onClick={handleSubmitFeedback}
+                      disabled={!feedback.trim()}
+                      className="bg-[#7572FF] hover:bg-[#6863E8]"
+                      size="sm"
+                    >
+                      Enviar feedback
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 max-w-2xl">
+                  <p className="text-sm text-green-800">
+                    ✓ Gracias por tu feedback
+                  </p>
+                </div>
+              )}
+            </div>
               <p className="text-gray-600">
                 Gracias por tu tiempo y por completar el proceso de postulación.
               </p>

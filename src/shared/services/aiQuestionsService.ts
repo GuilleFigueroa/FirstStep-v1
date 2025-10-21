@@ -20,6 +20,7 @@ export interface ScoringResult {
   approved: boolean;
   reason?: string;
   score?: number;
+  details?: any;
   limitReached?: boolean;
 }
 
@@ -103,6 +104,7 @@ export class AIQuestionsService {
         approved: data.approved,
         reason: data.reason,
         score: data.score
+        details: data.details,
       };
     } catch (error) {
       console.error('Calculate scoring error:', error);

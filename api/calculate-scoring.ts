@@ -189,7 +189,8 @@ export default async function handler(
       return res.status(200).json({
         approved: false,
         reason: rejectionReason,
-        score: scoringResult.score
+        score: scoringResult.score,
+        details: scoringResult
       });
     } else {
       // APROBADO: Verificar límite de candidatos antes de marcar como completed
@@ -232,7 +233,7 @@ export default async function handler(
             approved: false,
             reason: 'Lo sentimos, el proceso alcanzó el límite máximo de candidatos',
             limitReached: true,
-            score: scoringResult.score
+            score: scoringResult.score,
           });
         }
       }

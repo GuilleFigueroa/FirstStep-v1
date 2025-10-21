@@ -213,6 +213,7 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
             scoringResult.reason ||
             'Lamentablemente, tu perfil no cumple con todos los requisitos excluyentes para esta posición.'
           );
+          setRejectionDetails(scoringResult.details);
         }
         return;
       }

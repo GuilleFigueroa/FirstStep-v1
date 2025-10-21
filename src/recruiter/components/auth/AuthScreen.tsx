@@ -93,8 +93,8 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
       <div className="w-full max-w-md space-y-8">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3">
-          <div className="w-10 h-10 bg-[#7572FF] rounded-lg flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="w-14 h-14 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#353535' }}>
+            <img src="/Icono-rayo-firststep.png" alt="FirstStep" className="w-10 h-10 object-contain" />
           </div>
           <span className="text-[#7572FF] text-xl font-semibold">FirstStep</span>
         </div>

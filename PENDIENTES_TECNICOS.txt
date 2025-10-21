@@ -1,0 +1,27 @@
+DEUDA TÉCNICA - FIRSTSTEP
+=========================
+
+PRIORIDAD MEDIA:
+
+1. Timeout en llamadas a OpenAI
+   - Problema: Funciones pueden colgar si OpenAI no responde
+   - Solución: Timeout explícito de 25s en api/utils/openai.ts
+
+2. Links únicos no garantizan unicidad
+   - Problema: processService.ts usa Date.now() que puede colisionar
+   - Solución: Usar crypto.randomUUID()
+
+3. Race condition en límite de candidatos
+   - Problema: calculate-scoring.ts - 2 candidatos simultáneos pueden superar límite
+   - Solución: Transacciones SQL o constraint UNIQUE
+
+PRIORIDAD BAJA:
+
+4. Rate limiting
+   - Problema: No hay límite de requests por IP
+   - Solución: Max 5 CVs/hora por IP
+
+5. Monitoreo de costos OpenAI
+   - Solución: Revisar "Usage" semanalmente
+
+Última actualización: 2025-10-20

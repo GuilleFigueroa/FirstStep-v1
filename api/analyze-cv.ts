@@ -72,7 +72,7 @@ export default async function handler(
 
       return res.status(400).json({
         success: false,
-        error: parseResult.error || 'No se pudo extraer texto del CV'
+        error: 'No pudimos leer tu CV. Por favor, intenta con otro archivo: un PDF de mejor calidad (no escaneado) o un documento Word (.docx). Asegúrate que el texto sea seleccionable.'
       });
     }
 

@@ -478,11 +478,12 @@ export function AIQuestionsStep({ onContinue, onBack, candidateId, process }: AI
                 <span>Pregunta {currentQuestionIndex + 1} de {questions.length}</span>
                 <span>{Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% completado</span>
               </div>
-              <div className="relative w-full bg-gray-200 rounded-full h-2 mt-3">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className="h-2 rounded-full transition-all duration-300 bg-[#E991FF]"
+                  className="h-2 rounded-full transition-all duration-300"
                   style={{
-                    width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`
+                    width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                    backgroundColor: '#7572FF'
                   }}
                 />
               </div>

@@ -103,7 +103,7 @@ export class AIQuestionsService {
       return {
         approved: data.approved,
         reason: data.reason,
-        score: data.score
+        score: data.score,
         details: data.details,
       };
     } catch (error) {

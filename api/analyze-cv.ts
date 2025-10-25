@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from './utils/supabase';
-import { extractTextFromCV } from './utils/pdfParser';
-import { generateAIResponse } from './utils/openai';
-import { verifyCandidateOwnership } from './utils/auth';
-import { initSentry, captureException } from './utils/sentry';
+import { supabaseAdmin } from './_utils/supabase';
+import { extractTextFromCV } from './_utils/pdfParser';
+import { generateAIResponse } from './_utils/openai';
+import { verifyCandidateOwnership } from './_utils/auth';
+import { initSentry, captureException } from './_utils/sentry';
 
 export default async function handler(
   req: VercelRequest,

@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from './utils/supabase';
-import { generateAIResponse } from './utils/openai';
-import { verifyCandidateOwnership } from './utils/auth';
-import { initSentry, captureException } from './utils/sentry';
+import { supabaseAdmin } from './_utils/supabase';
+import { generateAIResponse } from './_utils/openai';
+import { verifyCandidateOwnership } from './_utils/auth';
+import { initSentry, captureException } from './_utils/sentry';
 
 export default async function handler(
   req: VercelRequest,

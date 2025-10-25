@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from './utils/supabase';
+import { supabaseAdmin } from './_utils/supabase';
 
 interface RecruiterAnswer {
   questionId: string;

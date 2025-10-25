@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from './utils/supabase';
-import { verifyCandidateOwnership } from './utils/auth';
+import { supabaseAdmin } from './_utils/supabase';
+import { verifyCandidateOwnership } from './_utils/auth';
 
 export default async function handler(
   req: VercelRequest,

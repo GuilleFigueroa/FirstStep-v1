@@ -2,11 +2,15 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { supabaseAdmin } from './utils/supabase';
 import { generateAIResponse } from './utils/openai';
 import { verifyCandidateOwnership } from './utils/auth';
+import { initSentry, captureException } from './utils/sentry';
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Inicializar Sentry
+  initSentry();
+
   // Solo POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -291,6 +295,13 @@ export default async function handler(
     }
 
   } catch (error) {
+    // Capturar error en Sentry
+    captureException(error, {
+      api: 'calculate-scoring',
+      candidateId: req.body?.candidateId,
+      recruiterId: req.body?.recruiterId
+    });
+
     console.error('Calculate scoring error:', error);
     return res.status(500).json({
       success: false,

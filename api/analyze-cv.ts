@@ -3,11 +3,15 @@ import { supabaseAdmin } from './utils/supabase';
 import { extractTextFromCV } from './utils/pdfParser';
 import { generateAIResponse } from './utils/openai';
 import { verifyCandidateOwnership } from './utils/auth';
+import { initSentry, captureException } from './utils/sentry';
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // Inicializar Sentry
+  initSentry();
+
   // Solo POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -222,6 +226,13 @@ export default async function handler(
     });
 
   } catch (error) {
+    // Capturar error en Sentry
+    captureException(error, {
+      api: 'analyze-cv',
+      candidateId: req.body?.candidateId,
+      recruiterId: req.body?.recruiterId
+    });
+
     console.error('Analyze CV error:', error);
     return res.status(500).json({
       success: false,

@@ -139,6 +139,18 @@ export function Dashboard({ userProfile }: DashboardProps) {
         </div>
       </div>
 
+      {/* Sentry Test Button (TEMPORAL) */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => {
+            throw new Error('Test Sentry desde Dashboard - ' + new Date().toISOString());
+          }}
+          className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+        >
+          🐛 Test Error Sentry
+        </button>
+      </div>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="border-l-4 border-l-purple-500">

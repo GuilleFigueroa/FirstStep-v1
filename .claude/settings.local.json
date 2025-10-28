@@ -6,7 +6,10 @@
       "Bash(git add:*)",
       "Bash(cat:*)",
       "Read(//c/Users/Administrador/Downloads/**)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//c/Users/Administrador/Desktop/**)"
     ],
     "deny": [],
     "ask": []

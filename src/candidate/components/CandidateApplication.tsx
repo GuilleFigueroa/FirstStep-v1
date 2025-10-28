@@ -75,16 +75,7 @@ export function CandidateApplication() {
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <Button
-                onClick={handleBackToHome}
-                variant="ghost"
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Inicio
-              </Button>
-
+            <div className="flex items-center justify-center">
               <div className="flex items-center gap-2">
                 <img
                   src="/firststep-logo.png"
@@ -150,15 +141,6 @@ export function CandidateApplication() {
                       </>
                     )}
                   </ul>
-                </div>
-
-                <div className="pt-4">
-                  <Button
-                    onClick={handleBackToHome}
-                    className="bg-[#7572FF] hover:bg-[#6863E8] text-white"
-                  >
-                    Volver al Inicio
-                  </Button>
                 </div>
               </div>
             </CardContent>

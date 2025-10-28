@@ -120,16 +120,7 @@ export function CandidateRegistration({ jobInfo, onBack, onContinue, loading = f
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Button 
-              onClick={onBack}
-              variant="ghost"
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Volver
-            </Button>
-            
+          <div className="flex items-center">
             <div className="flex items-center gap-2">
               <img
                 src="/firststep-logo.png"

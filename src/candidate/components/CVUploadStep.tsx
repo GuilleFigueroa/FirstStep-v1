@@ -378,7 +378,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
                     disabled={!selectedFile || uploading}
                     className={`flex-1 text-white disabled:cursor-not-allowed ${
                       uploading
-                        ? 'bg-indigo-700 hover:bg-indigo-700'
+                        ? 'bg-[#4C46B6] hover:bg-[#4C46B6] disabled:opacity-100'
                         : 'bg-[#7572FF] hover:bg-[#6863E8] disabled:opacity-50'
                     }`}
                   >

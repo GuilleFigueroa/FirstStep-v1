@@ -376,10 +376,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
                   <Button
                     onClick={handleContinue}
                     disabled={!selectedFile || uploading}
-                    className={uploading
-                      ? "flex-1 bg-[#5B59CC] text-white !opacity-100 cursor-not-allowed"
-                      : "flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                    }
+                    className="flex-1 bg-[#7572FF] hover:bg-[#6863E8] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploading ? (
                       <span className="flex items-center gap-2">

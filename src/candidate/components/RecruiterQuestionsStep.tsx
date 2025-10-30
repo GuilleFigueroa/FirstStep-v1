@@ -321,7 +321,7 @@ export function RecruiterQuestionsStep({ onContinue, onBack, process, candidateI
                 >
                   {submitting ? (
                     <span className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white opacity-100"></div>
                       Enviando...
                     </span>
                   ) : (

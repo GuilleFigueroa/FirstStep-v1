@@ -381,7 +381,7 @@ export function CVUploadStep({ onContinue, onBack, candidateId, process }: CVUpl
                   >
                     {uploading ? (
                       <span className="flex items-center gap-2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white !opacity-100"></div>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-white"></div>
                         {loadingMessage || 'Procesando...'}
                       </span>
                     ) : selectedFile ? (

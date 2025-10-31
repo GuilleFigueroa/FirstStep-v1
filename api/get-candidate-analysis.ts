@@ -164,7 +164,8 @@ export default async function handler(
         scoring_details: candidate.scoring_details,
         status: candidate.status,
         rejection_reason: candidate.rejection_reason,
-        created_at: candidate.created_at
+        created_at: candidate.created_at,
+        candidate_feedback: candidate.candidate_feedback
       },
       aiQuestions: aiQuestions || [],
       recruiterQuestions: questionsWithAnswers,

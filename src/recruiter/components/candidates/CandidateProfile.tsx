@@ -17,6 +17,7 @@ import {
   ChevronDown,
   ChevronRight,
   MessageCircle,
+  MessageSquare,
   Linkedin,
   ExternalLink,
   Loader2
@@ -58,6 +59,7 @@ export function CandidateProfile({ candidate, recruiterId, onClose, onAction }: 
   const [isFavorite, setIsFavorite] = useState(candidate.isFavorite || false);
   const [answersExpanded, setAnswersExpanded] = useState(false);
   const [compatibilityExpanded, setCompatibilityExpanded] = useState(true);
+  const [feedbackExpanded, setFeedbackExpanded] = useState(false);
 
   // Estados para datos del análisis
   const [analysisData, setAnalysisData] = useState<any>(null);
@@ -437,6 +439,48 @@ export function CandidateProfile({ candidate, recruiterId, onClose, onAction }: 
                           </div>
                         )}
                       </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+
+              {/* Feedback del Candidato - Desplegable */}
+              <Card>
+                <Collapsible open={feedbackExpanded} onOpenChange={setFeedbackExpanded}>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="cursor-pointer hover:bg-gray-50">
+                      <CardTitle className="flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <MessageSquare className="w-5 h-5 text-orange-600" />
+                          Feedback del Candidato
+                        </span>
+                        {feedbackExpanded ? (
+                          <ChevronDown className="w-4 h-4" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" />
+                        )}
+                      </CardTitle>
+                      <CardDescription>
+                        Comentarios del postulante sobre el proceso
+                      </CardDescription>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent>
+                      {analysisData?.candidate?.candidate_feedback ? (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                          <p className="text-gray-800 whitespace-pre-wrap">
+                            {analysisData.candidate.candidate_feedback}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+                          <MessageSquare className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-500 text-sm">
+                            El candidato no dejó comentarios sobre el proceso
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </CollapsibleContent>
                 </Collapsible>

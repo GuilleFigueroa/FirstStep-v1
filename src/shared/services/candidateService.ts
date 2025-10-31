@@ -171,7 +171,12 @@ export class CandidateService {
   // Obtener todos los candidatos del reclutador con info de sus procesos
   static async getCandidatesByRecruiter(
     recruiterId: string,
-    options?: { page?: number; limit?: number }
+    options?: {
+      page?: number;
+      limit?: number;
+      nameFilter?: string;
+      processFilter?: string;
+    }
   ): Promise<{
     success: boolean;
     candidates?: Array<{
@@ -201,8 +206,8 @@ export class CandidateService {
     error?: string;
   }> {
     try {
-      // Inicializar opciones de paginación
-      const { page = 0, limit = 50 } = options || {};
+      // Inicializar opciones de paginación y filtros
+      const { page = 0, limit = 50, nameFilter, processFilter } = options || {};
       const from = page * limit;
       const to = from + limit - 1;
 
@@ -238,12 +243,24 @@ export class CandidateService {
       // 2. Obtener candidatos de todos los procesos
       const processIds = processes.map(p => p.id);
 
-      // 3. Obtener conteo total (para calcular páginas)
-      const { count: totalCount, error: countError } = await supabase
+      // 3. Construir query para conteo con filtros
+      let countQuery = supabase
         .from('candidates')
         .select('*', { count: 'exact', head: true })
         .in('process_id', processIds)
         .in('status', ['completed', 'rejected']);
+
+      // Aplicar filtro de nombre (busca en first_name O last_name)
+      if (nameFilter && nameFilter.trim()) {
+        countQuery = countQuery.or(`first_name.ilike.%${nameFilter}%,last_name.ilike.%${nameFilter}%`);
+      }
+
+      // Aplicar filtro de proceso
+      if (processFilter && processFilter.trim()) {
+        countQuery = countQuery.eq('process_id', processFilter);
+      }
+
+      const { count: totalCount, error: countError } = await countQuery;
 
       if (countError) {
         console.error('Error fetching candidate count:', countError);
@@ -254,14 +271,29 @@ export class CandidateService {
         };
       }
 
-      // 4. Obtener candidatos paginados
-      const { data: candidates, error: candidatesError } = await supabase
+      // 4. Construir query para data con filtros
+      let dataQuery = supabase
         .from('candidates')
         .select('*')
         .in('process_id', processIds)
-        .in('status', ['completed', 'rejected']) // Solo candidatos que completaron el proceso
+        .in('status', ['completed', 'rejected']);
+
+      // Aplicar filtro de nombre (busca en first_name O last_name)
+      if (nameFilter && nameFilter.trim()) {
+        dataQuery = dataQuery.or(`first_name.ilike.%${nameFilter}%,last_name.ilike.%${nameFilter}%`);
+      }
+
+      // Aplicar filtro de proceso
+      if (processFilter && processFilter.trim()) {
+        dataQuery = dataQuery.eq('process_id', processFilter);
+      }
+
+      // Aplicar ordenamiento y paginación
+      dataQuery = dataQuery
         .order('created_at', { ascending: false })
         .range(from, to);
+
+      const { data: candidates, error: candidatesError } = await dataQuery;
 
       if (candidatesError) {
         console.error('Error fetching candidates:', candidatesError);

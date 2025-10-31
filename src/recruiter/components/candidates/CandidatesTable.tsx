@@ -81,10 +81,10 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     setProcessFilter(initialProcessFilter || '');
   }, [initialProcessFilter]);
 
-  // Reset página cuando cambia filtro de proceso
+  // Reset página cuando cambian filtros backend (nameFilter, processFilter)
   useEffect(() => {
     setCurrentPage(0);
-  }, [processFilter]);
+  }, [nameFilter, processFilter]);
 
   // Cargar candidatos cuando cambia el recruiterId
   useEffect(() => {
@@ -100,7 +100,12 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
       try {
         const result = await CandidateService.getCandidatesByRecruiter(
           recruiterId,
-          { page: currentPage, limit: 50 }
+          {
+            page: currentPage,
+            limit: 50,
+            nameFilter: nameFilter || undefined,
+            processFilter: processFilter || undefined
+          }
         );
 
         if (!result.success || !result.candidates) {
@@ -133,7 +138,7 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     };
 
     loadCandidates();
-  }, [recruiterId, currentPage]);
+  }, [recruiterId, currentPage, nameFilter, processFilter]);
 
   const handleRetry = async () => {
     setLoading(true);
@@ -142,7 +147,12 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     try {
       const result = await CandidateService.getCandidatesByRecruiter(
         recruiterId,
-        { page: currentPage, limit: 50 }
+        {
+          page: currentPage,
+          limit: 50,
+          nameFilter: nameFilter || undefined,
+          processFilter: processFilter || undefined
+        }
       );
 
       if (!result.success || !result.candidates) {
@@ -180,16 +190,14 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Filtrar candidatos
+  // Filtrar candidatos (solo filtros frontend: position, company, status)
+  // nameFilter y processFilter ahora se manejan en el backend
   const filteredCandidates = candidates.filter(candidate => {
-    const fullName = `${candidate.first_name} ${candidate.last_name}`.toLowerCase();
-    const matchesName = fullName.includes(nameFilter.toLowerCase());
     const matchesPosition = candidate.process_title.toLowerCase().includes(positionFilter.toLowerCase());
     const matchesCompany = candidate.process_company.toLowerCase().includes(companyFilter.toLowerCase());
     const matchesStatus = statusFilter === 'all' || candidate.process_status === statusFilter;
-    const matchesProcess = !processFilter || candidate.process_id === processFilter;
 
-    return matchesName && matchesPosition && matchesCompany && matchesStatus && matchesProcess;
+    return matchesPosition && matchesCompany && matchesStatus;
   });
 
   const handleAction = async (candidateId: string, action: string) => {

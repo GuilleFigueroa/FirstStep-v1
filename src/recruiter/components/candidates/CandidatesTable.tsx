@@ -9,18 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../ui/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
 import { Progress } from '../../../ui/components/ui/progress';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/components/ui/dialog';
 import { CandidateProfile } from './CandidateProfile';
 import { PaginationControls } from '../../../ui/components/ui/pagination-controls';
-import { 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  Eye, 
-  Check, 
+import {
+  Search,
+  Filter,
+  MoreHorizontal,
+  Eye,
+  Check,
   Star,
   Trash2,
   Users,
-  Phone
+  Phone,
+  AlertTriangle
 } from 'lucide-react';
 
 interface Candidate {
@@ -68,6 +70,11 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     totalPages: 0,
     hasMore: false
   });
+
+  // Estado del Dialog de confirmación de eliminación
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [candidateToDelete, setCandidateToDelete] = useState<Candidate | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Actualizar filtro cuando initialProcessFilter cambia
   useEffect(() => {
@@ -225,9 +232,9 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
           await CandidateService.updateFavoriteStatus(candidateId, !candidate.isFavorite);
           break;
         case 'delete':
-          // Eliminar del array local
-          setCandidates(prev => prev.filter(c => c.id !== candidateId));
-          // TODO: Implementar soft delete en BD si es necesario
+          // Abrir dialog de confirmación
+          setCandidateToDelete(candidate);
+          setDeleteDialogOpen(true);
           break;
       }
     } catch (error) {
@@ -250,6 +257,45 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
     if (profileViewCandidate) {
       handleAction(profileViewCandidate.id, action);
     }
+  };
+
+  // Ejecutar eliminación después de confirmación
+  const handleConfirmDelete = async () => {
+    if (!candidateToDelete) return;
+
+    setDeleting(true);
+
+    try {
+      const result = await CandidateService.deleteCandidate(candidateToDelete.id, recruiterId);
+
+      if (!result.success) {
+        console.error('Error deleting candidate:', result.error);
+        alert(result.error || 'Error al eliminar el candidato');
+        return;
+      }
+
+      // Eliminar del estado local
+      setCandidates(prev => prev.filter(c => c.id !== candidateToDelete.id));
+
+      // Cerrar profile view si está abierto para este candidato
+      if (profileViewCandidate?.id === candidateToDelete.id) {
+        setProfileViewCandidate(null);
+      }
+
+      // Cerrar dialog
+      setDeleteDialogOpen(false);
+      setCandidateToDelete(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Error inesperado al eliminar el candidato');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setCandidateToDelete(null);
   };
 
   const getRowClassName = (candidate: Candidate) => {
@@ -556,6 +602,67 @@ export function CandidatesTable({ recruiterId, initialProcessFilter }: Candidate
           onAction={handleProfileAction}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
+              Confirmar Eliminación
+            </DialogTitle>
+            <DialogDescription>
+              Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+
+          {candidateToDelete && (
+            <div className="py-4">
+              <p className="text-sm text-gray-700 mb-2">
+                ¿Estás seguro de que deseas eliminar a <strong>{candidateToDelete.first_name} {candidateToDelete.last_name}</strong>?
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                <p className="text-sm text-red-800">
+                  Se eliminará permanentemente:
+                </p>
+                <ul className="text-sm text-red-700 mt-2 ml-4 list-disc">
+                  <li>Perfil del candidato</li>
+                  <li>CV almacenado</li>
+                  <li>Respuestas a preguntas</li>
+                  <li>Análisis y evaluaciones</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+            >
+              {deleting ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Eliminando...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Eliminar
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

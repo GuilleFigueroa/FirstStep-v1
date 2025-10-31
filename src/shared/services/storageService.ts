@@ -39,4 +39,50 @@ export class StorageService {
 
     return data.publicUrl;
   }
+
+  // Extraer path del archivo desde URL completa
+  static extractPathFromUrl(cvUrl: string): string | null {
+    try {
+      // URL format: https://{project}.supabase.co/storage/v1/object/public/candidate-cvs/{path}
+      const bucketPrefix = `/storage/v1/object/public/${this.BUCKET_NAME}/`;
+      const urlObj = new URL(cvUrl);
+      const path = urlObj.pathname;
+
+      const startIndex = path.indexOf(bucketPrefix);
+      if (startIndex === -1) {
+        return null;
+      }
+
+      return path.substring(startIndex + bucketPrefix.length);
+    } catch (error) {
+      console.error('Error extracting path from URL:', error);
+      return null;
+    }
+  }
+
+  // Eliminar CV del storage
+  static async deleteCV(cvUrl: string): Promise<boolean> {
+    try {
+      const filePath = this.extractPathFromUrl(cvUrl);
+
+      if (!filePath) {
+        console.error('Could not extract file path from URL:', cvUrl);
+        return false;
+      }
+
+      const { error } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .remove([filePath]);
+
+      if (error) {
+        console.error('Error deleting CV from storage:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Storage delete error:', error);
+      return false;
+    }
+  }
 }

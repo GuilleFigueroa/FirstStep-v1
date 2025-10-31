@@ -414,4 +414,34 @@ export class CandidateService {
       return false;
     }
   }
+
+  // Eliminar candidato permanentemente (con CV, preguntas y respuestas)
+  static async deleteCandidate(candidateId: string, recruiterId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch('/api/delete-candidate', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ candidateId, recruiterId })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        return {
+          success: false,
+          error: data.error || 'Error al eliminar el candidato'
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Delete candidate error:', error);
+      return {
+        success: false,
+        error: 'Error de conexión al eliminar candidato'
+      };
+    }
+  }
 }

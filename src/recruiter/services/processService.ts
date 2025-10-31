@@ -234,23 +234,45 @@ export async function updateProcessLimit(
   }
 }
 
-// Eliminar proceso
-export async function deleteProcess(processId: string): Promise<{ success: boolean; error?: string }> {
+// Eliminar proceso permanentemente (con candidatos, CVs, preguntas y respuestas)
+export async function deleteProcess(
+  processId: string,
+  recruiterId: string
+): Promise<{
+  success: boolean;
+  error?: string;
+  deletedCandidates?: number;
+  deletedCVs?: number;
+}> {
   try {
-    const { error } = await supabase
-      .from('processes')
-      .delete()
-      .eq('id', processId)
+    const response = await fetch('/api/delete-process', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ processId, recruiterId })
+    });
 
-    if (error) {
-      console.error('Error deleting process:', error)
-      return { success: false, error: error.message }
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        error: data.error || 'Error al eliminar el proceso'
+      };
     }
 
-    return { success: true }
+    return {
+      success: true,
+      deletedCandidates: data.deletedCandidates || 0,
+      deletedCVs: data.deletedCVs || 0
+    };
   } catch (error) {
-    console.error('Unexpected error deleting process:', error)
-    return { success: false, error: 'Error inesperado al eliminar proceso' }
+    console.error('Delete process error:', error);
+    return {
+      success: false,
+      error: 'Error de conexión al eliminar proceso'
+    };
   }
 }
 

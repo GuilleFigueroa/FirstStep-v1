@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../ui/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '../../../ui/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../ui/components/ui/dialog';
 import { PostulationDetailView } from './PostulationDetailView';
 import { ModifyLimitDialog } from './ModifyLimitDialog';
 import {
@@ -19,7 +20,9 @@ import {
   FileText,
   Users,
   ExternalLink,
-  Copy
+  Copy,
+  AlertTriangle,
+  Trash
 } from 'lucide-react';
 import type { Profile, Process } from '../../../shared/services/supabase';
 import { getProcessesByRecruiter, updateProcessStatus, updateProcessLimit, deleteProcess } from '../../services/processService';
@@ -68,6 +71,11 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
   const [jobTitleFilter, setJobTitleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [viewingPostulation, setViewingPostulation] = useState<Postulation | null>(null);
+
+  // Estados para diálogo de eliminación
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [processToDelete, setProcessToDelete] = useState<Postulation | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Cargar procesos del reclutador
   useEffect(() => {
@@ -136,23 +144,38 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
     }
   };
 
-  // Eliminar proceso
-  const handleDeleteProcess = async (processId: string) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este proceso? Esta acción no se puede deshacer.')) {
-      return;
+  // Abrir diálogo de eliminación
+  const handleDeleteProcess = (processId: string) => {
+    const process = postulations.find(p => p.id === processId);
+    if (process) {
+      setProcessToDelete(process);
+      setDeleteDialogOpen(true);
     }
+  };
+
+  // Confirmar eliminación de proceso
+  const handleConfirmDelete = async () => {
+    if (!processToDelete) return;
+
+    setDeleting(true);
 
     try {
-      const result = await deleteProcess(processId);
+      const result = await deleteProcess(processToDelete.id, userProfile.id);
       if (result.success) {
-        // Recargar procesos para reflejar el cambio
-        handleRetry();
+        // Remover de la lista local
+        setPostulations(prev => prev.filter(p => p.id !== processToDelete.id));
+
+        // Cerrar diálogo
+        setDeleteDialogOpen(false);
+        setProcessToDelete(null);
       } else {
         alert(result.error || 'Error al eliminar proceso');
       }
     } catch (error) {
       alert('Error inesperado al eliminar proceso');
       console.error('Error deleting process:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -196,9 +219,6 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
         break;
       case 'pause-postulation':
         await handleStatusChange(postulationId, 'paused');
-        break;
-      case 'delete':
-        await handleDeleteProcess(postulationId);
         break;
       default:
         break;
@@ -506,6 +526,16 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
                                     Modificar Límite
                                   </div>
                                 </ModifyLimitDialog>
+
+                                <DropdownMenuSeparator />
+
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteProcess(postulation.id)}
+                                  className="text-red-600"
+                                >
+                                  <Trash className="w-4 h-4 mr-2" />
+                                  Eliminar Proceso
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -531,6 +561,95 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
           </Card>
         </>
       )}
+
+      {/* Diálogo de confirmación de eliminación */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-5 h-5" />
+              Eliminar Proceso
+            </DialogTitle>
+            <DialogDescription>
+              Esta acción eliminará permanentemente el proceso y todos sus datos asociados.
+            </DialogDescription>
+          </DialogHeader>
+
+          {processToDelete && (
+            <div className="space-y-4 py-4">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-1">
+                  {processToDelete.jobTitle}
+                </h3>
+                <p className="text-sm text-gray-600">{processToDelete.company}</p>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="font-medium text-red-900 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Se eliminará permanentemente:
+                </h4>
+                <ul className="space-y-2 text-sm text-red-800">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5">•</span>
+                    <span>El proceso y toda su configuración</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5">•</span>
+                    <span><strong>{processToDelete.applicants}</strong> candidato{processToDelete.applicants !== 1 ? 's' : ''} registrado{processToDelete.applicants !== 1 ? 's' : ''}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5">•</span>
+                    <span>Todos los CVs subidos por los candidatos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5">•</span>
+                    <span>Todas las preguntas y respuestas del proceso</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-0.5">•</span>
+                    <span>El link de postulación dejará de funcionar</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800 font-medium">
+                  ⚠️ Esta acción NO se puede deshacer
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? (
+                <>
+                  <span className="mr-2">Eliminando...</span>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </>
+              ) : (
+                <>
+                  <Trash className="w-4 h-4 mr-2" />
+                  Eliminar Permanentemente
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

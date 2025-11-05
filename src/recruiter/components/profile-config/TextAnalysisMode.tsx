@@ -760,26 +760,26 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-red-700 space-y-3">
-                <p>
+              <ul className="text-sm text-red-700 space-y-2 list-disc list-inside">
+                <li>
                   Los <strong>requisitos obligatorios</strong> funcionan como filtro. Si los candidatos no comprueban
                   claramente tener esos requisitos serán descartados del proceso.
-                </p>
-                <p>
+                </li>
+                <li>
                   Se recomienda seleccionar hasta un <strong>máximo de 5 requisitos obligatorios</strong>.
-                </p>
-                <p>
+                </li>
+                <li>
                   Los <strong>requisitos deseables</strong> también se analizan pero en un orden de prioridad inferior
                   a los obligatorios y forman parte de la evaluación final.
-                </p>
-              </div>
+                </li>
+              </ul>
             </CardContent>
           </Card>
 
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="title" className="text-base font-semibold">
-                Puesto
+                Nombre del Puesto
               </Label>
               <Input
                 id="title"

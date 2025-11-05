@@ -288,7 +288,7 @@ export function RecruiterApp() {
                   <CardHeader>
                     <CardTitle>Análisis y Configuración del Perfil</CardTitle>
                     <CardDescription>
-                      Describe el perfil que buscas para extraer y configurar los requisitos necesarios
+                      Revisa, edita, agrega o elimina requisitos según sea necesario
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">

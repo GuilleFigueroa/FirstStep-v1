@@ -286,9 +286,9 @@ export function RecruiterApp() {
               <div className="lg:col-span-2 space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Análisis del Perfil</CardTitle>
+                    <CardTitle>Análisis y Configuración del Perfil</CardTitle>
                     <CardDescription>
-                      Describe el perfil que buscas y extrae los requisitos necesarios
+                      Describe el perfil que buscas para extraer y configurar los requisitos necesarios
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">

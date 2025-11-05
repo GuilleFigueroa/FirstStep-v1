@@ -8,7 +8,7 @@ import { Switch } from '../../../ui/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { Input } from '../../../ui/components/ui/input';
 import { Separator } from '../../../ui/components/ui/separator';
-import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, Wrench, Brain, Star, Edit3, X, Info, Award } from 'lucide-react';
+import { Bot, Sparkles, ChevronRight, Plus, Trash2, AlertCircle, AlertTriangle, Wrench, Brain, Star, Edit3, X, Info, Award, CheckCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../../ui/components/ui/tooltip';
 import { CustomPromptBox } from './CustomPromptBox';
 import type { JobProfile, ProfileRequirement } from '../../../app/App';
@@ -72,10 +72,16 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       title = 'Arquitecto de Software';
     } else if (lowercaseText.includes('tech lead') || lowercaseText.includes('líder técnico')) {
       title = 'Tech Lead';
+    } else if (lowercaseText.includes('fullstack developer') || lowercaseText.includes('full stack developer') || lowercaseText.includes('full-stack developer')) {
+      title = 'Fullstack Developer';
     } else if (lowercaseText.includes('fullstack') || lowercaseText.includes('full stack')) {
       title = 'Desarrollador Full Stack';
+    } else if (lowercaseText.includes('frontend developer') || lowercaseText.includes('front-end developer')) {
+      title = 'Frontend Developer';
     } else if (lowercaseText.includes('frontend') || lowercaseText.includes('front-end')) {
       title = 'Desarrollador Frontend';
+    } else if (lowercaseText.includes('backend developer') || lowercaseText.includes('back-end developer')) {
+      title = 'Backend Developer';
     } else if (lowercaseText.includes('backend') || lowercaseText.includes('back-end')) {
       title = 'Desarrollador Backend';
     } else if (lowercaseText.includes('mobile developer') || lowercaseText.includes('desarrollador móvil')) {
@@ -737,20 +743,36 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
         </div>
       ) : (
         <div className="space-y-6">
-          <Card className="border-green-200 bg-green-50">
+          {/* Badge de análisis completado */}
+          <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg w-fit">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium text-green-800">Análisis completado</span>
+          </div>
+
+          {/* Card de advertencia */}
+          <Card className="border-red-200 bg-red-50">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-full bg-green-100">
-                  <Bot className="w-4 h-4 text-green-600" />
+                <div className="p-1.5 rounded-full bg-red-100">
+                  <AlertTriangle className="w-4 h-4 text-red-600" />
                 </div>
-                <CardTitle className="text-green-800">Análisis completado</CardTitle>
+                <CardTitle className="text-red-800">Importante</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <CardDescription className="text-green-700">
-                Se han extraído y categorizado automáticamente los requisitos del perfil.
-                Puedes editar, eliminar o agregar nuevos requisitos según sea necesario.
-              </CardDescription>
+              <div className="text-sm text-red-700 space-y-3">
+                <p>
+                  Los <strong>requisitos obligatorios</strong> funcionan como filtro. Si los candidatos no comprueban
+                  claramente tener esos requisitos serán descartados del proceso.
+                </p>
+                <p>
+                  Se recomienda seleccionar hasta un <strong>máximo de 5 requisitos obligatorios</strong>.
+                </p>
+                <p>
+                  Los <strong>requisitos deseables</strong> también se analizan pero en un orden de prioridad inferior
+                  a los obligatorios y forman parte de la evaluación final.
+                </p>
+              </div>
             </CardContent>
           </Card>
 

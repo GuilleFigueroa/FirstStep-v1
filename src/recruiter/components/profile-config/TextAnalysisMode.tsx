@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '../../../ui/components/ui/button';
 import { Textarea } from '../../../ui/components/ui/textarea';
-
+import { Label } from '../../../ui/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
 import { Badge } from '../../../ui/components/ui/badge';
 import { Switch } from '../../../ui/components/ui/switch';
@@ -755,7 +755,10 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
           </Card>
 
           <div className="space-y-4">
-            <div>
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-base font-semibold">
+                Puesto
+              </Label>
               <Input
                 id="title"
                 value={profileTitle}

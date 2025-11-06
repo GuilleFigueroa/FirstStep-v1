@@ -918,6 +918,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                 <Switch
                                   checked={req.required}
                                   onCheckedChange={() => toggleRequirement(req.id)}
+                                  style={!req.required ? { backgroundColor: '#fef3c7' } : undefined}
                                 />
                                 <span className="text-xs text-muted-foreground text-center">
                                   {req.required ? 'Obligatorio' : 'Opcional'}

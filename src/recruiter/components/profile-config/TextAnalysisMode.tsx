@@ -57,69 +57,69 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     // Determinar título del puesto
     let title = 'Perfil Personalizado';
 
-    // Tech/IT
-    if (lowercaseText.includes('desarrollador') || lowercaseText.includes('developer') || lowercaseText.includes('programmer')) {
-      title = 'Desarrollador';
+    // Tech/IT - Específicos primero, genéricos al final
+    if (lowercaseText.includes('fullstack developer') || lowercaseText.includes('full stack developer') || lowercaseText.includes('full-stack developer')) {
+      title = 'Fullstack Developer';
+    } else if (lowercaseText.includes('frontend developer') || lowercaseText.includes('front-end developer')) {
+      title = 'Frontend Developer';
+    } else if (lowercaseText.includes('backend developer') || lowercaseText.includes('back-end developer')) {
+      title = 'Backend Developer';
+    } else if (lowercaseText.includes('mobile developer') || lowercaseText.includes('desarrollador móvil')) {
+      title = 'Desarrollador Mobile';
+    } else if (lowercaseText.includes('fullstack') || lowercaseText.includes('full stack')) {
+      title = 'Desarrollador Full Stack';
+    } else if (lowercaseText.includes('frontend') || lowercaseText.includes('front-end')) {
+      title = 'Desarrollador Frontend';
+    } else if (lowercaseText.includes('backend') || lowercaseText.includes('back-end')) {
+      title = 'Desarrollador Backend';
     } else if (lowercaseText.includes('data scientist') || lowercaseText.includes('científico de datos')) {
       title = 'Data Scientist';
     } else if (lowercaseText.includes('data engineer') || lowercaseText.includes('ingeniero de datos')) {
       title = 'Data Engineer';
+    } else if (lowercaseText.includes('software architect') || lowercaseText.includes('arquitecto de software')) {
+      title = 'Arquitecto de Software';
     } else if (lowercaseText.includes('devops') || lowercaseText.includes('sre')) {
       title = 'DevOps Engineer';
-    } else if (lowercaseText.includes('qa') || lowercaseText.includes('quality assurance') || lowercaseText.includes('tester')) {
+    } else if (lowercaseText.includes('quality assurance') || lowercaseText.includes('qa') || lowercaseText.includes('tester')) {
       title = 'QA Engineer';
-    } else if (lowercaseText.includes('arquitecto de software') || lowercaseText.includes('software architect')) {
-      title = 'Arquitecto de Software';
     } else if (lowercaseText.includes('tech lead') || lowercaseText.includes('líder técnico')) {
       title = 'Tech Lead';
-    } else if (lowercaseText.includes('fullstack developer') || lowercaseText.includes('full stack developer') || lowercaseText.includes('full-stack developer')) {
-      title = 'Fullstack Developer';
-    } else if (lowercaseText.includes('fullstack') || lowercaseText.includes('full stack')) {
-      title = 'Desarrollador Full Stack';
-    } else if (lowercaseText.includes('frontend developer') || lowercaseText.includes('front-end developer')) {
-      title = 'Frontend Developer';
-    } else if (lowercaseText.includes('frontend') || lowercaseText.includes('front-end')) {
-      title = 'Desarrollador Frontend';
-    } else if (lowercaseText.includes('backend developer') || lowercaseText.includes('back-end developer')) {
-      title = 'Backend Developer';
-    } else if (lowercaseText.includes('backend') || lowercaseText.includes('back-end')) {
-      title = 'Desarrollador Backend';
-    } else if (lowercaseText.includes('mobile developer') || lowercaseText.includes('desarrollador móvil')) {
-      title = 'Desarrollador Mobile';
+    } else if (lowercaseText.includes('desarrollador') || lowercaseText.includes('developer') || lowercaseText.includes('programmer')) {
+      title = 'Desarrollador';
 
-    // Diseño/UX
-    } else if (lowercaseText.includes('diseñador') || lowercaseText.includes('designer')) {
-      title = 'Diseñador';
-    } else if (lowercaseText.includes('ux') || lowercaseText.includes('user experience')) {
-      title = 'Diseñador UX/UI';
+    // Diseño/UX - Específicos primero, genéricos al final
     } else if (lowercaseText.includes('product designer') || lowercaseText.includes('diseñador de producto')) {
       title = 'Product Designer';
     } else if (lowercaseText.includes('graphic designer') || lowercaseText.includes('diseñador gráfico')) {
       title = 'Diseñador Gráfico';
+    } else if (lowercaseText.includes('ux') || lowercaseText.includes('user experience')) {
+      title = 'Diseñador UX/UI';
+    } else if (lowercaseText.includes('diseñador') || lowercaseText.includes('designer')) {
+      title = 'Diseñador';
 
-    // Marketing/Growth
-    } else if (lowercaseText.includes('marketing')) {
-      title = 'Especialista en Marketing';
+    // Marketing/Growth - Específicos primero, genéricos al final
     } else if (lowercaseText.includes('digital marketing') || lowercaseText.includes('marketing digital')) {
       title = 'Especialista en Marketing Digital';
     } else if (lowercaseText.includes('content marketing') || lowercaseText.includes('marketing de contenidos')) {
       title = 'Content Marketer';
-    } else if (lowercaseText.includes('growth') || lowercaseText.includes('growth hacker')) {
-      title = 'Growth Hacker';
     } else if (lowercaseText.includes('seo specialist') || lowercaseText.includes('especialista seo')) {
       title = 'Especialista SEO';
+    } else if (lowercaseText.includes('growth hacker') || lowercaseText.includes('growth')) {
+      title = 'Growth Hacker';
+    } else if (lowercaseText.includes('marketing')) {
+      title = 'Especialista en Marketing';
 
-    // Ventas
-    } else if (lowercaseText.includes('ventas') || lowercaseText.includes('sales')) {
-      title = 'Especialista en Ventas';
+    // Ventas - Específicos primero, genéricos al final
     } else if (lowercaseText.includes('account executive') || lowercaseText.includes('ejecutivo de cuentas')) {
       title = 'Account Executive';
     } else if (lowercaseText.includes('sales manager') || lowercaseText.includes('gerente de ventas')) {
       title = 'Gerente de Ventas';
-    } else if (lowercaseText.includes('bdr') || lowercaseText.includes('business development')) {
+    } else if (lowercaseText.includes('business development') || lowercaseText.includes('bdr')) {
       title = 'Business Development Representative';
-    } else if (lowercaseText.includes('sdr') || lowercaseText.includes('sales development')) {
+    } else if (lowercaseText.includes('sales development') || lowercaseText.includes('sdr')) {
       title = 'Sales Development Representative';
+    } else if (lowercaseText.includes('ventas') || lowercaseText.includes('sales')) {
+      title = 'Especialista en Ventas';
 
     // Finanzas/Contabilidad
     } else if (lowercaseText.includes('contador') || lowercaseText.includes('accountant')) {

@@ -199,3 +199,37 @@ export async function getCurrentUser(): Promise<Profile | null> {
 export async function getSession() {
   return await supabase.auth.getSession()
 }
+
+// Solicitar recuperación de contraseña
+export async function requestPasswordReset(email: string): Promise<AuthResponse> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'Error al solicitar recuperación de contraseña' }
+  }
+}
+
+// Actualizar contraseña (desde el link del email)
+export async function updatePassword(newPassword: string): Promise<AuthResponse> {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    })
+
+    if (error) {
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: 'Error al actualizar contraseña' }
+  }
+}

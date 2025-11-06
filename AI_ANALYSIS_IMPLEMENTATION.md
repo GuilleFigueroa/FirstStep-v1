@@ -17,7 +17,7 @@
 ## 📊 Estado General
 
 **Progreso:** 6/6 pasos completados (100%) ✅
-**Última actualización:** 13-10-2025
+**Última actualización:** 05-11-2025
 **Estado del sistema:** COMPLETAMENTE FUNCIONAL Y EN PRODUCCIÓN
 
 | Paso | Estado | Descripción | Verificación |
@@ -29,14 +29,19 @@
 | 5 | ✅ | UI preguntas + scoring + filtro eliminatorio | Flujo completo operativo |
 | 6 | ✅ | Dashboard reclutador con análisis completo | 100% datos reales |
 
-**Mejoras adicionales implementadas (post-documentación inicial):**
+**Mejoras adicionales implementadas:**
 - ✅ Protección IDOR en APIs de candidatos (commit a58574b)
 - ✅ Optimización de prompts IA con análisis semántico (commit c6487a3)
 - ✅ Persistencia de estados de seguimiento (reviewed, contacted, favorite) (commit 1b17940)
 - ✅ Vista detallada de postulaciones (PostulationDetailView.tsx) (commit 1685a25)
 - ✅ Modificación dinámica de límite de candidatos (commit 65a1666)
 - ✅ Gestión de estados: cerrar/pausar/activar procesos (commit 002818e)
-- ✅ Filtrado correcto de candidatos por proceso (commit 12e128d)
+- ✅ Filtrado backend de candidatos por proceso y nombre (commit 12e128d, d72dfbc)
+- ✅ Eliminación permanente de candidatos con confirmación (commit 1b08534)
+- ✅ Eliminación permanente de procesos con diálogo informativo (commit 651cd61, dd15524)
+- ✅ Card de feedback del candidato en perfil de reclutador (commit 3b41600)
+- ✅ Expansión de keywords de detección de requisitos: 23 → 241 keywords (commit 7ff6d58)
+- ✅ Mejoras UI configuración de perfiles con alertas y validación (commit 4581cfb)
 
 ---
 
@@ -298,190 +303,110 @@ BD: Supabase (PostgreSQL + Storage)
   - Navegación condicional (salta recruiter_questions si no hay preguntas)
 - **Tarea 5.13:** Flujo completo probado y funcional
 
-**⏳ Pendiente (opcional):**
-
-**Tarea 5.5 (COMPLETADA):** ~~Crear `/api/calculate-scoring.ts`~~ ✅
-```typescript
-// FASE 1 (Implementación inicial - MVP):
-// Input: { candidateId }
-// 1. Obtener cv_text, requirements, ai_questions + answers
-// 2. Prompt de scoring MODERADO (temperature: 0.3)
-//    - Rechaza solo si claramente no cumple mandatory
-//    - Acepta candidatos "borderline" (ej: pide 5 años, tiene 4)
-// 3. generateAIResponse() → { score, meetsAllMandatory, details }
-// 4. Si meetsAllMandatory = false → status='rejected', rejection_reason
-// 5. Si true → status='completed', score + scoring_details
-// Output: { approved: true/false, reason?: string, score?: number }
-
-// Estructura scoring_details (flexible):
-// {
-//   "score": 75,
-//   "meetsAllMandatory": true,
-//   "mandatory_evaluation": [{ requirement, meets, evidence }],
-//   "optional_evaluation": [{ requirement, meets, evidence }],
-//   "summary": "..."
-// }
-```
-
-**Tarea 5.5-bis:** Agregar selector de modo de filtro (Feature adicional)
-```typescript
-// FASE 2 (Después de validar Tarea 5.5):
-// 1. Agregar columna a processes:
-//    ALTER TABLE processes ADD COLUMN scoring_mode VARCHAR(20) DEFAULT 'moderate';
-//    Valores: 'strict' | 'moderate'
-//
-// 2. Frontend (JobProfile): Agregar selector
-//    <Select value={scoringMode}>
-//      <option value="moderate">Moderado (recomendado)</option>
-//      <option value="strict">Estricto</option>
-//    </Select>
-//
-// 3. Backend: Actualizar /api/calculate-scoring.ts
-//    - Leer process.scoring_mode
-//    - buildStrictPrompt() vs buildModeratePrompt()
-//
-// Modo STRICT: Rechaza si no cumple exactamente requisitos
-// Modo MODERATE: Tolerante con experiencia cercana
-//
-// Esfuerzo: ~30-40 minutos
-// Beneficio: Control total del reclutador sobre filtro
-```
-
-**Tarea 5.5-bis (OPCIONAL):** Agregar selector modo filtro strict/moderate
-- Feature adicional para control del reclutador
-- Requiere columna `scoring_mode` en processes
-- Esfuerzo estimado: 30-40 minutos
-
 ---
 
 ## 🎯 PASO 6: Dashboard Reclutador ✅ COMPLETADO
 
-**Objetivo:** Mostrar análisis completo de candidatos aprobados/rechazados
-
-### Progreso: 100%
-
-**✅ Backend implementado:**
-
-1. **`/api/get-candidate-analysis.ts`**
-   - Input: `candidateId` (query param)
-   - Validación: solo candidatos con status 'completed' o 'rejected'
-   - Output completo:
-     - `candidate`: datos básicos + score + scoring_details + cv_url
-     - `aiQuestions`: preguntas IA con respuestas y analysis_feedback
-     - `recruiterQuestions`: preguntas formulario + respuestas
-     - `requirements`: array plano extraído de scoring_details (mandatory_evaluation + optional_evaluation)
-     - `process`: title + company_name
-
-2. **`candidateService.getCandidatesByRecruiter()`**
-   - Obtiene TODOS los procesos del reclutador
-   - Obtiene TODOS los candidatos de esos procesos
-   - Manual JOIN usando Map para performance
-   - Retorna candidatos con info del proceso (title, company, status)
-
-3. **`candidateService.getCandidateAnalysis()`**
-   - Wrapper para llamar a GET /api/get-candidate-analysis
-   - Manejo de errores estructurado
-
-**✅ Frontend implementado:**
-
-1. **`CandidatesTable.tsx` actualizado**
-   - Props: `recruiterId` (en lugar de processId)
-   - Carga todos los candidatos de todos los procesos del reclutador
-   - Filtros: nombre, puesto/rol, empresa, estado de postulación
-   - Interface actualizada con campos reales (process_title, process_company, score, etc.)
-   - Estados: loading, error, empty con mensajes apropiados
-   - Colores de fila: favorito (amarillo), revisado (violeta), contactado (verde)
-   - Badge de estado: Activo (violeta), Cerrado (gris), Pausado (naranja outline)
-
-2. **`CandidateProfile.tsx` refactorizado completo**
-   - Eliminado 100% datos mock (~150 líneas)
-   - Carga datos reales desde `CandidateService.getCandidateAnalysis()`
-   - **Header:**
-     - Nombre completo desde first_name + last_name
-     - Badge APROBADO (verde) / RECHAZADO (rojo) según status
-     - LinkedIn funcional desde linkedin_url
-     - Rol desde process_title
-     - Score real con barra de progreso
-   - **CV Visual (left):**
-     - Iframe embed del PDF desde cv_url
-     - Placeholder si no hay CV
-     - Botón descarga funcional
-   - **Análisis de Compatibilidad (right, collapsible):**
-     - Fit General con score real
-     - % Requisitos Obligatorios (calculado de scoring_details)
-     - % Requisitos Deseables (calculado de scoring_details)
-     - Requisitos Cumplidos (filtro is_met=true)
-     - Requisitos Faltantes (filtro is_met=false)
-   - **Respuestas del Proceso (right, collapsible):**
-     - Subsección "Preguntas de IA" con análisis
-     - Subsección "Preguntas del Formulario"
-   - **Funcionalidad eliminada:**
-     - Mock de notas (sin sustento estructural)
-     - Objeto fullProfile completo
-
-3. **Fixes aplicados:**
-   - Estructura requirements corregida (objeto → array plano)
-   - Keys únicas con index en .map()
-   - Validación segura con Array.isArray()
-   - Status badge con valores correctos (active/closed/paused)
-
-**Archivos:**
-- `api/get-candidate-analysis.ts` (175 líneas)
-- `src/shared/services/candidateService.ts` (getCandidatesByRecruiter + getCandidateAnalysis)
-- `src/recruiter/components/candidates/CandidatesTable.tsx` (refactorizado completo)
-- `src/recruiter/components/candidates/CandidateProfile.tsx` (refactorizado completo)
-- `src/recruiter/components/RecruiterApp.tsx` (actualizado para pasar recruiterId)
+**Implementado:**
+- ✅ `/api/get-candidate-analysis.ts` - Endpoint completo
+- ✅ `CandidateProfile.tsx` actualizado con análisis completo
+- ✅ Vista de scoring con desglose
+- ✅ Requisitos cumplidos/faltantes
+- ✅ Preguntas IA + respuestas
+- ✅ Preguntas formulario + respuestas
+- ✅ CV parseado visible
+- ✅ Estados de seguimiento (reviewed, contacted, favorite)
+- ✅ Card de feedback del candidato
 
 ---
 
-## 📋 Decisiones Técnicas
+## 🎯 MEJORA: Detección de Requisitos Expandida ✅ COMPLETADO
 
-### Niveles de experiencia (todas las categorías)
+**Objetivo:** Ampliar detección de keywords para perfiles tech y no-tech
 
-**Valores en BD:**
-- `"básico (0-2 años de experiencia)"`
-- `"intermedio (2-4 años de experiencia)"`
-- `"avanzado (5+ años de experiencia)"`
+**Implementado (commit 7ff6d58):**
+- ✅ Expansión de keywords: 23 → 241 keywords (948% incremento)
+- ✅ Títulos de trabajo: 4 → 50+ (con variantes en inglés y español)
+- ✅ Herramientas: 10 → 121 items
+  - Frontend: JavaScript, TypeScript, React, Vue, Angular, etc.
+  - Backend: Node.js, Python, Java, .NET, Go, etc.
+  - Databases: PostgreSQL, MySQL, MongoDB, Redis, etc.
+  - Cloud: AWS, Azure, GCP, etc.
+  - DevOps: Docker, Kubernetes, Jenkins, etc.
+  - No-tech: Salesforce, HubSpot, Google Analytics, SAP, etc.
+- ✅ Skills técnicas: 5 → 99 items
+  - UX/UI, APIs, Sales, Finance, Legal, RRHH, Marketing, etc.
+- ✅ Otras skills: 3 → 21 items (idiomas y certificaciones)
+- ✅ Eliminación de soft skills (comunicación, liderazgo, etc.)
+- ✅ Requisito de experiencia específico: `Experiencia como ${title}` (no genérico)
+- ✅ Detección bilingüe: "Fullstack Developer" vs "Desarrollador Full Stack"
 
-**UI:** Select muestra solo "Básico", "Intermedio", "Avanzado" (dropdown muestra años)
+**Archivo modificado:**
+- `src/recruiter/components/profile-config/TextAnalysisMode.tsx` (líneas 57-511)
 
-**IA:** Interpreta texto explícito como criterio objetivo
-
-### Scoring y feedback al candidato
-
-- ❌ NO mostrar scoring durante Steps 1-5
-- ✅ Scoring se ejecuta silenciosamente después de ai_questions
-- ✅ Resultado se muestra UNA SOLA VEZ en Step 6 (confirmation)
-- ✅ Sin re-acceso (evitar intentos múltiples)
-
-### Custom Prompt del reclutador
-
-- ✅ Se guarda en `processes.custom_prompt`
-- ✅ Se usa en `/api/analyze-cv` (generación preguntas)
-- ✅ Se usa en `/api/calculate-scoring` (evaluación)
-
-### Error handling
-
-- ✅ Reintento permitido en CVUploadStep
-- ✅ Errores guardados en BD (tracking)
-- ❌ Candidatos con errores NO aparecen en dashboard
-
-### Límite de candidatos
-
-- ✅ Cuentan todos con `cv_text IS NOT NULL`
-- ✅ Tanto aprobados como rechazados
-- ❌ NO cuentan abandonos o errores parsing
-
-### Candidatos múltiples procesos
-
-- ✅ Mismo email/LinkedIn puede aplicar a diferentes procesos
-- ❌ NO puede aplicar 2+ veces al MISMO proceso
+**Performance:**
+- Tiempo de detección: ~5-8ms (imperceptible con delay de 2s)
+- Algoritmo: O(n×m×k) donde n=241, m=3, k=2000
 
 ---
 
-## 🔧 Configuración Vercel
+## 🎯 MEJORA: UI Configuración de Perfiles ✅ COMPLETADO
 
-### Variables de Entorno
+**Objetivo:** Mejorar claridad y UX del flujo de configuración
+
+**Implementado (commit 4581cfb):**
+- ✅ Badge de "Análisis completado" visible
+- ✅ Card de advertencia roja con información sobre requisitos obligatorios
+- ✅ Viñetas en puntos de advertencia
+- ✅ Label "Nombre del Puesto" más descriptivo
+- ✅ Subtítulo actualizado: "Revisa, edita, agrega o elimina requisitos según sea necesario"
+- ✅ `CustomPromptBox` simplificado (96 → 46 líneas)
+  - Eliminada sección de ejemplos
+  - Reducción de bundle: -1.79 KB
+  - UI más limpia y compacta
+
+**Archivos modificados:**
+- `src/recruiter/components/RecruiterApp.tsx`
+- `src/recruiter/components/profile-config/TextAnalysisMode.tsx`
+- `src/recruiter/components/profile-config/CustomPromptBox.tsx`
+
+---
+
+## 📝 Decisiones Arquitectónicas
+
+### **1. Soft Delete (no Hard Delete)**
+- ✅ Candidatos rechazados: `status='rejected'` + `rejection_reason`
+- ✅ Previene re-intentos infinitos
+- ✅ Permite auditoría y analytics
+
+### **2. Estructura ai_questions con `is_mandatory`**
+- ✅ IA decide priorización en `/api/analyze-cv`
+- ✅ Scoring usa flag para ponderar
+- ✅ Reclutador ve qué preguntas eran críticas
+
+### **3. Custom Prompt del Reclutador**
+- ✅ Configurado en `CustomPromptBox`
+- ✅ Guardado en `processes.custom_prompt`
+- ✅ Usado en `/api/analyze-cv` y `/api/calculate-scoring`
+
+### **4. Scoring Moderado**
+- ✅ Temperature: 0.3 (consistencia)
+- ✅ Tolerance para candidatos "borderline"
+- ✅ Rechazo solo si claramente no cumple mandatory
+
+### **5. Protección IDOR**
+- ✅ `verifyCandidateOwnership()` en todas las APIs
+- ✅ Valida que candidato pertenece al reclutador
+- ✅ Previene acceso no autorizado
+
+### **6. Code Splitting**
+- ✅ RecruiterApp y CandidateApplication separados
+- ✅ Lazy loading con Suspense
+- ✅ Bundle optimizado: 774 KB → 427 KB / 352 KB
+
+---
+
+## 🔧 Variables de Entorno
 
 ```env
 # Vercel dashboard → Settings → Environment Variables
@@ -490,68 +415,25 @@ SUPABASE_URL=https://...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
-### vercel.json (ACTUALIZADO 06-10-2025)
+---
 
-```json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "build",
-  "devCommand": "npm run dev",        // ✅ Agregado para vercel dev
-  "framework": null,                   // ✅ Especificado para Vite custom
-  "rewrites": [
-    {
-      "source": "/((?!api).*)",       // ✅ Excluye /api/* de rewrites
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+## ✅ Checklist Final
 
-**Fix aplicado (06-10-2025):**
-- ✅ Agregado `devCommand` para que `vercel dev` use `npm run dev`
-- ✅ Especificado `framework: null` (proyecto Vite custom)
-- ✅ Cambiado rewrite de `/(.*)`  a `/((?!api).*)` para excluir rutas API
-- ✅ Resuelto error: "Failed to parse source for import analysis"
-- ✅ `vercel dev` ahora funciona correctamente
+- [x] 6 pasos completados y verificados
+- [x] Tests manuales flujo candidato completo
+- [x] Tests manuales dashboard reclutador
+- [x] Manejo errores robusto
+- [x] Code splitting implementado
+- [x] Protección IDOR
+- [x] Soft delete candidatos
+- [x] Estados de seguimiento
+- [x] Expansión de keywords
+- [x] UI mejorada
+- [ ] Rate limiting (pendiente V2)
+- [ ] Logs configurados (pendiente V2)
+- [ ] Monitoreo costos OpenAI (pendiente V2)
 
 ---
 
-## 📝 Archivos Clave
-
-### Backend
-- `api/analyze-cv.ts` - Análisis CV + generación preguntas
-- `api/save-ai-answers.ts` - Guardar respuestas IA
-- `api/calculate-scoring.ts` - Scoring con filtro eliminatorio
-- `api/save-recruiter-answers.ts` - Guardar respuestas formulario
-- `api/get-candidate-analysis.ts` - Obtener análisis completo para dashboard
-- `api/utils/openai.ts` - Wrapper Vercel AI SDK
-- `api/utils/pdfParser.ts` - Extracción texto PDF/DOCX
-- `api/utils/supabase.ts` - Cliente Supabase admin
-
-### Frontend - Candidato
-- `src/candidate/components/CandidateFlow.tsx` - Orquestador steps
-- `src/candidate/components/CVUploadStep.tsx` - Upload + análisis IA
-- `src/candidate/components/AIQuestionsStep.tsx` - UI preguntas IA
-- `src/candidate/components/RecruiterQuestionsStep.tsx` - UI formulario
-- `src/shared/services/aiQuestionsService.ts` - Servicio preguntas IA
-- `src/shared/services/recruiterQuestionsService.ts` - Servicio formulario
-
-### Frontend - Reclutador
-- `src/recruiter/components/RecruiterApp.tsx` - App principal reclutador
-- `src/recruiter/components/candidates/CandidatesTable.tsx` - Tabla con todos los candidatos
-- `src/recruiter/components/candidates/CandidateProfile.tsx` - Vista detalle candidato
-- `src/shared/services/candidateService.ts` - CRUD candidatos + análisis
-
----
-
-**Última actualización:** 13-10-2025
-**Estado:** ✅ SISTEMA COMPLETAMENTE FUNCIONAL EN PRODUCCIÓN
-
-**Funcionalidades adicionales implementadas:**
-- Gestión completa de procesos (crear, editar límite, pausar, cerrar, activar)
-- Dashboard de candidatos con filtros avanzados y estados de seguimiento
-- Sistema de favoritos y seguimiento de candidatos (reviewed, contacted)
-- Vista detallada de postulaciones con métricas en tiempo real
-- Protección IDOR contra accesos no autorizados
-- Optimización de prompts IA para mayor precisión en preguntas
-- Code splitting para optimizar carga (427KB reclutador / 352KB candidato)
+**Estado:** 🟢 COMPLETAMENTE FUNCIONAL Y EN PRODUCCIÓN
+**Última actualización:** 05-11-2025

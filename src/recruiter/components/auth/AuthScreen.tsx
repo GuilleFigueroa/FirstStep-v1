@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Input } from '../../../ui/components/ui/input';
 import { Label } from '../../../ui/components/ui/label';
 import { Zap, User, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { signIn, signUp } from '../../services/authService';
+import { signIn, signUp, requestPasswordReset } from '../../services/authService';
 import type { Profile } from '../../../shared/services/supabase';
 
 interface AuthScreenProps {
@@ -12,11 +12,12 @@ interface AuthScreenProps {
 }
 
 export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailVerificationNeeded, setEmailVerificationNeeded] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -31,6 +32,18 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
     setError(null);
 
     try {
+      if (mode === 'forgot-password') {
+        const result = await requestPasswordReset(formData.email);
+        if (result.success) {
+          setResetEmailSent(true);
+          setError(null);
+        } else {
+          setError(result.error || 'Error al solicitar recuperación');
+        }
+        setLoading(false);
+        return;
+      }
+
       if (mode === 'register') {
         const result = await signUp({
           email: formData.email,
@@ -81,6 +94,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
     });
     setError(null);
     setEmailVerificationNeeded(false);
+    setResetEmailSent(false);
   };
 
   const switchMode = () => {
@@ -102,12 +116,14 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
         {/* Encabezado */}
         <div className="text-center">
           <h2 className="text-2xl mb-2">
-            {mode === 'login' ? 'Bienvenido de vuelta' : 'Crear cuenta nueva'}
+            {mode === 'forgot-password' ? '¿Olvidaste tu contraseña?' : (mode === 'login' ? 'Bienvenido de vuelta' : 'Crear cuenta nueva')}
           </h2>
           <p className="text-muted-foreground">
-            {mode === 'login' 
-              ? 'Ingresa a tu cuenta para continuar' 
-              : 'Únete a FirstStep para revolucionar tu reclutamiento'
+            {mode === 'forgot-password'
+              ? 'Ingresa tu email y te enviaremos un enlace para recuperar tu contraseña'
+              : (mode === 'login'
+                ? 'Ingresa a tu cuenta para continuar'
+                : 'Únete a FirstStep para revolucionar tu reclutamiento')
             }
           </p>
         </div>
@@ -140,17 +156,47 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
           </Card>
         )}
 
+        {/* Mensaje de email de recuperación enviado */}
+        {resetEmailSent && (
+          <Card className="border-green-200 bg-green-50">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-3">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                  <Mail className="w-6 h-6 text-green-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-green-900">Email enviado</h3>
+                <p className="text-sm text-green-700">
+                  Hemos enviado un enlace de recuperación a <strong>{formData.email}</strong>
+                </p>
+                <p className="text-xs text-green-600">
+                  Revisa tu bandeja de entrada y haz clic en el enlace para resetear tu contraseña.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => { setResetEmailSent(false); setMode('login'); }}
+                  className="mt-4"
+                >
+                  Volver al login
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Formulario */}
-        {!emailVerificationNeeded && (
+        {!emailVerificationNeeded && !resetEmailSent && (
           <Card>
             <CardHeader>
               <CardTitle>
-                {mode === 'login' ? 'Iniciar Sesión' : 'Registrarse'}
+                {mode === 'forgot-password' ? 'Recuperar Contraseña' : (mode === 'login' ? 'Iniciar Sesión' : 'Registrarse')}
               </CardTitle>
               <CardDescription>
-                {mode === 'login'
-                  ? 'Ingresa tus credenciales para acceder'
-                  : 'Completa tus datos para comenzar'
+                {mode === 'forgot-password'
+                  ? 'Ingresa tu correo electrónico'
+                  : (mode === 'login'
+                    ? 'Ingresa tus credenciales para acceder'
+                    : 'Completa tus datos para comenzar')
                 }
               </CardDescription>
             </CardHeader>
@@ -222,27 +268,29 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
               </div>
 
               {/* Contraseña */}
-              <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    className="pl-10 pr-10"
-                    value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+              {mode !== 'forgot-password' && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="pl-10 pr-10"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange('password', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Error message */}
               {error && (
@@ -256,34 +304,63 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
                 type="submit"
                 className="w-full bg-[#7572FF] hover:bg-[#6863E8] text-white"
                 size="lg"
-                disabled={loading || !formData.email || !formData.password || (mode === 'register' && (!formData.firstName || !formData.lastName))}
+                disabled={loading || !formData.email || (mode !== 'forgot-password' && !formData.password) || (mode === 'register' && (!formData.firstName || !formData.lastName))}
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {mode === 'login' ? 'Iniciando...' : 'Creando cuenta...'}
+                    {mode === 'forgot-password' ? 'Enviando...' : (mode === 'login' ? 'Iniciando...' : 'Creando cuenta...')}
                   </>
                 ) : (
-                  mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'
+                  mode === 'forgot-password' ? 'Enviar enlace de recuperación' : (mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta')
                 )}
               </Button>
             </form>
 
             {/* Cambiar modo */}
             <div className="text-center">
-              <span className="text-sm text-muted-foreground">
-                {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-              </span>
-              <Button
-                type="button"
-                variant="link"
-                className="text-[#7572FF] font-medium ml-1 p-0 h-auto"
-                onClick={switchMode}
-                disabled={loading}
-              >
-                {mode === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}
-              </Button>
+              {mode === 'forgot-password' ? (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-[#7572FF] font-medium p-0 h-auto"
+                  onClick={() => setMode('login')}
+                  disabled={loading}
+                >
+                  Volver al login
+                </Button>
+              ) : (
+                <>
+                  <span className="text-sm text-muted-foreground">
+                    {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="text-[#7572FF] font-medium ml-1 p-0 h-auto"
+                    onClick={switchMode}
+                    disabled={loading}
+                  >
+                    {mode === 'login' ? 'Crear cuenta nueva' : 'Iniciar sesión'}
+                  </Button>
+                </>
+              )}
             </div>
+
+            {/* Link ¿Olvidaste tu contraseña? */}
+            {mode === 'login' && (
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-[#7572FF] font-medium p-0 h-auto"
+                  onClick={() => setMode('forgot-password')}
+                  disabled={loading}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
         )}

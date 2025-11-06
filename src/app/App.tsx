@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 // Code splitting: Lazy load rutas principales
 const RecruiterApp = lazy(() => import("../recruiter/components/RecruiterApp").then(m => ({ default: m.RecruiterApp })));
 const CandidateApplication = lazy(() => import("../candidate/components/CandidateApplication").then(m => ({ default: m.CandidateApplication })));
+const ResetPasswordScreen = lazy(() => import("../recruiter/components/auth/ResetPasswordScreen").then(m => ({ default: m.ResetPasswordScreen })));
 
 // Re-export types for backward compatibility
 export type {
@@ -32,6 +33,9 @@ export default function App() {
       <Routes>
         {/* Ruta del candidato - acceso por link único */}
         <Route path="/apply/:processId" element={<CandidateApplication />} />
+
+        {/* Ruta de recuperación de contraseña */}
+        <Route path="/reset-password" element={<ResetPasswordScreen />} />
 
         {/* Ruta del reclutador - pantalla principal */}
         <Route path="/" element={<RecruiterApp />} />

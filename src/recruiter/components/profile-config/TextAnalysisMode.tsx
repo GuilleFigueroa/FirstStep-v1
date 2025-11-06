@@ -769,7 +769,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                   Se recomienda seleccionar hasta un <strong>máximo de 5 requisitos obligatorios</strong>.
                 </li>
                 <li>
-                  Los <strong>requisitos deseables</strong> también se analizan pero en un orden de prioridad inferior
+                  Los <strong>requisitos opcionales</strong> también se analizan pero en un orden de prioridad inferior
                   a los obligatorios y forman parte de la evaluación final.
                 </li>
               </ul>

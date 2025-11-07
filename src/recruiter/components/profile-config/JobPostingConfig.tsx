@@ -20,7 +20,8 @@ import {
   Sparkles,
   Users,
   Info,
-  Loader2
+  Loader2,
+  Check
 } from 'lucide-react';
 import type { JobProfile, JobPosting } from '../../../app/App';
 import type { Profile } from '../../../shared/services/supabase';
@@ -42,6 +43,7 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
   const [postingLink, setPostingLink] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const handleCreatePosting = async () => {
     if (!companyName.trim() || !jobTitle.trim()) return;
@@ -89,7 +91,7 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
       // Intentar usar la API moderna del Clipboard primero
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(postingLink);
-        alert('¡Enlace copiado al portapapeles!');
+        setLinkCopied(true);
         return;
       }
     } catch (err) {
@@ -106,12 +108,12 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
-      
+
       const successful = document.execCommand('copy');
       document.body.removeChild(textArea);
-      
+
       if (successful) {
-        alert('¡Enlace copiado al portapapeles!');
+        setLinkCopied(true);
       } else {
         throw new Error('execCommand failed');
       }
@@ -388,13 +390,22 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
                     readOnly 
                     className="font-mono text-sm bg-muted"
                   />
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={handleCopyLink}
-                    className="flex items-center gap-2"
+                    className={`flex items-center gap-2 ${linkCopied ? 'bg-green-50 border-green-500 text-green-700 hover:bg-green-100' : ''}`}
                   >
-                    <Copy className="w-4 h-4" />
-                    Copiar enlace
+                    {linkCopied ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Enlace copiado
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        Copiar enlace
+                      </>
+                    )}
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
@@ -438,13 +449,22 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
                 <Eye className="w-4 h-4" />
                 Ver Simulación
               </Button>
-              <Button 
+              <Button
                 onClick={handleCopyLink}
-                className="flex-1 bg-primary text-primary-foreground flex items-center gap-2"
+                className={`flex-1 flex items-center gap-2 ${linkCopied ? 'bg-green-600 hover:bg-green-700' : 'bg-primary'} text-primary-foreground`}
                 size="lg"
               >
-                <Copy className="w-4 h-4" />
-                Copiar enlace
+                {linkCopied ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    ¡Compártelo con candidatos!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copiar enlace
+                  </>
+                )}
               </Button>
             </div>
           </>

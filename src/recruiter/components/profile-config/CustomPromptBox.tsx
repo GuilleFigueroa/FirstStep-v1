@@ -31,7 +31,7 @@ export function CustomPromptBox({ value, onChange }: CustomPromptBoxProps) {
           </Label>
           <Textarea
             id="custom-prompt"
-            placeholder="Ejemplo: Priorizar candidatos con experiencia en SaaS, que hayan trabajado en startups de menos de 100 empleados, y que demuestren capacidad de adaptación a entornos de rápido crecimiento..."
+            placeholder="Ej: Priorizar candidatos con experiencia en fintech"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className="mt-2 min-h-[100px] border-purple-200 focus:border-purple-400 bg-white/70"

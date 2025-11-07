@@ -653,12 +653,20 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     const newReq: ProfileRequirement = {
       id: `custom-${Date.now()}`,
       category,
-      title: 'Nuevo requisito',
+      title: '',
       level: category === 'experience' || category === 'certifications' ? undefined : 'intermedio',
       years: category === 'experience' ? 1 : undefined,
       required: false
     };
     setOptionalRequirements(prev => [...prev, newReq]);
+
+    // Auto-focus en el nuevo input después de que se renderice
+    setTimeout(() => {
+      const newInput = document.querySelector(`input[value=""]`) as HTMLInputElement;
+      if (newInput) {
+        newInput.focus();
+      }
+    }, 100);
   };
 
   const getCategoryLabel = (category: string) => {
@@ -781,12 +789,15 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
               <Label htmlFor="title" className="text-base font-semibold">
                 Nombre del Puesto
               </Label>
-              <Input
-                id="title"
-                value={profileTitle}
-                onChange={(e) => setProfileTitle(e.target.value)}
-                placeholder="Título del perfil detectado"
-              />
+              <div className="flex items-center gap-2 w-1/2">
+                <Input
+                  id="title"
+                  value={profileTitle}
+                  onChange={(e) => setProfileTitle(e.target.value)}
+                  placeholder="Título del perfil detectado"
+                />
+                <Edit3 className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              </div>
             </div>
 
             <Separator />
@@ -856,8 +867,8 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
                                 <Input
                                   value={req.title}
                                   onChange={(e) => updateRequirement(req.id, { title: e.target.value })}
-                                  className="border-none p-0 h-auto bg-transparent focus-visible:ring-0"
-                                  placeholder="Nombre del requisito"
+                                  className="border border-gray-200 bg-gray-50 px-2 py-1 hover:border-gray-300 focus-visible:border-blue-500 transition-colors cursor-text"
+                                  placeholder="Escribe el requisito..."
                                 />
                               </div>
 

@@ -72,6 +72,11 @@ export function RecruiterApp() {
     checkAuthStatus();
   }, []);
 
+  // Reposicionar vista al inicio cuando cambia el paso
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [currentStep]);
+
   const checkAuthStatus = async () => {
     try {
       const user = await getCurrentUser();

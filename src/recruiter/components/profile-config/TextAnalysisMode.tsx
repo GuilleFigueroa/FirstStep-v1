@@ -206,8 +206,8 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     // Herramientas y tecnologías
     const tools = [
       // Frontend
-      { keywords: ['javascript', 'js'], title: 'JavaScript', level: 'avanzado (5+ años de experiencia)' as const },
-      { keywords: ['typescript', 'ts'], title: 'TypeScript', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['javascript'], title: 'JavaScript', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['typescript'], title: 'TypeScript', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['react', 'reactjs'], title: 'React', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['angular', 'angularjs'], title: 'Angular', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['vue', 'vuejs', 'vue.js'], title: 'Vue.js', level: 'intermedio (2-4 años de experiencia)' as const },
@@ -230,7 +230,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       { keywords: ['laravel'], title: 'Laravel', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['symfony'], title: 'Symfony', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['ruby', 'rails', 'ruby on rails'], title: 'Ruby on Rails', level: 'avanzado (5+ años de experiencia)' as const },
-      { keywords: ['go', 'golang'], title: 'Go', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['golang'], title: 'Go', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['django'], title: 'Django', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['flask'], title: 'Flask', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['spring', 'spring boot'], title: 'Spring Boot', level: 'intermedio (2-4 años de experiencia)' as const },
@@ -363,7 +363,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       { keywords: ['prototyping', 'prototipado'], title: 'Prototipado', level: 'intermedio (2-4 años de experiencia)' as const },
 
       // APIs & Web Services
-      { keywords: ['api', 'rest', 'restful'], title: 'APIs REST', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['rest', 'restful'], title: 'APIs REST', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['api design', 'diseño de apis'], title: 'Diseño de APIs', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['graphql'], title: 'GraphQL', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['websockets', 'real-time'], title: 'WebSockets', level: 'intermedio (2-4 años de experiencia)' as const },

@@ -50,7 +50,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
   };
 
   const extractRequirementsFromText = (text: string) => {
-    const lowercaseText = text.toLowerCase();
+    const lowercaseText = text.normalize('NFKC').toLowerCase();
     const requirements: ProfileRequirement[] = [];
     let id = 0;
 

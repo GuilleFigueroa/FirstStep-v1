@@ -1,4 +1,4 @@
-import{b as n,s}from"./supabase-Bp6iRfyu.js";/**
+import{b as n,s}from"./supabase-DYk0RYPt.js";/**
  * @license lucide-react v0.487.0 - ISC
  *
  * This source code is licensed under the ISC license.

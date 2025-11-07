@@ -356,7 +356,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
     // Habilidades técnicas
     const technicalSkills = [
       // Diseño & UX
-      { keywords: ['ui', 'ux', 'user experience', 'user interface'], title: 'Diseño UX/UI', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['user experience', 'user interface', 'diseño ux/ui', 'ux/ui'], title: 'Diseño UX/UI', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['user research', 'investigación de usuarios'], title: 'Investigación de Usuarios', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['usability', 'usabilidad'], title: 'Usabilidad', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['wireframes', 'wireframing'], title: 'Wireframing', level: 'intermedio (2-4 años de experiencia)' as const },

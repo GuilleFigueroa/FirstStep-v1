@@ -179,7 +179,7 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
           <div className="flex items-center justify-center gap-2 mb-2">
             <Briefcase className="w-6 h-6 text-primary" />
             <h2 className="text-2xl">
-              {isPostingCreated ? 'Postulación Creada' : 'Configurar Postulación'}
+              {isPostingCreated ? 'Postulación Creada' : 'Crear Postulación'}
             </h2>
           </div>
           <div className="text-center">
@@ -243,12 +243,14 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
                     type="number"
                     min="1"
                     max="1000"
-                    placeholder="Ej: 50 (dejar vacío para sin límite)"
+                    placeholder="Ej: 50"
                     value={candidateLimit || ''}
                     onChange={(e) => {
                       const value = e.target.value;
                       setCandidateLimit(value ? parseInt(value, 10) : undefined);
                     }}
+                    className="w-32"
+                    autoFocus
                   />
                   <div className="flex items-start gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
                     <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -420,7 +422,7 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 mt-0.5 text-blue-600" />
-                    <span>Revisa las puntuaciones y contacta a los mejores candidatos</span>
+                    <span>Los candidatos aparecerán en tu dashboard con sus perfiles completos para que puedas revisarlos y contactarlos</span>
                   </li>
                 </ul>
               </CardContent>

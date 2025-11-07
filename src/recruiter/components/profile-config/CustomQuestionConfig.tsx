@@ -7,15 +7,16 @@ import { Badge } from '../../../ui/components/ui/badge';
 import { Separator } from '../../../ui/components/ui/separator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../ui/components/ui/select';
 import { Textarea } from '../../../ui/components/ui/textarea';
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   ArrowRight,
   MessageSquare,
   Plus,
   X,
   ListChecks,
   FileText,
-  Settings
+  Settings,
+  Info
 } from 'lucide-react';
 import type { JobProfile, FormQuestion } from '../App';
 
@@ -119,6 +120,12 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
           <CardDescription>
             <strong>Este paso es completamente opcional.</strong> Puedes agregar hasta 2 preguntas personalizadas que serán presentadas como formulario a los candidatos, o simplemente continuar sin agregar ninguna pregunta adicional.
           </CardDescription>
+          <div className="mt-4 flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-blue-700">
+              <strong>Importante:</strong> Las respuestas a estas preguntas son solo informativas y no afectan la puntuación del candidato.
+            </p>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Configuración de preguntas */}
@@ -137,7 +144,11 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
                     <Label htmlFor={`question-${question.id}`}>Texto de la pregunta</Label>
                     <Textarea
                       id={`question-${question.id}`}
-                      placeholder="Ej: ¿Cuál es tu salario pretendido?"
+                      placeholder={
+                        index === 0
+                          ? "Ej: ¿Cuál es tu salario pretendido?"
+                          : "Ej: ¿Estás dispuesto a trabajar presencial 3 veces a la semana?"
+                      }
                       value={question.question}
                       onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
                       className="min-h-16"
@@ -149,14 +160,14 @@ export function CustomQuestionConfig({ profile, onBack, onContinue }: CustomQues
                     <Label>Tipo de pregunta</Label>
                     <Select
                       value={question.type}
-                      onValueChange={(value: 'open' | 'multiple-choice') => 
-                        updateQuestion(question.id, { 
+                      onValueChange={(value: 'open' | 'multiple-choice') =>
+                        updateQuestion(question.id, {
                           type: value,
                           options: value === 'multiple-choice' ? (question.options || ['']) : undefined
                         })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-fit pr-2">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

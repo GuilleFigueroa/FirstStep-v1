@@ -166,12 +166,25 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
                       <h4>{getCategoryLabel(category)}</h4>
                       <div className="ml-auto flex gap-2">
                         {obligatory.length > 0 && (
-                          <Badge variant="default" className="bg-red-100 text-red-800">
+                          <Badge
+                            variant="outline"
+                            style={{
+                              borderColor: '#9CA3AF',
+                              color: '#000000'
+                            }}
+                          >
                             {obligatory.length} obligatorio{obligatory.length !== 1 ? 's' : ''}
                           </Badge>
                         )}
                         {optional.length > 0 && (
-                          <Badge variant="outline">
+                          <Badge
+                            variant="outline"
+                            style={{
+                              border: 'none',
+                              backgroundColor: 'rgba(232, 121, 249, 0.3)',
+                              color: '#000000'
+                            }}
+                          >
                             {optional.length} opcional{optional.length !== 1 ? 'es' : ''}
                           </Badge>
                         )}
@@ -181,13 +194,17 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
                     <div className="pl-11 space-y-3">
                       {obligatory.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-red-800 mb-2">Requisitos Obligatorios:</p>
+                          <p className="text-sm font-medium text-muted-foreground mb-2">Requisitos Obligatorios:</p>
                           <div className="flex flex-wrap gap-2">
                             {obligatory.map((req) => (
-                              <Badge 
-                                key={req.id} 
-                                variant="secondary" 
-                                className="bg-red-100 text-red-800 border-red-200 px-3 py-1.5"
+                              <Badge
+                                key={req.id}
+                                variant="outline"
+                                className="px-3 py-1.5"
+                                style={{
+                                  borderColor: '#9CA3AF',
+                                  color: '#000000'
+                                }}
                               >
                                 {formatRequirementText(req)}
                               </Badge>
@@ -201,10 +218,15 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
                           <p className="text-sm font-medium text-muted-foreground mb-2">Requisitos Opcionales:</p>
                           <div className="flex flex-wrap gap-2">
                             {optional.map((req) => (
-                              <Badge 
-                                key={req.id} 
-                                variant="outline" 
+                              <Badge
+                                key={req.id}
+                                variant="outline"
                                 className="px-3 py-1.5"
+                                style={{
+                                  border: 'none',
+                                  backgroundColor: 'rgba(232, 121, 249, 0.3)',
+                                  color: '#000000'
+                                }}
                               >
                                 {formatRequirementText(req)}
                               </Badge>
@@ -249,13 +271,13 @@ export function ProfileSummary({ profile, onBack, onSaveAsTemplate, onContinue }
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 mt-0.5 text-blue-600" />
                 <span>
-                  <strong>Requisitos obligatorios:</strong> Fundamentales para el puesto, tienen mayor peso en la puntuación
+                  <strong>Requisitos obligatorios:</strong> Actúan como filtro eliminatorio. Los candidatos que no demuestren cumplir con estos requisitos serán descartados automáticamente
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 mt-0.5 text-blue-600" />
                 <span>
-                  <strong>Requisitos opcionales:</strong> Agregan valor al perfil pero no son indispensables
+                  <strong>Requisitos opcionales:</strong> No funcionan como filtro, pero suman puntos adicionales a la puntuación final del candidato
                 </span>
               </li>
               {profile.customPrompt && (

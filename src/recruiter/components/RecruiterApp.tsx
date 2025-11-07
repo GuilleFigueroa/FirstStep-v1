@@ -192,7 +192,7 @@ export function RecruiterApp() {
       case "candidates":
         return "Candidatos";
       case "applications":
-        return "Definición del perfil";
+        return "Configuración del Proceso";
       case "postulation-processes":
         return "Gestión de postulaciones";
       default:
@@ -207,7 +207,7 @@ export function RecruiterApp() {
       case "candidates":
         return "Administra los procesos de cada candidato";
       case "applications":
-        return "Configura los requisitos del perfil buscado";
+        return "Define requisitos, criterios de evaluación, preguntas opcionales y límite de candidatos";
       case "postulation-processes":
         return "Gestiona tus procesos de postulación activos";
       default:

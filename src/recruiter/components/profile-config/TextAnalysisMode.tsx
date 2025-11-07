@@ -254,6 +254,7 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       { keywords: ['ci/cd', 'continuous integration'], title: 'CI/CD', level: 'básico (0-2 años de experiencia)' as const },
       { keywords: ['terraform'], title: 'Terraform', level: 'intermedio (2-4 años de experiencia)' as const },
       { keywords: ['git', 'github', 'gitlab', 'bitbucket'], title: 'Git', level: 'intermedio (2-4 años de experiencia)' as const },
+      { keywords: ['kafka', 'apache kafka'], title: 'Apache Kafka', level: 'intermedio (2-4 años de experiencia)' as const },
 
       // Diseño
       { keywords: ['figma'], title: 'Figma', level: 'intermedio (2-4 años de experiencia)' as const },

@@ -382,8 +382,8 @@ export function TextAnalysisMode({ onProfileCreated }: TextAnalysisModeProps) {
       // Desarrollo Móvil
       { keywords: ['react native', 'mobile development'], title: 'React Native', level: 'avanzado (5+ años de experiencia)' as const },
       { keywords: ['flutter', 'dart'], title: 'Flutter', level: 'avanzado (5+ años de experiencia)' as const },
-      { keywords: ['ios', 'swift', 'objective-c'], title: 'Desarrollo iOS', level: 'avanzado (5+ años de experiencia)' as const },
-      { keywords: ['android', 'kotlin'], title: 'Desarrollo Android', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['desarrollo ios', 'ios developer', 'swift', 'objective-c'], title: 'Desarrollo iOS', level: 'avanzado (5+ años de experiencia)' as const },
+      { keywords: ['desarrollo android', 'android developer', 'kotlin'], title: 'Desarrollo Android', level: 'avanzado (5+ años de experiencia)' as const },
 
       // Seguridad
       { keywords: ['cybersecurity', 'ciberseguridad', 'security'], title: 'Ciberseguridad', level: 'avanzado (5+ años de experiencia)' as const },

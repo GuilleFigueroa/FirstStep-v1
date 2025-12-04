@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from '../_utils/supabase';
+import { supabaseAdmin } from './_utils/supabase';
 
 /**
- * GET /api/subscription/plans
+ * GET /api/subscription-plans
  *
  * Devuelve todos los planes de suscripción activos
  */

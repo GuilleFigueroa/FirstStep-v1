@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabaseAdmin } from '../_utils/supabase';
+import { supabaseAdmin } from './_utils/supabase';
 
 /**
- * GET /api/subscription/status?recruiterId={recruiterId}
+ * GET /api/subscription-status?recruiterId={recruiterId}
  *
  * Devuelve el estado actual de la suscripción del reclutador
  */

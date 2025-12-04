@@ -9,7 +9,8 @@
       "Bash(sed:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Read(//c/Users/Administrador/Desktop/**)"
+      "Read(//c/Users/Administrador/Desktop/**)",
+      "Bash(cd /c/Users/Administrador/Desktop/Documentos FirstStep/FirstStep-v1)"
     ],
     "deny": [],
     "ask": []

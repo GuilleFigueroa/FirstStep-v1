@@ -3,6 +3,9 @@ import { Input } from '../../../ui/components/ui/input';
 import { Button } from '../../../ui/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/components/ui/avatar';
 import { Sidebar } from './Sidebar';
+import { SubscriptionBanner } from '../subscription/SubscriptionBanner';
+import { useSubscription } from '../../hooks/useSubscription';
+import type { Profile } from '../../../shared/services/supabase';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,25 +14,29 @@ interface LayoutProps {
   title?: string;
   subtitle?: string;
   userData?: { firstName: string; lastName: string; email: string } | null;
+  userProfile?: Profile | null;
   onLogout?: () => void;
   onBackToRoleSelection?: () => void;
 }
 
-export function Layout({ 
-  children, 
-  activeSection = 'applications', 
+export function Layout({
+  children,
+  activeSection = 'applications',
   onSectionChange,
   title = 'Definición del perfil',
   subtitle = 'Configura los requisitos del perfil buscado',
   userData,
+  userProfile,
   onLogout,
   onBackToRoleSelection
 }: LayoutProps) {
-  
+
   const handleCreateApplication = () => {
     onSectionChange?.('applications');
   };
-  
+
+  // Obtener estado de suscripción
+  const { status: subscriptionStatus } = useSubscription(userProfile?.id);
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -96,7 +103,10 @@ export function Layout({
             </div>
           </div>
         </header>
-        
+
+        {/* Subscription Banner */}
+        {subscriptionStatus && <SubscriptionBanner status={subscriptionStatus} />}
+
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-6xl mx-auto">

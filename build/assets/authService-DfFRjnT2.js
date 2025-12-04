@@ -1,0 +1,21 @@
+import{b as o,s}from"./supabase-AZaDrA5z.js";/**
+ * @license lucide-react v0.487.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const i=[["circle",{cx:"12",cy:"12",r:"10",key:"1mglay"}],["path",{d:"m9 12 2 2 4-4",key:"dzmm74"}]],m=o("circle-check",i);/**
+ * @license lucide-react v0.487.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const u=[["path",{d:"M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49",key:"ct8e1f"}],["path",{d:"M14.084 14.158a3 3 0 0 1-4.242-4.242",key:"151rxh"}],["path",{d:"M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143",key:"13bj9a"}],["path",{d:"m2 2 20 20",key:"1ooewy"}]],y=o("eye-off",u);/**
+ * @license lucide-react v0.487.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const l=[["path",{d:"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",key:"1nclc0"}],["circle",{cx:"12",cy:"12",r:"3",key:"1v7zrd"}]],g=o("eye",l);/**
+ * @license lucide-react v0.487.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const f=[["rect",{width:"18",height:"11",x:"3",y:"11",rx:"2",ry:"2",key:"1w4ew1"}],["path",{d:"M7 11V7a5 5 0 0 1 10 0v4",key:"fwvmzm"}]],h=o("lock",f);async function w(r){try{const{data:e,error:a}=await s.auth.signUp({email:r.email,password:r.password,options:{data:{first_name:r.firstName,last_name:r.lastName,company_name:r.companyName}}});return a?{success:!1,error:a.message}:e.user?await d(e.user,r):{success:!1,error:"Error creating user"}}catch{return{success:!1,error:"Unexpected error during sign up"}}}async function d(r,e){const a=new Date;a.setDate(a.getDate()+7);const{data:t,error:n}=await s.from("profiles").insert({id:r.id,email:e.email,first_name:e.firstName,last_name:e.lastName,company_name:e.companyName,account_status:"approved",current_plan:"trial",subscription_status:"trialing",trial_ends_at:a.toISOString(),processes_limit:null}).select().single();if(n)return{success:!1,error:n.message};const{error:c}=await s.from("user_subscriptions").insert({user_id:r.id,status:"trialing",trial_start_date:new Date().toISOString(),trial_end_date:a.toISOString(),is_trial_used:!1});return c&&console.error("Error creating trial subscription:",c),{success:!0,user:t}}async function _(r){try{const{data:e,error:a}=await s.auth.signInWithPassword({email:r.email,password:r.password});if(a)return{success:!1,error:a.message};if(!e.user)return{success:!1,error:"Authentication failed"};const{data:t,error:n}=await s.from("profiles").select("*").eq("id",e.user.id).single();if(n||!t)return{success:!1,error:"Profile not found"};const c=t.account_status||"pending";return c==="rejected"?(await s.auth.signOut(),{success:!1,error:t.rejection_reason||"Tu cuenta fue rechazada. Contacta al administrador para más información."}):c==="pending"?(await s.auth.signOut(),{success:!1,error:"Tu cuenta está pendiente de aprobación. Recibirás un email cuando sea aprobada."}):{success:!0,user:t}}catch{return{success:!1,error:"Unexpected error during sign in"}}}async function k(){try{const{error:r}=await s.auth.signOut();return r?{success:!1,error:r.message}:{success:!0}}catch{return{success:!1,error:"Unexpected error during sign out"}}}async function E(){try{const{data:{user:r}}=await s.auth.getUser();if(!r)return null;const{data:e}=await s.from("profiles").select("*").eq("id",r.id).single();return e}catch{return null}}async function b(r){try{const{error:e}=await s.auth.resetPasswordForEmail(r,{redirectTo:`${window.location.origin}/reset-password`});return e?{success:!1,error:e.message}:{success:!0}}catch{return{success:!1,error:"Error al solicitar recuperación de contraseña"}}}async function N(r){try{const{error:e}=await s.auth.updateUser({password:r});return e?{success:!1,error:e.message}:{success:!0}}catch{return{success:!1,error:"Error al actualizar contraseña"}}}export{m as C,g as E,h as L,y as a,_ as b,k as c,E as g,b as r,w as s,N as u};

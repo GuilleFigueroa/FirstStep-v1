@@ -16,7 +16,6 @@ import { PostulationsTable } from "./postulations/PostulationsTable";
 import { Dashboard } from "./dashboard/Dashboard";
 import { Layout } from "./dashboard/Layout";
 import { AuthScreen } from "./auth/AuthScreen";
-import { AccountPending } from "./AccountPending";
 import { FileText } from "lucide-react";
 import { getCurrentUser, signOut } from "../services/authService";
 import type { Profile } from "../../shared/services/supabase";
@@ -243,11 +242,6 @@ export function RecruiterApp() {
     if (accountStatus === 'rejected') {
       handleLogout();
       return <AuthScreen onAuthenticate={handleLogin} />;
-    }
-
-    // Si está pendiente, mostrar pantalla de espera
-    if (accountStatus === 'pending') {
-      return <AccountPending onLogout={handleLogout} userEmail={userProfile.email} />;
     }
   }
 

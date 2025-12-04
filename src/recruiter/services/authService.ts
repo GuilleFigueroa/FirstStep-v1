@@ -45,16 +45,7 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
       return { success: false, error: 'Error creating user' }
     }
 
-    // Si el usuario no está confirmado, retornar para verificación
-    if (!authData.user.email_confirmed_at) {
-      return {
-        success: true,
-        needsEmailVerification: true,
-        error: 'Please check your email and click the verification link to complete your registration.'
-      }
-    }
-
-    // Si ya está verificado, crear perfil inmediatamente
+    // Crear perfil inmediatamente (sin verificación de email)
     return await createUserProfile(authData.user, data)
   } catch (error) {
     return { success: false, error: 'Unexpected error during sign up' }
@@ -63,6 +54,11 @@ export async function signUp(data: SignUpData): Promise<AuthResponse> {
 
 // Función auxiliar para crear perfil de usuario
 async function createUserProfile(user: any, signUpData: SignUpData): Promise<AuthResponse> {
+  // Calcular fecha de fin del trial (7 días desde ahora)
+  const trialEndDate = new Date()
+  trialEndDate.setDate(trialEndDate.getDate() + 7)
+
+  // Crear perfil con campos de suscripción
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .insert({
@@ -71,7 +67,11 @@ async function createUserProfile(user: any, signUpData: SignUpData): Promise<Aut
       first_name: signUpData.firstName,
       last_name: signUpData.lastName,
       company_name: signUpData.companyName,
-      account_status: 'pending',  // ⭐ Nuevos usuarios empiezan pendientes de aprobación
+      account_status: 'approved',  // ⭐ Nuevos usuarios comienzan aprobados
+      current_plan: 'trial',
+      subscription_status: 'trialing',
+      trial_ends_at: trialEndDate.toISOString(),
+      processes_limit: null,  // null = sin límite durante trial
     })
     .select()
     .single()
@@ -80,7 +80,22 @@ async function createUserProfile(user: any, signUpData: SignUpData): Promise<Aut
     return { success: false, error: profileError.message }
   }
 
-  // Devolver el profile (aunque sea pending, el guard lo manejará)
+  // Crear registro de suscripción en estado trial
+  const { error: subscriptionError } = await supabase
+    .from('user_subscriptions')
+    .insert({
+      user_id: user.id,
+      status: 'trialing',
+      trial_start_date: new Date().toISOString(),
+      trial_end_date: trialEndDate.toISOString(),
+      is_trial_used: false,
+    })
+
+  if (subscriptionError) {
+    // Si falla la creación de la suscripción, log pero no bloquear el registro
+    console.error('Error creating trial subscription:', subscriptionError)
+  }
+
   return { success: true, user: profile }
 }
 
@@ -98,14 +113,6 @@ export async function signIn(data: SignInData): Promise<AuthResponse> {
 
     if (!authData.user) {
       return { success: false, error: 'Authentication failed' }
-    }
-
-    // Verificar que el email esté confirmado
-    if (!authData.user.email_confirmed_at) {
-      return {
-        success: false,
-        error: 'Please verify your email before signing in. Check your email for the verification link.'
-      }
     }
 
     // Obtener perfil del reclutador

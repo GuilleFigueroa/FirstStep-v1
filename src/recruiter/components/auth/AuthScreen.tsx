@@ -16,7 +16,6 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [emailVerificationNeeded, setEmailVerificationNeeded] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -55,9 +54,6 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
 
         if (result.success && result.user) {
           onAuthenticate(result.user);
-        } else if (result.needsEmailVerification) {
-          setEmailVerificationNeeded(true);
-          setError(null);
         } else {
           setError(result.error || 'Error during registration');
         }
@@ -93,7 +89,6 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
       password: ''
     });
     setError(null);
-    setEmailVerificationNeeded(false);
     setResetEmailSent(false);
   };
 
@@ -128,34 +123,6 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
           </p>
         </div>
 
-        {/* Mensaje de verificación de email */}
-        {emailVerificationNeeded && (
-          <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-blue-900">¡Verifica tu email!</h3>
-                <p className="text-sm text-blue-700">
-                  Te hemos enviado un email de verificación a <strong>{formData.email}</strong>
-                </p>
-                <p className="text-xs text-blue-600">
-                  Haz clic en el enlace del email para activar tu cuenta y luego podrás iniciar sesión.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEmailVerificationNeeded(false)}
-                  className="mt-4"
-                >
-                  Entendido
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Mensaje de email de recuperación enviado */}
         {resetEmailSent && (
           <Card className="border-green-200 bg-green-50">
@@ -185,7 +152,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
         )}
 
         {/* Formulario */}
-        {!emailVerificationNeeded && !resetEmailSent && (
+        {!resetEmailSent && (
           <Card>
             <CardHeader>
               <CardTitle>

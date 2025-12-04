@@ -122,22 +122,6 @@ export async function signIn(data: SignInData): Promise<AuthResponse> {
       .eq('id', authData.user.id)
       .single()
 
-    // Si no existe el perfil, crearlo usando metadata
-    if (profileError && profileError.code === 'PGRST116') {
-      const userData = authData.user.user_metadata
-      if (userData.first_name && userData.last_name) {
-        return await createUserProfile(authData.user, {
-          email: authData.user.email!,
-          password: '', // No necesitamos la contraseña aquí
-          firstName: userData.first_name,
-          lastName: userData.last_name,
-          companyName: userData.company_name
-        })
-      } else {
-        return { success: false, error: 'Profile not found and missing required data to create it.' }
-      }
-    }
-
     if (profileError || !profile) {
       return { success: false, error: 'Profile not found' }
     }

@@ -22,62 +22,90 @@ export interface ProcessListResponse {
   error?: string
 }
 
+export interface ValidateProcessLimitResponse {
+  success: boolean
+  canCreate: boolean
+  reason: string
+  message: string
+  currentCount: number
+  limit: number | null
+  error?: string
+}
+
+// Validar si puede crear un nuevo proceso según límites del plan
+export async function validateProcessLimit(recruiterId: string): Promise<ValidateProcessLimitResponse> {
+  try {
+    const response = await fetch(`/api/validate-process-limit?recruiterId=${recruiterId}`);
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      return {
+        success: false,
+        canCreate: false,
+        reason: 'error',
+        message: data.error || 'Error al validar límite de procesos',
+        currentCount: 0,
+        limit: null,
+        error: data.error
+      };
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error validating process limit:', error);
+    return {
+      success: false,
+      canCreate: false,
+      reason: 'error',
+      message: 'Error de conexión al validar límite',
+      currentCount: 0,
+      limit: null,
+      error: 'Error de conexión'
+    };
+  }
+}
+
 // Crear nuevo proceso de reclutamiento
 export async function createProcess(data: CreateProcessData): Promise<ProcessResponse> {
   try {
-    // Generar link único
-    const uniqueId = `${data.companyName.toLowerCase().replace(/\s+/g, '-')}-${data.jobTitle.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`
-    const uniqueLink = `${window.location.origin}/apply/${uniqueId}`
+    // Llamar al endpoint backend que valida y crea el proceso
+    const response = await fetch('/api/create-process', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        recruiterId: data.recruiterId,
+        jobTitle: data.jobTitle,
+        companyName: data.companyName,
+        description: data.profile.title,
+        mandatoryRequirements: data.profile.mandatoryRequirements,
+        optionalRequirements: data.profile.optionalRequirements,
+        customPrompt: data.profile.customPrompt,
+        candidateLimit: data.candidateLimit,
+        formQuestions: data.profile.formQuestions
+      })
+    });
 
-    // Convertir JobProfile a formato de BD
-    const processData = {
-      recruiter_id: data.recruiterId,
-      title: data.jobTitle,
-      company_name: data.companyName,
-      description: data.profile.title,
-      mandatory_requirements: data.profile.mandatoryRequirements,
-      optional_requirements: data.profile.optionalRequirements,
-      custom_prompt: data.profile.customPrompt,
-      candidate_limit: data.candidateLimit,
-      status: 'active' as const,
-      unique_link: uniqueLink
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.error || 'Error al crear el proceso'
+      };
     }
 
-    const { data: process, error } = await supabase
-      .from('processes')
-      .insert(processData)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating process:', error)
-      return { success: false, error: error.message }
-    }
-
-    // Insertar preguntas del formulario en recruiter_questions
-    if (data.profile.formQuestions && data.profile.formQuestions.length > 0) {
-      const questionsToInsert = data.profile.formQuestions.map((q, index) => ({
-        process_id: process.id,
-        question_text: q.question,
-        question_type: q.type,
-        question_options: q.options || null,
-        question_order: index + 1
-      }))
-
-      const { error: questionsError } = await supabase
-        .from('recruiter_questions')
-        .insert(questionsToInsert)
-
-      if (questionsError) {
-        console.error('Error inserting recruiter questions:', questionsError)
-        // No retornar error, el proceso ya fue creado exitosamente
-      }
-    }
-
-    return { success: true, process }
+    return {
+      success: true,
+      process: result.process
+    };
   } catch (error) {
-    console.error('Unexpected error creating process:', error)
-    return { success: false, error: 'Error inesperado al crear el proceso' }
+    console.error('Unexpected error creating process:', error);
+    return {
+      success: false,
+      error: 'Error de conexión al crear el proceso'
+    };
   }
 }
 

@@ -29,7 +29,7 @@ export class AIQuestionsService {
   // Obtener preguntas IA generadas para un candidato
   static async getAIQuestions(candidateId: string): Promise<AIQuestion[]> {
     try {
-      const response = await fetch(`/api/get-ai-questions?candidateId=${candidateId}`, {
+      const response = await fetch(`/api/ai-questions?candidateId=${candidateId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -53,7 +53,7 @@ export class AIQuestionsService {
   // Guardar respuestas del candidato
   static async saveAIAnswers(candidateId: string, recruiterId: string, answers: AIAnswer[]): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/save-ai-answers', {
+      const response = await fetch('/api/ai-questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -24,7 +24,7 @@ export class RecruiterQuestionsService {
     error?: string;
   }> {
     try {
-      const response = await fetch(`/api/get-recruiter-questions?processId=${processId}`, {
+      const response = await fetch(`/api/recruiter-questions?processId=${processId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
@@ -62,7 +62,7 @@ export class RecruiterQuestionsService {
     answers: RecruiterAnswer[]
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const response = await fetch('/api/save-recruiter-answers', {
+      const response = await fetch('/api/recruiter-questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

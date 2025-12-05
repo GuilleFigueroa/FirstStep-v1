@@ -37,7 +37,7 @@ export interface PlansResponse {
  */
 export async function getSubscriptionStatus(recruiterId: string): Promise<SubscriptionStatusResponse> {
   try {
-    const response = await fetch(`/api/subscription-status?recruiterId=${recruiterId}`)
+    const response = await fetch(`/api/subscription?recruiterId=${recruiterId}`)
     const data = await response.json()
 
     if (!response.ok) {
@@ -62,7 +62,7 @@ export async function getSubscriptionStatus(recruiterId: string): Promise<Subscr
  */
 export async function getSubscriptionPlans(): Promise<PlansResponse> {
   try {
-    const response = await fetch('/api/subscription-plans')
+    const response = await fetch('/api/subscription')
     const data = await response.json()
 
     if (!response.ok) {

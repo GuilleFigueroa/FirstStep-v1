@@ -22,49 +22,6 @@ export interface ProcessListResponse {
   error?: string
 }
 
-export interface ValidateProcessLimitResponse {
-  success: boolean
-  canCreate: boolean
-  reason: string
-  message: string
-  currentCount: number
-  limit: number | null
-  error?: string
-}
-
-// Validar si puede crear un nuevo proceso según límites del plan
-export async function validateProcessLimit(recruiterId: string): Promise<ValidateProcessLimitResponse> {
-  try {
-    const response = await fetch(`/api/validate-process-limit?recruiterId=${recruiterId}`);
-    const data = await response.json();
-
-    if (!response.ok || !data.success) {
-      return {
-        success: false,
-        canCreate: false,
-        reason: 'error',
-        message: data.error || 'Error al validar límite de procesos',
-        currentCount: 0,
-        limit: null,
-        error: data.error
-      };
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error validating process limit:', error);
-    return {
-      success: false,
-      canCreate: false,
-      reason: 'error',
-      message: 'Error de conexión al validar límite',
-      currentCount: 0,
-      limit: null,
-      error: 'Error de conexión'
-    };
-  }
-}
-
 // Crear nuevo proceso de reclutamiento
 export async function createProcess(data: CreateProcessData): Promise<ProcessResponse> {
   try {

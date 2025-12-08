@@ -16,9 +16,9 @@ import { PostulationsTable } from "./postulations/PostulationsTable";
 import { Dashboard } from "./dashboard/Dashboard";
 import { Layout } from "./dashboard/Layout";
 import { AuthScreen } from "./auth/AuthScreen";
+import { SubscriptionExpiredBanner } from "./subscription/SubscriptionExpiredBanner";
 import { FileText, AlertCircle } from "lucide-react";
 import { getCurrentUser, signOut } from "../services/authService";
-import { validateProcessLimit } from "../services/processService";
 import type { Profile } from "../../shared/services/supabase";
 import type {
   ProfileRequirement,
@@ -110,18 +110,7 @@ export function RecruiterApp() {
     }
   };
 
-  const handleSectionChange = async (section: string) => {
-    // VALIDACIÓN: Si intenta ir a applications, validar límites de proceso primero
-    if (section === "applications" && userProfile) {
-      const validation = await validateProcessLimit(userProfile.id);
-
-      if (!validation.canCreate) {
-        // Mostrar alerta de bloqueo
-        alert(validation.message);
-        return; // No cambiar de sección
-      }
-    }
-
+  const handleSectionChange = (section: string) => {
     setActiveSection(section);
     // Reset a config cuando cambiamos de sección a applications
     if (section === "applications") {
@@ -258,13 +247,14 @@ export function RecruiterApp() {
   }
 
   return (
-    <Layout
-      userData={userData}
-      userProfile={userProfile}
-      activeSection={activeSection}
-      onSectionChange={handleSectionChange}
-      onLogout={handleLogout}
-    >
+    <>
+      <Layout
+        userData={userData}
+        userProfile={userProfile}
+        activeSection={activeSection}
+        onSectionChange={handleSectionChange}
+        onLogout={handleLogout}
+      >
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -356,5 +346,9 @@ export function RecruiterApp() {
         />
       )}
     </Layout>
+
+    {/* Overlay de suscripción expirada */}
+    {userProfile?.subscription_status === 'expired' && <SubscriptionExpiredBanner />}
+    </>
   );
 }

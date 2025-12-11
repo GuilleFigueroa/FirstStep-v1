@@ -1,6 +1,47 @@
+import { useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
+import type { Profile } from '../../../shared/services/supabase';
 
-export function SubscriptionExpiredBanner() {
+interface SubscriptionExpiredBannerProps {
+  userProfile: Profile;
+}
+
+export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBannerProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleCheckout = async (variantId: string, planName: string) => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          variantId,
+          recruiterId: userProfile.id,
+          email: userProfile.email,
+          planName
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al crear checkout');
+      }
+
+      // Abrir checkout de Lemon Squeezy
+      if (data.checkoutUrl && typeof window !== 'undefined' && (window as any).LemonSqueezy) {
+        (window as any).LemonSqueezy.Url.Open(data.checkoutUrl);
+      } else {
+        window.location.href = data.checkoutUrl;
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      alert('Error al procesar el pago. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       {/* Backdrop overlay */}
@@ -41,18 +82,32 @@ export function SubscriptionExpiredBanner() {
               </div>
 
               <button
-                onClick={() => {
-                  // TODO: Navegar a página de pricing cuando esté disponible
-                  alert('Página de suscripciones - Próximamente disponible');
-                }}
-                className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98]"
+                onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_STARTER, 'Starter')}
+                disabled={loading}
+                className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>Suscribirme ahora</span>
+                <span>{loading ? 'Procesando...' : 'Plan Starter - $15/mes (5 procesos)'}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
 
-              <button className="w-full mt-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors py-2">
-                Ver planes y precios
+              <button
+                onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_PRO, 'Pro')}
+                disabled={loading}
+                className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>{loading ? 'Procesando...' : 'Plan Pro - $35/mes (10 procesos)'}</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
+
+              <button
+                onClick={() => {
+                  window.location.href = 'mailto:contacto@firststep.com?subject=Consulta Plan Corporate';
+                }}
+                disabled={loading}
+                className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Plan Corporate - Contactar</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
           </div>

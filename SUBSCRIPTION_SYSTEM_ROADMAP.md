@@ -103,15 +103,14 @@ Usuario intenta crear proceso → BLOQUEADO
   ↓
 Modal: "Suscríbete para continuar"
   ↓
-Usuario elige plan y paga en Mercado Pago
+Usuario elige plan (Starter/Pro) y paga en Lemon Squeezy
   ↓
-Webhook recibe confirmación de pago
+Lemon Squeezy webhook confirma pago
   ↓
 profiles.subscription_status = 'active'
-profiles.current_plan = 'starter' | 'pro' | 'corporate'
-profiles.processes_limit = 5 | 10 | null
-  ↓
-payments (registro del pago)
+profiles.current_plan = 'starter' | 'pro'
+profiles.processes_limit = 5 | 10
+profiles.lemon_subscription_id = 'sub_xxx'
   ↓
 Usuario puede reabrir procesos (respetando límite)
 ```
@@ -120,15 +119,13 @@ Usuario puede reabrir procesos (respetando límite)
 
 ## 🎯 ETAPAS DEL PROYECTO
 
-### ✅ ETAPA 1: Crear 4 tablas nuevas en Supabase
+### ✅ ETAPA 1: Crear tablas en Supabase
 **Estado:** COMPLETADA
 
 **Pasos:**
 1. Crear tabla `subscription_plans`
 2. Crear tabla `user_subscriptions`
-3. Crear tabla `payments`
-4. Crear tabla `exchange_rates`
-5. Verificar tablas en Supabase
+3. Verificar tablas en Supabase
 
 ---
 
@@ -141,6 +138,7 @@ Usuario puede reabrir procesos (respetando límite)
    - `subscription_status`
    - `trial_ends_at`
    - `processes_limit`
+   - `lemon_subscription_id`
 2. Migrar usuarios existentes (si aplica)
 3. Verificar estructura en Supabase
 
@@ -258,120 +256,134 @@ Usuario puede reabrir procesos (respetando límite)
 
 ---
 
-### ⏳ ETAPA 7: Cron job trials vencidos
-**Estado:** PENDIENTE
+### ✅ ETAPA 7: Cron job trials vencidos
+**Estado:** COMPLETADA
 
 **Objetivo:** Ejecutar diariamente un proceso que marque trials expirados y cierre sus procesos.
 
-#### Pasos:
-1. Crear script `/api/cron/expire-trials.ts`
-2. Buscar profiles con:
-   - `subscription_status = 'trialing'`
-   - `trial_ends_at < NOW()`
-3. Para cada perfil encontrado:
-   - Actualizar `subscription_status = 'expired'`
-   - Cerrar todos sus procesos activos: `UPDATE processes SET status='closed' WHERE recruiter_id=X AND status='active'`
-4. Configurar Vercel Cron en `vercel.json`
-5. Testing en sandbox
-6. Activar en producción
+**Implementación:**
+- Archivo: `/api/cron-expire-trials.ts`
+- Configurado en `vercel.json` para ejecutarse diariamente a las 3 AM
+- Funcionalidad implementada:
+  - Busca profiles con `subscription_status = 'trialing'` y `trial_ends_at < NOW()`
+  - Actualiza `subscription_status = 'expired'`
+  - Cierra todos los procesos activos del recruiter
+  - Retorna log detallado de ejecución
+- Estado: Activo en producción
 
 ---
 
-### ⏳ ETAPA 8: Integración DolarAPI
+### ⏳ ETAPA 8: Configuración de Lemon Squeezy
 **Estado:** PENDIENTE
 
-**Objetivo:** Obtener tipo de cambio USD → ARS en tiempo real para mostrar precios en pesos.
+**Objetivo:** Configurar cuenta y productos en Lemon Squeezy para test mode.
 
 #### Pasos:
-1. Investigar DolarAPI (https://dolarapi.com/ o similar)
-2. Crear endpoint `/api/exchange-rate.ts`
-3. Cachear tasa de cambio (actualizar cada X horas)
-4. Guardar en tabla `exchange_rates`
-5. Frontend: mostrar precios en USD y ARS
-6. Testing
+1. Crear cuenta en Lemon Squeezy (https://lemonsqueezy.com)
+2. Configurar Store:
+   - Nombre: "FirstStep"
+   - Logo y branding (#7572FF)
+   - Información de contacto
+3. Crear productos en **Test Mode:**
+   - Producto 1: "FirstStep Starter" - $15/mes
+   - Producto 2: "FirstStep Pro" - $35/mes
+4. Guardar variant IDs de cada producto
+5. Configurar checkout:
+   - Colores de marca
+   - Campos requeridos
+   - Redirect URL: `{APP_URL}/dashboard?subscription=success`
+6. Instalar SDK: `npm install @lemonsqueezy/lemonsqueezy.js`
+7. Configurar variables de entorno en Vercel:
+   - `LEMON_SQUEEZY_API_KEY` (test mode)
+   - `LEMON_SQUEEZY_STORE_ID`
+   - `LEMON_SQUEEZY_VARIANT_STARTER`
+   - `LEMON_SQUEEZY_VARIANT_PRO`
+8. Verificar configuración en test mode
 
 ---
 
-### ⏳ ETAPA 9: Mercado Pago sandbox
+### ⏳ ETAPA 9: Backend - Crear checkout de Lemon Squeezy
 **Estado:** PENDIENTE
 
-**Objetivo:** Configurar Mercado Pago en modo prueba para testear flujo de pagos.
+**Objetivo:** Implementar endpoint backend para crear checkouts de suscripción.
 
 #### Pasos:
-1. Crear cuenta de Mercado Pago
-2. Obtener credenciales de sandbox (Access Token de prueba)
-3. Configurar variables de entorno en Vercel:
-   - `MP_ACCESS_TOKEN_SANDBOX`
-   - `MP_PUBLIC_KEY_SANDBOX`
-4. Crear endpoint `/api/mercado-pago/create-preference.ts`
-5. Crear preferencia de pago con datos del plan
-6. Frontend: botón "Suscribirse" redirige a checkout de MP
-7. Testing con tarjetas de prueba
+1. Crear `/api/create-checkout.ts` en raíz de /api
+2. Importar y configurar SDK de Lemon Squeezy
+3. Implementar lógica del endpoint:
+   - Recibir: `variantId`, `recruiterId`, `email`, `planName`
+   - Llamar a `createCheckout()` del SDK con:
+     - `productOptions`: redirect URL, receipt customization
+     - `checkoutOptions`: branding, overlay mode
+     - `checkoutData`: email pre-llenado, custom data (recruiterId, planName)
+   - Retornar: `{ success, checkoutUrl, error }`
+4. Manejar errores apropiadamente
+5. Testing en test mode:
+   - Llamar endpoint con datos de prueba
+   - Verificar que retorna checkout URL válida
+   - Abrir URL y verificar checkout funciona
+6. Commit y deploy
 
 ---
 
-### ⏳ ETAPA 10: Webhook Mercado Pago
+### ⏳ ETAPA 10: Webhooks de Lemon Squeezy
 **Estado:** PENDIENTE
 
-**Objetivo:** Recibir notificaciones cuando un usuario paga y actualizar su suscripción.
+**Objetivo:** Recibir eventos de Lemon Squeezy y actualizar suscripciones en base de datos.
 
 #### Pasos:
-1. Crear endpoint `/api/mercado-pago/webhook.ts`
-2. Configurar URL del webhook en panel de Mercado Pago
-3. Recibir notificación de pago aprobado
-4. Validar firma de Mercado Pago (seguridad)
-5. Actualizar profiles:
-   - `subscription_status = 'active'`
-   - `current_plan = 'starter' | 'pro' | 'corporate'`
-   - `processes_limit = 5 | 10 | null`
-6. Crear registro en tabla `payments`
-7. Enviar email de confirmación (Etapa 13)
-8. Testing exhaustivo
-
-**Actualización de `processes_limit` según plan:**
-```javascript
-if (plan === 'starter') processes_limit = 5
-if (plan === 'pro') processes_limit = 10
-if (plan === 'corporate') processes_limit = null
-```
+1. Crear endpoint `/api/lemon-webhook.ts` en raíz de /api
+2. Configurar webhook en Lemon Squeezy dashboard:
+   - URL: `{APP_URL}/api/lemon-webhook`
+   - Generar signing secret
+   - Seleccionar eventos:
+     - `subscription_created`
+     - `subscription_updated`
+     - `subscription_cancelled`
+     - `subscription_expired`
+     - `subscription_payment_failed`
+     - `subscription_payment_success`
+3. Agregar `LEMON_SQUEEZY_WEBHOOK_SECRET` a variables de entorno
+4. Implementar verificación de signature (crypto.createHmac)
+5. Implementar handlers para cada evento:
+   - **subscription_created/updated:** Actualizar `subscription_status = 'active'`, guardar `lemon_subscription_id`, mapear plan y actualizar `processes_limit`
+   - **subscription_cancelled/expired:** Actualizar `subscription_status = 'expired'`, cerrar procesos activos
+   - **subscription_payment_failed:** Log y opcional notificación
+6. Mapeo de variant_id a plan:
+   - variant_id XXX → `current_plan = 'starter'`, `processes_limit = 5`
+   - variant_id YYY → `current_plan = 'pro'`, `processes_limit = 10`
+7. Usar `customData` del webhook para obtener `recruiterId`
+8. Testing con eventos de test mode
+9. Verificar logs de webhook en Lemon Squeezy dashboard
+10. Commit y deploy
 
 ---
 
-### ⏳ ETAPA 11: Frontend pantalla pricing
+### ⏳ ETAPA 11: Frontend - Integración de checkout
 **Estado:** PENDIENTE
 
-**Objetivo:** Crear página donde usuarios pueden ver planes y suscribirse.
+**Objetivo:** Implementar frontend para abrir checkout de Lemon Squeezy y gestionar suscripciones.
 
 #### Pasos:
-1. Crear componente `PricingPage.tsx`
-2. Mostrar 3 planes (Starter, Pro, Corporate)
-3. Para cada plan:
-   - Nombre, precio, características
-   - Botón "Suscribirse" (Starter y Pro)
-   - Botón "Contactar" (Corporate)
-4. Integrar con `/api/mercado-pago/create-preference`
-5. Redirigir a checkout de Mercado Pago
-6. Manejar retorno después de pago
-7. Agregar ruta en el router
-8. Link desde banner cuando trial expira
-
----
-
-### ⏳ ETAPA 11.5: Página Account Settings (NUEVA)
-**Estado:** PENDIENTE
-
-**Objetivo:** Permitir al usuario gestionar su cuenta y plan.
-
-#### Pasos:
-1. Crear componente `AccountSettings.tsx`
-2. Secciones:
-   - **Plan actual:** Mostrar plan, límites, fecha de renovación
-   - **Billing:** Historial de pagos
-   - **Datos de empresa:** Nombre, información de contacto
-   - **Cambiar plan:** Link a pricing page
-3. Agregar en menú/sidebar
-4. Integración con datos de Mercado Pago
-5. Testing
+1. Incluir script de Lemon.js en `index.html`:
+   - `<script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>`
+2. Crear componente `SubscriptionPlans.tsx` (o usar página de pricing existente)
+3. Mostrar 2 planes pagos (Starter $15, Pro $35)
+   - Plan Corporate se maneja por contacto directo (fuera de Lemon Squeezy)
+4. Implementar lógica de botón "Suscribirse":
+   - Llamar a `/api/create-checkout` con variant_id del plan elegido
+   - Recibir `checkoutUrl`
+   - Abrir checkout usando `window.LemonSqueezy.Url.Open(checkoutUrl)`
+5. Manejar estado de loading durante creación de checkout
+6. Integrar en flujo de trial expirado:
+   - Banner de bloqueo tiene botón "Suscribirse ahora"
+   - Abre modal con planes o directamente checkout
+7. Testing:
+   - Verificar overlay de checkout se abre correctamente
+   - Completar pago de prueba
+   - Verificar webhook actualiza DB
+   - Verificar usuario puede acceder después de pagar
+8. Build, commit y deploy
 
 ---
 
@@ -410,37 +422,46 @@ if (plan === 'corporate') processes_limit = null
 
 #### Pasos:
 1. Crear cuenta en Resend
-2. Configurar variables de entorno
+2. Configurar variables de entorno: `RESEND_API_KEY`
 3. Crear templates:
    - Bienvenida con trial
    - Trial por expirar (2 días antes)
    - Trial expirado
    - Confirmación de suscripción
    - Renovación de plan
-4. Crear servicio `emailService.ts`
+4. Crear servicio `emailService.ts` en `src/shared/services/`
 5. Integrar en:
    - Registro (Etapa 3)
-   - Webhook MP (Etapa 10)
+   - Webhook Lemon Squeezy (Etapa 10)
    - Cron job (Etapa 7)
-6. Testing
+6. Testing con emails de prueba
 
 ---
 
-### ⏳ ETAPA 14: Mercado Pago producción
+### ⏳ ETAPA 14: Lemon Squeezy producción
 **Estado:** PENDIENTE
 
 **Objetivo:** Activar pagos reales en producción.
 
 #### Pasos:
-1. Obtener credenciales de producción de Mercado Pago
-2. Actualizar variables de entorno en Vercel:
-   - `MP_ACCESS_TOKEN_PROD`
-   - `MP_PUBLIC_KEY_PROD`
-3. Configurar webhook URL de producción
-4. Testing con pago real pequeño
-5. Verificar flujo completo end-to-end
-6. Monitorear primeras transacciones
-7. Activar sistema
+1. Crear productos en **Production Mode** en Lemon Squeezy:
+   - "FirstStep Starter" - $15/mes
+   - "FirstStep Pro" - $35/mes
+2. Obtener variant IDs de producción (diferentes a test mode)
+3. Actualizar variables de entorno en Vercel:
+   - `LEMON_SQUEEZY_API_KEY` (production key)
+   - `LEMON_SQUEEZY_VARIANT_STARTER` (production variant)
+   - `LEMON_SQUEEZY_VARIANT_PRO` (production variant)
+4. Configurar webhook en production:
+   - URL: `https://firststepreclutamiento.com/api/lemon-webhook`
+   - Nuevo signing secret de producción
+   - Actualizar `LEMON_SQUEEZY_WEBHOOK_SECRET`
+5. Testing con pago real pequeño ($15)
+6. Verificar flujo completo end-to-end:
+   - Crear usuario → trial → expira → suscribe → paga → webhook actualiza
+7. Verificar en Lemon Squeezy dashboard que pago se registró
+8. Monitorear primeras transacciones
+9. Activar sistema
 
 ---
 
@@ -500,7 +521,7 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 
 3. **Suscripción a plan:**
    - Click en "Suscribirse"
-   - Completar pago en MP sandbox
+   - Completar pago en Lemon Squeezy test mode
    - Verificar webhook actualiza DB
    - Verificar email de confirmación
    - Crear procesos (respetar límite)
@@ -549,14 +570,14 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 
 ## 📊 PROGRESO GENERAL
 
-**Completadas:** 5/20 etapas (25%)
+**Completadas:** 8/20 etapas (40%)
 **En progreso:** 1/20 etapas (Etapa 6)
-**Pendientes:** 14/20 etapas (70%)
+**Pendientes:** 11/20 etapas (55%)
 
 ### Etapas Críticas Próximas:
-1. ✅ Etapa 6: Validación de límites
-2. 🔜 Etapa 7: Cron job trials vencidos
-3. 🔜 Etapa 8-11: Sistema de pagos completo
+1. 🔄 Etapa 6: Validación de límites (en progreso)
+2. 🔜 Etapa 8: Configuración de Lemon Squeezy
+3. 🔜 Etapa 9-11: Integración Lemon Squeezy completa
 
 ---
 
@@ -566,11 +587,11 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 - **Backend:** Vercel Serverless Functions
 - **Base de datos:** Supabase (PostgreSQL)
 - **Autenticación:** Supabase Auth
-- **Pagos:** Mercado Pago
+- **Pagos:** Lemon Squeezy (Merchant of Record)
 - **Emails:** Resend
-- **Exchange rates:** DolarAPI
 - **Deployment:** Vercel
 - **Cron jobs:** Vercel Cron
+- **SDK:** @lemonsqueezy/lemonsqueezy.js
 
 ---
 
@@ -579,7 +600,8 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 ### Seguridad:
 - Todos los endpoints backend usan `supabaseAdmin` (SERVICE_ROLE_KEY)
 - Validaciones siempre en backend, nunca confiar solo en frontend
-- Webhooks de MP deben validar firma
+- Webhooks de Lemon Squeezy deben validar signature con HMAC SHA256
+- API key de Lemon Squeezy solo en backend, NUNCA en frontend
 
 ### Consistencia de código:
 - Endpoints API en raíz de `/api`, NO en subdirectorios
@@ -593,7 +615,13 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 - Retener candidatos, CVs, respuestas
 - Permitir reactivación al suscribirse
 
+### Lemon Squeezy específico:
+- Plan Corporate NO se gestiona en Lemon Squeezy (contacto directo)
+- Suscripción solo permitida cuando trial expira (no durante trial)
+- Lemon Squeezy es Merchant of Record: ellos manejan impuestos y compliance
+- Multi-moneda automática: clientes pagan en su moneda, recibes USD
+
 ---
 
-**Última actualización:** 2025-12-05
-**Versión del documento:** 1.0
+**Última actualización:** 2025-12-09
+**Versión del documento:** 1.1

@@ -84,7 +84,7 @@ export default async function handler(
       if (currentCount >= processes_limit) {
         return res.status(403).json({
           success: false,
-          error: `Has alcanzado el límite de ${processes_limit} procesos activos de tu plan ${current_plan}. Cierra procesos existentes o actualiza tu plan.`,
+          error: `Has alcanzado el límite de ${processes_limit} procesos activos de tu plan ${current_plan}. Ve a Gestión de Procesos para cerrar o pausar procesos existentes, o actualiza tu plan.`,
           reason: 'limit_reached',
           currentCount,
           limit: processes_limit

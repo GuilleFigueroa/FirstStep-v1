@@ -348,7 +348,7 @@ export function RecruiterApp() {
     </Layout>
 
     {/* Overlay de suscripción expirada */}
-    {userProfile?.subscription_status === 'expired' && <SubscriptionExpiredBanner />}
+    {userProfile?.subscription_status === 'expired' && <SubscriptionExpiredBanner userProfile={userProfile} />}
     </>
   );
 }

@@ -22,6 +22,7 @@ export interface Profile {
   subscription_status?: string
   trial_ends_at?: string
   processes_limit?: number
+  lemon_subscription_id?: string
   created_at: string
   updated_at: string
 }

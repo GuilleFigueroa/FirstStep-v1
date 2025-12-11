@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import type { Profile } from '../../../shared/services/supabase';
 
@@ -51,12 +51,8 @@ export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBa
         throw new Error(data.error || 'Error al crear checkout');
       }
 
-      // Abrir checkout de Lemon Squeezy
-      if (data.checkoutUrl && typeof window !== 'undefined' && (window as any).LemonSqueezy) {
-        (window as any).LemonSqueezy.Url.Open(data.checkoutUrl);
-      } else {
-        window.location.href = data.checkoutUrl;
-      }
+      // Abrir checkout de Lemon Squeezy en nueva pestaña
+      window.open(data.checkoutUrl, '_blank');
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error al procesar el pago. Intenta nuevamente.');

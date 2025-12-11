@@ -47,7 +47,9 @@ export default async function handler(
     const event = req.body;
     const eventName = event.meta.event_name;
     const subscriptionData = event.data.attributes;
-    const customData = subscriptionData.first_subscription_item?.subscription_item_data?.custom_data;
+
+    // Los datos custom están en meta.custom_data (enviados desde checkout_data.custom)
+    const customData = event.meta?.custom_data;
 
     console.log(`Webhook received: ${eventName}`);
 

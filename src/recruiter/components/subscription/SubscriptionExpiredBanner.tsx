@@ -9,29 +9,8 @@ interface SubscriptionExpiredBannerProps {
 export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBannerProps) {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  // Listener para cerrar checkout con ESC
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && (window as any).LemonSqueezy) {
-        (window as any).LemonSqueezy.Refresh();
-        setLoadingPlan(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, []);
-
   const handleCheckout = async (variantId: string, planName: string) => {
     setLoadingPlan(planName);
-
-    // Debug: verificar que las variables existen
-    console.log('Checkout params:', {
-      variantId,
-      recruiterId: userProfile.id,
-      email: userProfile.email,
-      planName
-    });
 
     try {
       const response = await fetch('/api/create-checkout', {

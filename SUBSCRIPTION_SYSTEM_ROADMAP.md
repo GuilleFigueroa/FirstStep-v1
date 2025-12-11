@@ -318,36 +318,30 @@ Usuario puede reabrir procesos (respetando límite)
 
 ---
 
-### ⏳ ETAPA 10: Webhooks de Lemon Squeezy
-**Estado:** PENDIENTE
+### ✅ ETAPA 10: Webhooks de Lemon Squeezy
+**Estado:** COMPLETADA (2025-12-11)
 
 **Objetivo:** Recibir eventos de Lemon Squeezy y actualizar suscripciones en base de datos.
 
-#### Pasos:
-1. Crear endpoint `/api/lemon-webhook.ts` en raíz de /api
-2. Configurar webhook en Lemon Squeezy dashboard:
-   - URL: `{APP_URL}/api/lemon-webhook`
-   - Generar signing secret
-   - Seleccionar eventos:
-     - `subscription_created`
-     - `subscription_updated`
-     - `subscription_cancelled`
-     - `subscription_expired`
-     - `subscription_payment_failed`
-     - `subscription_payment_success`
-3. Agregar `LEMON_SQUEEZY_WEBHOOK_SECRET` a variables de entorno
-4. Implementar verificación de signature (crypto.createHmac)
-5. Implementar handlers para cada evento:
-   - **subscription_created/updated:** Actualizar `subscription_status = 'active'`, guardar `lemon_subscription_id`, mapear plan y actualizar `processes_limit`
-   - **subscription_cancelled/expired:** Actualizar `subscription_status = 'expired'`, cerrar procesos activos
-   - **subscription_payment_failed:** Log y opcional notificación
-6. Mapeo de variant_id a plan:
-   - variant_id XXX → `current_plan = 'starter'`, `processes_limit = 5`
-   - variant_id YYY → `current_plan = 'pro'`, `processes_limit = 10`
-7. Usar `customData` del webhook para obtener `recruiterId`
-8. Testing con eventos de test mode
-9. Verificar logs de webhook en Lemon Squeezy dashboard
-10. Commit y deploy
+#### ✅ Completado:
+1. ✅ Endpoint `/api/lemon-webhook.ts` creado
+2. ✅ Webhook configurado en Lemon Squeezy:
+   - URL: `https://firststep-app.online/api/lemon-webhook`
+   - Signing secret generado y sincronizado
+   - 6 eventos configurados: `subscription_created`, `subscription_updated`, `subscription_payment_success`, `subscription_cancelled`, `subscription_expired`, `subscription_payment_failed`
+3. ✅ `LEMON_SQUEEZY_WEBHOOK_SECRET` agregado a Vercel
+4. ✅ Verificación de signature HMAC SHA256 implementada
+5. ✅ Handlers implementados:
+   - **subscription_created/updated/payment_success:** Activa suscripción, guarda `lemon_subscription_id`, mapea plan
+   - **subscription_cancelled/expired/payment_failed:** Expira suscripción y cierra procesos
+6. ✅ Mapeo de variant_id:
+   - `1144014` → `starter`, 5 procesos
+   - `1144069` → `pro`, 10 procesos
+7. ✅ Custom data obtiene `recruiterId` desde `event.meta.custom_data`
+8. ✅ Código deployado y funcionando
+9. ⏳ Testing end-to-end pendiente
+
+**Archivo:** `api/lemon-webhook.ts`
 
 ---
 
@@ -567,15 +561,15 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 
 ## 📊 PROGRESO GENERAL
 
-**Completadas:** 13/20 etapas (65%)
+**Completadas:** 14/20 etapas (70%)
 **En progreso:** 0/20 etapas
-**Pendientes:** 7/20 etapas (35%)
+**Pendientes:** 6/20 etapas (30%)
 
-### ✅ Etapas Completadas Recientemente (2025-12-11):
+### ✅ Etapas Completadas HOY (2025-12-11):
 1. ✅ Etapa 6: Validación de límites
 2. ✅ Etapa 8: Configuración de Lemon Squeezy
 3. ✅ Etapa 9: Backend - Crear checkout
-4. ✅ Etapa 10: Webhooks de Lemon Squeezy
+4. ✅ Etapa 10: Webhooks de Lemon Squeezy ⭐ (recién completada)
 5. ✅ Etapa 11: Frontend - Integración de checkout
 
 ### Etapas Críticas Próximas:

@@ -573,10 +573,15 @@ Verificación de email desactivada. Usuarios entran directo al panel.
 5. ✅ Etapa 11: Frontend - Integración de checkout
 
 ### Etapas Críticas Próximas:
-1. 🔜 Configurar webhook en Lemon Squeezy dashboard (post-deploy)
-2. 🔜 Testing end-to-end del flujo de pago
+1. ✅ ~~Configurar webhook en Lemon Squeezy dashboard~~ → COMPLETADO
+2. 🔜 Testing end-to-end del flujo de pago (PRÓXIMO PASO)
 3. 🔜 Etapa 12: Frontend modales y UX
 4. 🔜 Etapa 13: Templates emails Resend
+
+### Decisiones de implementación:
+- Checkout abre en **nueva pestaña** (no overlay)
+- Refresh **manual** después del pago (no auto-refresh)
+- Idioma del checkout: **auto-detectado** por navegador del usuario
 
 ---
 

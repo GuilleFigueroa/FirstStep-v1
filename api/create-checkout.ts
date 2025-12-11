@@ -58,6 +58,10 @@ export default async function handler(
         data: {
           type: 'checkouts',
           attributes: {
+            checkout_options: {
+              embed: true,
+              button_color: '#7572FF'
+            },
             checkout_data: {
               email: email,
               custom: {

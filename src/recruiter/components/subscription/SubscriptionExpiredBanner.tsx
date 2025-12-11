@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import type { Profile } from '../../../shared/services/supabase';
 
@@ -7,10 +7,32 @@ interface SubscriptionExpiredBannerProps {
 }
 
 export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBannerProps) {
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  // Listener para cerrar checkout con ESC
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && (window as any).LemonSqueezy) {
+        (window as any).LemonSqueezy.Refresh();
+        setLoadingPlan(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
 
   const handleCheckout = async (variantId: string, planName: string) => {
-    setLoading(true);
+    setLoadingPlan(planName);
+
+    // Debug: verificar que las variables existen
+    console.log('Checkout params:', {
+      variantId,
+      recruiterId: userProfile.id,
+      email: userProfile.email,
+      planName
+    });
+
     try {
       const response = await fetch('/api/create-checkout', {
         method: 'POST',
@@ -39,7 +61,7 @@ export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBa
       console.error('Error creating checkout:', error);
       alert('Error al procesar el pago. Intenta nuevamente.');
     } finally {
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
   return (
@@ -83,19 +105,19 @@ export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBa
 
               <button
                 onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_STARTER, 'Starter')}
-                disabled={loading}
+                disabled={loadingPlan !== null}
                 className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>{loading ? 'Procesando...' : 'Plan Starter - $15/mes (5 procesos)'}</span>
+                <span>{loadingPlan === 'Starter' ? 'Procesando...' : 'Plan Starter - $15/mes (5 procesos)'}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
 
               <button
                 onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_PRO, 'Pro')}
-                disabled={loading}
+                disabled={loadingPlan !== null}
                 className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>{loading ? 'Procesando...' : 'Plan Pro - $35/mes (10 procesos)'}</span>
+                <span>{loadingPlan === 'Pro' ? 'Procesando...' : 'Plan Pro - $35/mes (10 procesos)'}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
 
@@ -103,7 +125,7 @@ export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBa
                 onClick={() => {
                   window.location.href = 'mailto:contacto@firststep.com?subject=Consulta Plan Corporate';
                 }}
-                disabled={loading}
+                disabled={loadingPlan !== null}
                 className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>Plan Corporate - Contactar</span>

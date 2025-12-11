@@ -58,13 +58,26 @@ export default async function handler(
         data: {
           type: 'checkouts',
           attributes: {
+            checkout_options: {
+              embed: true,
+              media: false,
+              logo: true,
+              desc: true,
+              discount: true,
+              dark: false,
+              subscription_preview: true,
+              button_color: '#7572FF'
+            },
             checkout_data: {
               email: email,
               custom: {
                 recruiter_id: recruiterId,
                 plan_name: planName
               }
-            }
+            },
+            expires_at: null,
+            preview: false,
+            test_mode: false
           },
           relationships: {
             store: {

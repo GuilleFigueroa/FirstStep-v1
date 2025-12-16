@@ -42,7 +42,11 @@ export function Layout({
     <div className="min-h-screen bg-background flex">
       {/* Sidebar - Fixed width and position */}
       <div className="fixed left-0 top-0 h-full w-64 z-10 bg-[rgba(0,0,0,0)]">
-        <Sidebar activeSection={activeSection} onSectionChange={onSectionChange} />
+        <Sidebar
+          activeSection={activeSection}
+          onSectionChange={onSectionChange}
+          userProfile={userProfile}
+        />
       </div>
       
       {/* Main Content Area - With left margin to account for fixed sidebar */}

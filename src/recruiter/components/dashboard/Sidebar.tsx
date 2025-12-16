@@ -1,14 +1,18 @@
+import { useState } from 'react';
 import {
   LayoutDashboard,
   Clock,
   FileText,
   Users,
-  LogOut
+  LogOut,
+  CreditCard
 } from 'lucide-react';
+import type { Profile } from '../../../shared/services/supabase';
 
 interface SidebarProps {
   activeSection?: string;
   onSectionChange?: (section: string) => void;
+  userProfile?: Profile | null;
 }
 
 const navigationItems = [
@@ -18,7 +22,35 @@ const navigationItems = [
   { id: 'postulation-processes', label: 'Gestión de Postulaciones', icon: Clock },
 ];
 
-export function Sidebar({ activeSection = 'applications', onSectionChange }: SidebarProps) {
+export function Sidebar({ activeSection = 'applications', onSectionChange, userProfile }: SidebarProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleManageSubscription = async () => {
+    if (!userProfile?.id) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/get-customer-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recruiterId: userProfile.id })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al obtener portal');
+      }
+
+      // Abrir customer portal en nueva pestaña
+      window.open(data.portalUrl, '_blank');
+    } catch (error) {
+      console.error('Error opening customer portal:', error);
+      alert('Error al abrir portal de suscripción. Intenta nuevamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="w-64 h-screen text-white flex flex-col" style={{ background: 'linear-gradient(to bottom, #7572FF, #5855E6)' }}>
       {/* Logo/Brand */}
@@ -61,7 +93,28 @@ export function Sidebar({ activeSection = 'applications', onSectionChange }: Sid
       </nav>
       
       {/* Bottom Section */}
-      <div className="p-4 border-t border-white/20">
+      <div className="p-4 border-t border-white/20 space-y-2">
+        {/* Mi Suscripción - Solo si tiene suscripción activa */}
+        {userProfile?.subscription_status === 'active' && (
+          <div
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+            onClick={handleManageSubscription}
+          >
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="text-sm font-medium">Cargando...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-5 h-5" />
+                <span className="text-sm font-medium">Mi Suscripción</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Salir */}
         <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Salir</span>

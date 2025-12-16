@@ -142,10 +142,10 @@ async function handleSubscriptionActivation(
     let currentPlan = planName;
     let processesLimit = null;
 
-    if (variantId === variantStarter) {
+    if (String(variantId) === variantStarter) {
       currentPlan = 'starter';
       processesLimit = 5;
-    } else if (variantId === variantPro) {
+    } else if (String(variantId) === variantPro) {
       currentPlan = 'pro';
       processesLimit = 10;
     }

@@ -102,7 +102,7 @@ export default async function handler(
         await handleSubscriptionActivation(
           recruiterId,
           planName,
-          subscriptionData.subscription_id,
+          event.data.id,
           event.data.attributes.variant_id
         );
         break;

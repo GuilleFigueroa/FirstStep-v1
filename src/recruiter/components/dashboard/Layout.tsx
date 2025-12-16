@@ -46,6 +46,7 @@ export function Layout({
           activeSection={activeSection}
           onSectionChange={onSectionChange}
           userProfile={userProfile}
+          onLogout={onLogout}
         />
       </div>
       

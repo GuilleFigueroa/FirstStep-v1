@@ -13,6 +13,7 @@ interface SidebarProps {
   activeSection?: string;
   onSectionChange?: (section: string) => void;
   userProfile?: Profile | null;
+  onLogout?: () => void;
 }
 
 const navigationItems = [
@@ -22,7 +23,7 @@ const navigationItems = [
   { id: 'postulation-processes', label: 'Gestión de Postulaciones', icon: Clock },
 ];
 
-export function Sidebar({ activeSection = 'applications', onSectionChange, userProfile }: SidebarProps) {
+export function Sidebar({ activeSection = 'applications', onSectionChange, userProfile, onLogout }: SidebarProps) {
   const [loading, setLoading] = useState(false);
 
   const handleManageSubscription = async () => {
@@ -121,7 +122,10 @@ export function Sidebar({ activeSection = 'applications', onSectionChange, userP
         )}
 
         {/* Salir */}
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer">
+        <div
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+          onClick={onLogout}
+        >
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Salir</span>
         </div>

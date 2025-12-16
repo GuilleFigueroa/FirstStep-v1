@@ -30,11 +30,17 @@ export function Sidebar({ activeSection = 'applications', onSectionChange, userP
 
     setLoading(true);
     try {
-      const response = await fetch('/api/get-customer-portal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recruiterId: userProfile.id })
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-customer-portal`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ recruiterId: userProfile.id })
+        }
+      );
 
       const data = await response.json();
 

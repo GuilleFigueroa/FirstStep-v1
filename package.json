@@ -64,6 +64,7 @@
             "@types/pdf-parse": "^1.1.5",
             "@vercel/node": "^5.3.24",
             "@vitejs/plugin-react-swc": "^3.10.2",
+            "supabase": "^2.67.1",
             "vite": "6.3.5"
       },
       "scripts": {

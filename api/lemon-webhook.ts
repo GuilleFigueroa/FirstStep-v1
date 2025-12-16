@@ -1,6 +1,29 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { supabaseAdmin } from './_utils/supabase';
+
+// Desactivar body parser automático para acceder al raw body
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
+/**
+ * Helper para leer el raw body de la request
+ */
+async function getRawBody(req: VercelRequest): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let data = '';
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      resolve(data);
+    });
+    req.on('error', reject);
+  });
+}
 
 /**
  * POST /api/lemon-webhook
@@ -24,6 +47,9 @@ export default async function handler(
   }
 
   try {
+    // Leer el raw body
+    const rawBody = await getRawBody(req);
+
     // Verificar signature del webhook
     const signature = req.headers['x-signature'] as string;
     const secret = process.env.LEMON_SQUEEZY_WEBHOOK_SECRET;
@@ -33,18 +59,24 @@ export default async function handler(
       return res.status(500).json({ error: 'Webhook secret not configured' });
     }
 
-    // Verificar que la signature coincida
-    const body = JSON.stringify(req.body);
-    const hmac = createHmac('sha256', secret);
-    const digest = hmac.update(body).digest('hex');
+    if (!signature) {
+      console.error('Missing X-Signature header');
+      return res.status(401).json({ error: 'Missing signature' });
+    }
 
-    if (signature !== digest) {
+    // Verificar que la signature coincida usando el raw body
+    const hmac = createHmac('sha256', secret);
+    const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+    const signatureBuffer = Buffer.from(signature, 'utf8');
+
+    // Usar comparación segura para prevenir timing attacks
+    if (!timingSafeEqual(digest, signatureBuffer)) {
       console.error('Invalid webhook signature');
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
-    // Procesar evento
-    const event = req.body;
+    // Parsear el body después de verificar la firma
+    const event = JSON.parse(rawBody);
     const eventName = event.meta.event_name;
     const subscriptionData = event.data.attributes;
 

@@ -59,7 +59,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
-        <div className="max-w-5xl w-full pointer-events-auto">
+        <div className="max-w-4xl w-full pointer-events-auto">
           <div className="relative bg-card border border-purple-500/20 rounded-2xl p-8 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.12)]">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 
@@ -100,19 +100,19 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                     <div className="space-y-2 mb-6 text-sm">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>5 procesos activos</span>
+                        <span className="text-foreground">5 procesos activos</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Candidatos ilimitados</span>
+                        <span className="text-foreground">Candidatos ilimitados</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Scoring de alineación preciso</span>
+                        <span className="text-foreground">Scoring de alineación preciso</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Gestión de procesos</span>
+                        <span className="text-foreground">Gestión de procesos</span>
                       </div>
                     </div>
 
@@ -145,19 +145,19 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                     <div className="space-y-2 mb-6 text-sm">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>10 procesos activos</span>
+                        <span className="text-foreground">10 procesos activos</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Todo lo del Starter +</span>
+                        <span className="text-foreground">Todo lo del Starter +</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Reportes ampliados</span>
+                        <span className="text-foreground">Reportes ampliados</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Soporte prioritario</span>
+                        <span className="text-foreground">Soporte prioritario</span>
                       </div>
                     </div>
 
@@ -189,19 +189,19 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                     <div className="space-y-2 mb-6 text-sm">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Procesos ilimitados</span>
+                        <span className="text-foreground">Procesos ilimitados</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Personalización completa</span>
+                        <span className="text-foreground">Personalización completa</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Soporte dedicado</span>
+                        <span className="text-foreground">Soporte dedicado</span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
-                        <span>Integraciones personalizadas</span>
+                        <span className="text-foreground">Integraciones personalizadas</span>
                       </div>
                     </div>
 

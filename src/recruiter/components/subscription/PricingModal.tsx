@@ -58,7 +58,14 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
 
       {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+      <div
+        className="fixed inset-0 flex items-center justify-center p-4 z-50"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+      >
         <div className="w-full" style={{ maxWidth: '880px' }}>
           <div className="relative bg-card border border-purple-500/20 rounded-2xl p-6 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.12)]">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
@@ -66,7 +73,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
             {/* Botón X */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground z-10"
             >
               <X className="h-5 w-5" />
             </button>

@@ -59,30 +59,16 @@ export function SubscriptionBanner({ status, userProfile }: SubscriptionBannerPr
   // Banner de trial expirado
   if (subscriptionStatus === 'expired') {
     return (
-      <>
-        <div className="px-6 pt-4">
-          <Alert variant="destructive" className="border-l-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>
-                <strong>Tu trial ha finalizado.</strong> Suscríbete para continuar usando FirstStep.
-              </span>
-              <button
-                onClick={() => setShowPricingModal(true)}
-                className="text-sm underline font-medium hover:no-underline"
-              >
-                Ver planes
-              </button>
-            </AlertDescription>
-          </Alert>
-        </div>
-        {showPricingModal && userProfile && (
-          <PricingModal
-            userProfile={userProfile}
-            onClose={() => setShowPricingModal(false)}
-          />
-        )}
-      </>
+      <div className="px-6 pt-4">
+        <Alert variant="destructive" className="border-l-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <span>
+              <strong>Tu trial ha finalizado.</strong> Suscríbete para continuar usando FirstStep.
+            </span>
+          </AlertDescription>
+        </Alert>
+      </div>
     )
   }
 

@@ -59,7 +59,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
-        <div className="max-w-4xl w-full pointer-events-auto">
+        <div className="max-w-[1300px] w-full pointer-events-auto">
           <div className="relative bg-card border border-purple-500/20 rounded-2xl p-8 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.12)]">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 
@@ -86,7 +86,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                 <div className="relative bg-card border border-purple-500/20 rounded-xl p-6 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1)]">
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/5 via-transparent to-transparent pointer-events-none"></div>
 
-                  <div className="relative z-10">
+                  <div className="relative z-10 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2">Starter</h3>
                     <div className="mb-4">
                       <span className="text-3xl font-bold text-purple-600">US$ 15</span>
@@ -97,7 +97,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                       Para freelancers que quieren mejorar su productividad
                     </p>
 
-                    <div className="space-y-2 mb-6 text-sm">
+                    <div className="space-y-2 mb-6 text-sm flex-1">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
                         <span className="text-foreground">5 procesos activos</span>
@@ -131,7 +131,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                 <div className="relative bg-card border border-purple-500/20 rounded-xl p-6 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1)]">
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 
-                  <div className="relative z-10">
+                  <div className="relative z-10 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2">Pro</h3>
                     <div className="mb-4">
                       <span className="text-3xl font-bold text-purple-600">US$ 35</span>
@@ -142,7 +142,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                       Para reclutadores con más volumen y agencias en crecimiento
                     </p>
 
-                    <div className="space-y-2 mb-6 text-sm">
+                    <div className="space-y-2 mb-6 text-sm flex-1">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
                         <span className="text-foreground">10 procesos activos</span>
@@ -176,7 +176,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                 <div className="relative bg-card border border-purple-500/20 rounded-xl p-6 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1)]">
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 
-                  <div className="relative z-10">
+                  <div className="relative z-10 flex flex-col h-full">
                     <h3 className="text-xl font-semibold mb-2">Corporate</h3>
                     <div className="mb-4">
                       <span className="text-3xl font-bold text-purple-600">Personalizado</span>
@@ -186,7 +186,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
                       Para equipos o empresas con necesidades avanzadas
                     </p>
 
-                    <div className="space-y-2 mb-6 text-sm">
+                    <div className="space-y-2 mb-6 text-sm flex-1">
                       <div className="flex items-start gap-2">
                         <span className="text-purple-600 mt-0.5">✓</span>
                         <span className="text-foreground">Procesos ilimitados</span>

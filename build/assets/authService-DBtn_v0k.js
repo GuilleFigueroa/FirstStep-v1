@@ -1,4 +1,4 @@
-import{b as o,s}from"./supabase-CNU5yfv7.js";/**
+import{b as o,s}from"./supabase-DVTESEAR.js";/**
  * @license lucide-react v0.487.0 - ISC
  *
  * This source code is licensed under the ISC license.

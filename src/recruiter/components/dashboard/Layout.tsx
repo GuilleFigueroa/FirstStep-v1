@@ -110,7 +110,7 @@ export function Layout({
         </header>
 
         {/* Subscription Banner */}
-        {subscriptionStatus && <SubscriptionBanner status={subscriptionStatus} />}
+        {subscriptionStatus && <SubscriptionBanner status={subscriptionStatus} userProfile={userProfile} />}
 
         {/* Page Content */}
         <main className="flex-1 p-6 overflow-auto">

@@ -70,15 +70,14 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
           <div className="relative bg-card border border-purple-500/20 rounded-2xl p-6 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.12)]">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 
-            {/* Botón X */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground z-10"
-            >
-              <X className="h-5 w-5" />
-            </button>
-
             <div className="relative z-10">
+              {/* Botón X */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 rounded-lg hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-5 w-5" />
+              </button>
               {/* Header */}
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-semibold mb-2">Planes de FirstStep</h2>

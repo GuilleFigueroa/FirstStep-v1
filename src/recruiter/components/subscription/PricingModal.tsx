@@ -59,7 +59,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
 
       {/* Modal */}
       <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
-        <div className="max-w-[1300px] w-full pointer-events-auto">
+        <div className="max-w-[1100px] w-full pointer-events-auto">
           <div className="relative bg-card border border-purple-500/20 rounded-2xl p-8 shadow-[0_0_0_1px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.1),0_16px_32px_rgba(0,0,0,0.12)]">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
 

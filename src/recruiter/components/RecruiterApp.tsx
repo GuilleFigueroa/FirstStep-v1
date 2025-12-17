@@ -17,6 +17,7 @@ import { Dashboard } from "./dashboard/Dashboard";
 import { Layout } from "./dashboard/Layout";
 import { AuthScreen } from "./auth/AuthScreen";
 import { SubscriptionExpiredBanner } from "./subscription/SubscriptionExpiredBanner";
+import { TrialWelcomeBanner } from "./subscription/TrialWelcomeBanner";
 import { FileText, AlertCircle } from "lucide-react";
 import { getCurrentUser, signOut } from "../services/authService";
 import type { Profile } from "../../shared/services/supabase";
@@ -43,6 +44,7 @@ export function RecruiterApp() {
   const [userProfile, setUserProfile] = useState<Profile | null>(null);
   const [activeSection, setActiveSection] = useState<string>('dashboard');
   const [selectedProcessFilter, setSelectedProcessFilter] = useState<string | undefined>(undefined);
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false);
   const [profileData, setProfileData] = useState<JobProfile>({
     title: '',
     requirements: [],
@@ -77,6 +79,18 @@ export function RecruiterApp() {
     window.scrollTo(0, 0);
   }, [currentStep]);
 
+  // Verificar si debe mostrar el banner de bienvenida
+  useEffect(() => {
+    if (!userProfile) return;
+
+    // Solo mostrar si está en trial y no lo ha visto antes
+    const hasSeenWelcome = localStorage.getItem('has_seen_welcome_banner');
+
+    if (userProfile.subscription_status === 'trialing' && !hasSeenWelcome) {
+      setShowWelcomeBanner(true);
+    }
+  }, [userProfile]);
+
   const checkAuthStatus = async () => {
     try {
       const user = await getCurrentUser();
@@ -108,6 +122,11 @@ export function RecruiterApp() {
     } catch (error) {
       console.error('Error signing out:', error);
     }
+  };
+
+  const handleCloseWelcomeBanner = () => {
+    localStorage.setItem('has_seen_welcome_banner', 'true');
+    setShowWelcomeBanner(false);
   };
 
   const handleSectionChange = (section: string) => {
@@ -349,6 +368,14 @@ export function RecruiterApp() {
 
     {/* Overlay de suscripción expirada */}
     {userProfile?.subscription_status === 'expired' && <SubscriptionExpiredBanner userProfile={userProfile} />}
+
+    {/* Banner de bienvenida al trial */}
+    {showWelcomeBanner && userProfile && (
+      <TrialWelcomeBanner
+        userProfile={userProfile}
+        onClose={handleCloseWelcomeBanner}
+      />
+    )}
     </>
   );
 }

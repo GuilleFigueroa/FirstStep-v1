@@ -1,44 +1,14 @@
 import { useState } from 'react';
 import { Clock, ArrowRight } from 'lucide-react';
 import type { Profile } from '../../../shared/services/supabase';
+import { PricingModal } from './PricingModal';
 
 interface SubscriptionExpiredBannerProps {
   userProfile: Profile;
 }
 
 export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBannerProps) {
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-
-  const handleCheckout = async (variantId: string, planName: string) => {
-    setLoadingPlan(planName);
-
-    try {
-      const response = await fetch('/api/create-checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          variantId,
-          recruiterId: userProfile.id,
-          email: userProfile.email,
-          planName
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al crear checkout');
-      }
-
-      // Abrir checkout de Lemon Squeezy en nueva pestaña
-      window.open(data.checkoutUrl, '_blank');
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      alert('Error al procesar el pago. Intenta nuevamente.');
-    } finally {
-      setLoadingPlan(null);
-    }
-  };
+  const [showPricingModal, setShowPricingModal] = useState(false);
   return (
     <>
       {/* Backdrop overlay */}
@@ -79,41 +49,23 @@ export function SubscriptionExpiredBanner({ userProfile }: SubscriptionExpiredBa
               </div>
 
               <button
-                onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_STARTER, 'Starter')}
-                disabled={loadingPlan !== null}
-                className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setShowPricingModal(true)}
+                className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98]"
               >
-                <span>{loadingPlan === 'Starter' ? 'Procesando...' : 'Plan Starter - $15/mes (5 procesos)'}</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-
-              <button
-                onClick={() => handleCheckout(import.meta.env.VITE_LEMON_SQUEEZY_VARIANT_PRO, 'Pro')}
-                disabled={loadingPlan !== null}
-                className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>{loadingPlan === 'Pro' ? 'Procesando...' : 'Plan Pro - $35/mes (10 procesos)'}</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-
-              <button
-                onClick={() => {
-                  window.location.href = 'mailto:contacto@firststep.com?subject=Consulta Plan Corporate';
-                }}
-                disabled={loadingPlan !== null}
-                className="w-full mt-3 group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-6 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Plan Corporate - Contactar</span>
+                <span>Ver planes</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
           </div>
-
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            ¿Tienes alguna duda? <button className="text-foreground hover:text-purple-500 transition-colors underline underline-offset-2">Contáctanos</button>
-          </p>
         </div>
       </div>
+
+      {showPricingModal && (
+        <PricingModal
+          userProfile={userProfile}
+          onClose={() => setShowPricingModal(false)}
+        />
+      )}
     </>
   );
 }

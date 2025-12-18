@@ -213,7 +213,7 @@ export function PricingModal({ userProfile, onClose }: PricingModalProps) {
 
                     <button
                       onClick={() => {
-                        window.location.href = 'mailto:contacto@firststep.com?subject=Consulta Plan Corporate';
+                        window.open('https://www.linkedin.com/company/firststep-app/', '_blank');
                       }}
                       disabled={loadingPlan !== null}
                       className="w-full group relative overflow-hidden bg-destructive hover:bg-destructive/90 text-white px-4 py-2.5 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-destructive/20 hover:shadow-xl hover:shadow-destructive/30 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed text-sm"

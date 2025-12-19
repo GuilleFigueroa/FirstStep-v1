@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -15,7 +16,6 @@ import { CandidatesTable } from "./candidates/CandidatesTable";
 import { PostulationsTable } from "./postulations/PostulationsTable";
 import { Dashboard } from "./dashboard/Dashboard";
 import { Layout } from "./dashboard/Layout";
-import { AuthScreen } from "./auth/AuthScreen";
 import { SubscriptionExpiredBanner } from "./subscription/SubscriptionExpiredBanner";
 import { TrialWelcomeBanner } from "./subscription/TrialWelcomeBanner";
 import { FileText, AlertCircle } from "lucide-react";
@@ -104,12 +104,6 @@ export function RecruiterApp() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogin = (profile: Profile) => {
-    setUserProfile(profile);
-    setUserData(profileToUserData(profile));
-    setIsAuthenticated(true);
   };
 
   const handleLogout = async () => {
@@ -251,17 +245,17 @@ export function RecruiterApp() {
   }
 
   if (!isAuthenticated) {
-    return <AuthScreen onAuthenticate={handleLogin} />;
+    return <Navigate to="/login" replace />;
   }
 
   // ⭐ GUARD: Validar estado de aprobación de cuenta
   if (userProfile) {
     const accountStatus = userProfile.account_status || 'approved';
 
-    // Si está rechazado, hacer logout y mostrar AuthScreen
+    // Si está rechazado, hacer logout y redirigir al login
     if (accountStatus === 'rejected') {
       handleLogout();
-      return <AuthScreen onAuthenticate={handleLogin} />;
+      return <Navigate to="/login" replace />;
     }
   }
 

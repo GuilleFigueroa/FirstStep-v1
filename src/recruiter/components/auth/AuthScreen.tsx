@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../../../ui/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../ui/components/ui/card';
 import { Input } from '../../../ui/components/ui/input';
@@ -8,11 +9,17 @@ import { signIn, signUp, requestPasswordReset } from '../../services/authService
 import type { Profile } from '../../../shared/services/supabase';
 
 interface AuthScreenProps {
-  onAuthenticate: (userData: Profile) => void;
+  onAuthenticate?: (userData: Profile) => void;
 }
 
 export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
-  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Derivar el modo de la URL (única fuente de verdad)
+  const mode: 'login' | 'register' | 'forgot-password' =
+    location.pathname === '/register' ? 'register' : 'login';
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +60,11 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
         });
 
         if (result.success && result.user) {
-          onAuthenticate(result.user);
+          if (onAuthenticate) {
+            onAuthenticate(result.user);
+          } else {
+            navigate('/');
+          }
         } else {
           setError(result.error || 'Error during registration');
         }
@@ -64,7 +75,11 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
         });
 
         if (result.success && result.user) {
-          onAuthenticate(result.user);
+          if (onAuthenticate) {
+            onAuthenticate(result.user);
+          } else {
+            navigate('/');
+          }
         } else {
           setError(result.error || 'Error during login');
         }
@@ -93,7 +108,11 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
   };
 
   const switchMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
+    if (mode === 'login') {
+      navigate('/register');
+    } else {
+      navigate('/login');
+    }
     resetForm();
   };
 
@@ -141,7 +160,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => { setResetEmailSent(false); setMode('login'); }}
+                  onClick={() => { setResetEmailSent(false); navigate('/login'); }}
                   className="mt-4"
                 >
                   Volver al login
@@ -291,7 +310,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
                   type="button"
                   variant="link"
                   className="text-[#7572FF] font-medium p-0 h-auto"
-                  onClick={() => setMode('login')}
+                  onClick={() => navigate('/login')}
                   disabled={loading}
                 >
                   Volver al login

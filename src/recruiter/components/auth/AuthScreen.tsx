@@ -137,7 +137,7 @@ export function AuthScreen({ onAuthenticate }: AuthScreenProps) {
               ? 'Ingresa tu email y te enviaremos un enlace para recuperar tu contraseña'
               : (mode === 'login'
                 ? 'Ingresa a tu cuenta para continuar'
-                : 'Únete a FirstStep para revolucionar tu reclutamiento')
+                : 'Comienza tu prueba gratuita de 7 días, sin tarjeta de crédito')
             }
           </p>
         </div>

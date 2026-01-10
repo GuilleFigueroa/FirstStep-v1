@@ -34,7 +34,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
         if (result.success && result.stats) {
           setStats({
             activeProcesses: result.stats.active,
-            totalCandidates: 0, // TODO: Conectar con candidatos cuando esté implementado
+            totalCandidates: result.stats.totalCandidates || 0,
             completedProcesses: result.stats.closed,
             thisMonth: result.stats.thisMonth
           });
@@ -61,7 +61,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
       if (result.success && result.stats) {
         setStats({
           activeProcesses: result.stats.active,
-          totalCandidates: 0,
+          totalCandidates: result.stats.totalCandidates || 0,
           completedProcesses: result.stats.closed,
           thisMonth: result.stats.thisMonth
         });
@@ -162,7 +162,7 @@ export function Dashboard({ userProfile }: DashboardProps) {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.totalCandidates}</div>
             <p className="text-xs text-muted-foreground">
-              Próximamente disponible
+              {stats.totalCandidates === 0 ? 'Aún no hay candidatos' : 'Candidatos registrados'}
             </p>
           </CardContent>
         </Card>

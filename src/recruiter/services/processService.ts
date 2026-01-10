@@ -349,6 +349,21 @@ export async function getProcessStats(recruiterId: string) {
       return { success: false, error: error.message }
     }
 
+    // Contar candidatos totales de todos los procesos del recruiter
+    const processIds = processes?.map(p => p.id) || [];
+    let totalCandidates = 0;
+
+    if (processIds.length > 0) {
+      const { count, error: countError } = await supabase
+        .from('candidates')
+        .select('*', { count: 'exact', head: true })
+        .in('process_id', processIds);
+
+      if (!countError) {
+        totalCandidates = count || 0;
+      }
+    }
+
     const stats = {
       total: processes?.length || 0,
       active: processes?.filter(p => p.status === 'active').length || 0,
@@ -358,7 +373,8 @@ export async function getProcessStats(recruiterId: string) {
         const created = new Date(p.created_at)
         const now = new Date()
         return created.getMonth() === now.getMonth() && created.getFullYear() === now.getFullYear()
-      }).length || 0
+      }).length || 0,
+      totalCandidates
     }
 
     return { success: true, stats }

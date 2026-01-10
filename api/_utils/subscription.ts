@@ -75,7 +75,7 @@ export async function validateProcessLimit(
       if (currentCount >= processes_limit) {
         return {
           canProceed: false,
-          error: `Has alcanzado el límite de ${processes_limit} procesos activos de tu plan ${current_plan}. Ve a Gestión de Procesos para cerrar o pausar procesos existentes, o actualiza tu plan.`,
+          error: `Has alcanzado el límite de procesos activos para tu plan ${current_plan.charAt(0).toUpperCase() + current_plan.slice(1)} (${currentCount}/${processes_limit}). Cierra o pausa un proceso existente, o actualiza tu plan para continuar.`,
           reason: 'limit_reached',
           currentCount,
           limit: processes_limit

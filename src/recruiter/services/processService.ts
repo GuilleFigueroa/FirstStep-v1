@@ -25,8 +25,8 @@ export interface ProcessListResponse {
 // Crear nuevo proceso de reclutamiento
 export async function createProcess(data: CreateProcessData): Promise<ProcessResponse> {
   try {
-    // Llamar al endpoint backend que valida y crea el proceso
-    const response = await fetch('/api/create-process', {
+    // Llamar al endpoint consolidado que valida y crea el proceso
+    const response = await fetch('/api/process', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -164,30 +164,45 @@ export async function getProcessByUniqueId(uniqueId: string): Promise<ProcessRes
 }
 
 // Actualizar estado de proceso
+// IMPORTANTE: Ahora valida límites del plan al reactivar procesos
 export async function updateProcessStatus(
   processId: string,
-  status: 'active' | 'closed' | 'paused'
+  status: 'active' | 'closed' | 'paused',
+  recruiterId: string
 ): Promise<ProcessResponse> {
   try {
-    const { data: process, error } = await supabase
-      .from('processes')
-      .update({
+    // Llamar al endpoint consolidado que valida límites al reactivar
+    const response = await fetch('/api/process', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        processId,
         status,
-        updated_at: new Date().toISOString()
+        recruiterId
       })
-      .eq('id', processId)
-      .select()
-      .single()
+    });
 
-    if (error) {
-      console.error('Error updating process status:', error)
-      return { success: false, error: error.message }
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        error: result.error || 'Error al actualizar el proceso'
+      };
     }
 
-    return { success: true, process }
+    return {
+      success: true,
+      process: result.process
+    };
   } catch (error) {
-    console.error('Unexpected error updating process:', error)
-    return { success: false, error: 'Error inesperado al actualizar proceso' }
+    console.error('Unexpected error updating process:', error);
+    return {
+      success: false,
+      error: 'Error inesperado al actualizar proceso'
+    };
   }
 }
 
@@ -230,7 +245,7 @@ export async function deleteProcess(
   deletedCVs?: number;
 }> {
   try {
-    const response = await fetch('/api/delete-process', {
+    const response = await fetch('/api/process', {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'

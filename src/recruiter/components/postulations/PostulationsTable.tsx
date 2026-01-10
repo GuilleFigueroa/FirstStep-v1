@@ -131,7 +131,7 @@ export function PostulationsTable({ userProfile, onNavigateToCandidates }: Postu
   // Actualizar estado de proceso
   const handleStatusChange = async (processId: string, newStatus: 'active' | 'closed' | 'paused') => {
     try {
-      const result = await updateProcessStatus(processId, newStatus);
+      const result = await updateProcessStatus(processId, newStatus, userProfile.id);
       if (result.success) {
         // Recargar procesos para reflejar el cambio
         handleRetry();

@@ -71,7 +71,7 @@ export function PostulationDetailView({ processId, onBack, onNavigateToCandidate
 
     try {
       setChangingStatus(true);
-      const result = await updateProcessStatus(processId, newStatus);
+      const result = await updateProcessStatus(processId, newStatus, process.recruiter_id);
 
       if (result.success) {
         // Recargar detalles para reflejar cambio

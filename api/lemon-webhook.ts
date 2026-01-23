@@ -83,15 +83,32 @@ export default async function handler(
     // Los datos custom están en meta.custom_data (enviados desde checkout_data.custom)
     const customData = event.meta?.custom_data;
 
-    console.log(`Webhook received: ${eventName}`);
+    // customer_id siempre está disponible en los webhooks de Lemon Squeezy
+    const lemonCustomerId = String(subscriptionData.customer_id);
 
-    // Obtener datos del recruiter desde customData
-    const recruiterId = customData?.recruiter_id;
+    console.log(`Webhook received: ${eventName}, customer_id: ${lemonCustomerId}`);
+
+    // Obtener datos del recruiter desde customData (solo disponible en checkout inicial)
+    let recruiterId = customData?.recruiter_id;
     const planName = customData?.plan_name;
 
+    // Si no hay recruiterId en custom_data (ej: renovaciones), buscar por lemon_customer_id
     if (!recruiterId) {
-      console.error('Missing recruiter_id in webhook custom data');
-      return res.status(400).json({ error: 'Missing recruiter_id' });
+      console.log('No recruiter_id in custom_data, searching by lemon_customer_id...');
+
+      const { data: profile, error: searchError } = await supabaseAdmin
+        .from('profiles')
+        .select('id')
+        .eq('lemon_customer_id', lemonCustomerId)
+        .single();
+
+      if (searchError || !profile) {
+        console.error('Could not find recruiter by lemon_customer_id:', lemonCustomerId);
+        return res.status(400).json({ error: 'Could not identify recruiter' });
+      }
+
+      recruiterId = profile.id;
+      console.log(`Found recruiter ${recruiterId} by lemon_customer_id`);
     }
 
     // Procesar según tipo de evento
@@ -103,7 +120,8 @@ export default async function handler(
           recruiterId,
           planName,
           event.data.id,
-          event.data.attributes.variant_id
+          event.data.attributes.variant_id,
+          lemonCustomerId
         );
         break;
 
@@ -132,7 +150,8 @@ async function handleSubscriptionActivation(
   recruiterId: string,
   planName: string,
   lemonSubscriptionId: string,
-  variantId: string
+  variantId: string,
+  lemonCustomerId: string
 ) {
   try {
     // Mapear variant_id a plan y límites
@@ -150,7 +169,7 @@ async function handleSubscriptionActivation(
       processesLimit = 10;
     }
 
-    // Actualizar perfil del recruiter
+    // Actualizar perfil del recruiter (incluye lemon_customer_id para futuras renovaciones)
     const { error: updateError } = await supabaseAdmin
       .from('profiles')
       .update({
@@ -158,6 +177,7 @@ async function handleSubscriptionActivation(
         current_plan: currentPlan,
         processes_limit: processesLimit,
         lemon_subscription_id: lemonSubscriptionId,
+        lemon_customer_id: lemonCustomerId,
         updated_at: new Date().toISOString()
       })
       .eq('id', recruiterId);
@@ -167,7 +187,7 @@ async function handleSubscriptionActivation(
       throw updateError;
     }
 
-    console.log(`Subscription activated for recruiter ${recruiterId}: ${currentPlan}`);
+    console.log(`Subscription activated for recruiter ${recruiterId}: ${currentPlan}, customer_id: ${lemonCustomerId}`);
 
   } catch (error) {
     console.error('Error in handleSubscriptionActivation:', error);

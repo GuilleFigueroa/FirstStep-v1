@@ -62,8 +62,10 @@ export function JobPostingConfig({ profile, onBack, onCreatePosting, onStartSimu
       });
 
       if (result.success && result.process) {
-        // Mostrar el link real generado
-        setPostingLink(result.process.unique_link);
+        // Reconstruir el link usando el origen actual del entorno (local o producción)
+        const parts = result.process.unique_link.split('/apply/');
+        const uniqueId = parts.length > 1 ? parts[1] : result.process.unique_link;
+        setPostingLink(`${window.location.origin}/apply/${uniqueId}`);
         setIsPostingCreated(true);
 
         // Crear JobPosting para compatibilidad con el flujo existente

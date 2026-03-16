@@ -115,7 +115,7 @@ export default async function handler(
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-      case 'subscription_payment_success':
+        // event.data es un objeto subscription → event.data.id es el subscription ID correcto
         await handleSubscriptionActivation(
           recruiterId,
           planName,
@@ -123,6 +123,12 @@ export default async function handler(
           event.data.attributes.variant_id,
           lemonCustomerId
         );
+        break;
+
+      case 'subscription_payment_success':
+        // event.data es un objeto subscription-invoice → event.data.id es el invoice ID, NO el subscription ID
+        // Solo confirmamos que la suscripción está activa, sin tocar lemon_subscription_id, current_plan ni processes_limit
+        await handlePaymentConfirmation(recruiterId, lemonCustomerId);
         break;
 
       case 'subscription_cancelled':
@@ -191,6 +197,34 @@ async function handleSubscriptionActivation(
 
   } catch (error) {
     console.error('Error in handleSubscriptionActivation:', error);
+    throw error;
+  }
+}
+
+/**
+ * Confirma un pago exitoso sin modificar datos de la suscripción
+ * Usado para subscription_payment_success (renovaciones), donde event.data es un invoice, no una subscription
+ */
+async function handlePaymentConfirmation(recruiterId: string, lemonCustomerId: string) {
+  try {
+    const { error: updateError } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        subscription_status: 'active',
+        lemon_customer_id: lemonCustomerId,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', recruiterId);
+
+    if (updateError) {
+      console.error('Error confirming payment:', updateError);
+      throw updateError;
+    }
+
+    console.log(`Payment confirmed for recruiter ${recruiterId}`);
+
+  } catch (error) {
+    console.error('Error in handlePaymentConfirmation:', error);
     throw error;
   }
 }
